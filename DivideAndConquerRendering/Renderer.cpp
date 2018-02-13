@@ -4,6 +4,8 @@ const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
 
+DeviceGroup Renderer::deviceGroup;
+
 Renderer::Renderer()
 {
 	createInstance();
@@ -95,6 +97,11 @@ void Renderer::setupDebugCallBack()
 	
 }
 
+void Renderer::createSurface()
+{
+	vk::DisplaySurfaceCreateInfoKHR;
+}
+
 void Renderer::setupDeviceGroup()
 {
 	
@@ -118,7 +125,13 @@ void Renderer::setupDeviceGroup()
 	}
 
 	arrangeGroup(physicalDevices);
-	// Arrange the group, in a determinstic order
+
+
+
+
+	for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
+		deviceGroup.addDevice(instance, *device);
+	
 }
 
 bool Renderer::isDeviceSuitable(const vk::PhysicalDevice & device)
