@@ -93,7 +93,7 @@ void Renderer::setupDebugCallBack()
 
 std::vector<const char*> Renderer::getRequiredExtensions()
 {
-	uint32_t glfwExtensionCount = 0;
+
 	unsigned int extensionCount;
 
 	SDL_Vulkan_GetInstanceExtensions(Window::window, &extensionCount, nullptr);
