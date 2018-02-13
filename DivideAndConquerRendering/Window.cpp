@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+SDL_Window* Window::window;
+
 Window::Window(int width, int height)
 {
 	this->width = width;
@@ -18,7 +21,3 @@ Window::~Window()
 {
 }
 
-SDL_Window * Window::getWindow()
-{
-	return window;
-}

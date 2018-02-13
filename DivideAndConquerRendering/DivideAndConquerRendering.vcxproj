@@ -120,9 +120,12 @@
   <ItemGroup>
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
