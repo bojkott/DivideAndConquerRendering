@@ -7,16 +7,6 @@ class DeviceContext {
 public:
 	enum class DEVICE_MODE {WINDOW, HEADLESS};
 private:
-	struct QueueFamilyIndices 
-	{
-		int graphicsFamily = -1;
-		int presentFamily = -1;
-		bool headless = false;
-		bool isComplete()
-		{
-			return graphicsFamily >= 0 && (presentFamily >= 0 || headless);
-		}
-	};
 
 	DEVICE_MODE mode;
 
@@ -27,6 +17,17 @@ private:
 	vk::CommandPool commandPool;
 	vk::Queue graphicsQueue;
 
+
+	struct QueueFamilyIndices
+	{
+		int graphicsFamily = -1;
+		int presentFamily = -1;
+		bool headless = false;
+		bool isComplete()
+		{
+			return graphicsFamily >= 0 && (presentFamily >= 0 || headless);
+		}
+	};
 
 	struct SwapChainSupportDetails {
 		vk::SurfaceCapabilitiesKHR capabilities;
@@ -51,12 +52,16 @@ public:
 	vk::Device& getDevice();
 private:
 	void createDevice(vk::Instance& instance);
-	void createSwapchain();
+	void createRenderPass();
+	
 	void createCommandBuffers();
+
 
 	QueueFamilyIndices findQueueFamilies();
 
-
+	//Swapchain functions
+	void createSwapchain();
+	void createSwapchainImageViews();
 	SwapChainSupportDetails querySwapChainSupport();
 	vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 	vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> availablePresentModes);

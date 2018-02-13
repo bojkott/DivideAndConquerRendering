@@ -17,6 +17,10 @@ DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physica
 
 DeviceContext::~DeviceContext()
 {
+	device.destroyRenderPass(renderPass);
+	for (vk::ImageView& view : swapchain.imageViews) {
+		device.destroyImageView(view);
+	}
 	device.destroySwapchainKHR(swapchain.swapchain);
 	device.destroy();
 	
@@ -68,6 +72,40 @@ void DeviceContext::createDevice(vk::Instance & instance)
 
 
 	device = physicalDevice.createDevice(createInfo);
+
+}
+
+void DeviceContext::createRenderPass()
+{
+	vk::AttachmentDescription colorAttachment;
+	colorAttachment.format = swapchain.imageFormat;
+	colorAttachment.samples = vk::SampleCountFlagBits::e1;
+	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+	vk::AttachmentReference colorAttachmentRef;
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+	vk::SubpassDescription subpass;
+	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+
+
+	vk::RenderPassCreateInfo renderPassInfo;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = 1;
+
+	renderPass = device.createRenderPass(renderPassInfo);
 
 }
 
@@ -126,6 +164,31 @@ void DeviceContext::createSwapchain()
 	swapchain.images = device.getSwapchainImagesKHR(swapchain.swapchain);
 	swapchain.imageFormat = surfaceFormat.format;
 	swapchain.extent = extent;
+
+	createSwapchainImageViews();
+}
+
+void DeviceContext::createSwapchainImageViews()
+{
+	swapchain.imageViews.resize(swapchain.images.size());
+	for (size_t i = 0; i < swapchain.images.size(); ++i)
+	{
+		vk::ImageViewCreateInfo createInfo;
+		createInfo.image = swapchain.images[i];
+		createInfo.viewType = vk::ImageViewType::e2D;
+		createInfo.format = swapchain.imageFormat;
+		createInfo.components.r = vk::ComponentSwizzle::eIdentity;
+		createInfo.components.g = vk::ComponentSwizzle::eIdentity;
+		createInfo.components.b = vk::ComponentSwizzle::eIdentity;
+		createInfo.components.a = vk::ComponentSwizzle::eIdentity;
+		createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		swapchain.imageViews[i] = device.createImageView(createInfo);
+	}
 }
 
 void DeviceContext::createCommandBuffers()
