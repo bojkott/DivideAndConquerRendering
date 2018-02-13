@@ -3,6 +3,7 @@
 #include <vulkan\vulkan.hpp>
 #include <SDL.h>
 #include <memory>
+
 class DeviceContext {
 public:
 	enum class DEVICE_MODE {WINDOW, HEADLESS};

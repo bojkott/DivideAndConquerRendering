@@ -35,6 +35,9 @@ private:
 	bool checkValidationLayerSupport();
 	void createInstance();
 	void setupDebugCallBack();
+	void setupDeviceGroup();
+	bool isDeviceSuitable(const vk::PhysicalDevice& device);
+	void arrangeGroup(std::vector<vk::PhysicalDevice>& devices);
 	std::vector<const char*> getRequiredExtensions();
 
 	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(

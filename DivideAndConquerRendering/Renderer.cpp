@@ -8,6 +8,7 @@ Renderer::Renderer()
 {
 	createInstance();
 	setupDebugCallBack();
+	setupDeviceGroup();
 }
 
 Renderer::~Renderer()
@@ -92,6 +93,71 @@ void Renderer::setupDebugCallBack()
 		throw std::runtime_error("failed to set up debug callback!");
 	}
 	
+}
+
+void Renderer::setupDeviceGroup()
+{
+	
+	uint32_t deviceCount = 0;
+	instance.enumeratePhysicalDevices(&deviceCount, nullptr);
+
+	if (!deviceCount)
+	{
+		throw std::runtime_error("FAiled to find VULKAN supported gfx card");
+	}
+
+	std::vector<vk::PhysicalDevice> physicalDevices(deviceCount);
+	instance.enumeratePhysicalDevices(&deviceCount, physicalDevices.data());
+	for (auto& device = physicalDevices.begin(); device != physicalDevices.end(); ++device)
+	{
+		// If it's not suitable, remove it
+		if (!isDeviceSuitable(*device))
+		{
+			physicalDevices.erase(device);
+		}
+	}
+
+	arrangeGroup(physicalDevices);
+	// Arrange the group, in a determinstic order
+}
+
+bool Renderer::isDeviceSuitable(const vk::PhysicalDevice & device)
+{
+	vk::PhysicalDeviceProperties deviceProperties;
+	vk::PhysicalDeviceFeatures deviceFeatures;
+
+	device.getProperties(&deviceProperties);
+	device.getFeatures(&deviceFeatures);
+
+	//return deviceProperties.deviceType == vk::PhysicalDeviceType::eCpu;
+	return true; // all is welcome, for now
+}
+
+void Renderer::arrangeGroup(std::vector<vk::PhysicalDevice>& devices)
+{
+	if (devices.size() > 1)
+	{
+		std::cout << "Select graphics card for head, by selecting device ID" << std::endl;
+		std::cout << "ID \t Name" << std::endl;
+
+		// Jag kom fan inte på ett bättre sätt att lösa detta på, förlåt
+		std::map<uint32_t, vk::PhysicalDevice> options;
+		for (const auto& device : devices)
+		{
+			vk::PhysicalDeviceProperties deviceProperties;
+			device.getProperties(&deviceProperties);
+			std::cout << deviceProperties.deviceID << "\t " << deviceProperties.deviceName << std::endl;
+
+
+			options[deviceProperties.deviceID] = device;
+		}
+
+		int choice;
+		std::cin >> choice;
+		devices.insert(devices.begin(), options[choice]);
+		devices.erase(std::unique(devices.begin(), devices.end()), devices.end());
+	}
+
 }
 
 std::vector<const char*> Renderer::getRequiredExtensions()
