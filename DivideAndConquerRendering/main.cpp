@@ -5,6 +5,7 @@
 //#include <assert.h>
 
 #include "Window.h"
+#include "Renderer.h"
 
 Window* window;
 
@@ -12,5 +13,6 @@ Window* window;
 int main()
 {
 	window = new Window(800, 600);
+	Renderer renderer;
 	return 0;
 }
