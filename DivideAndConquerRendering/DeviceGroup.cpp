@@ -19,7 +19,7 @@ void DeviceGroup::addDevice(vk::Instance & instance, vk::PhysicalDevice physical
 	devices.push_back(DeviceContext(instance, physicalDevice, surface));
 }
 
-vkGroups::PipelineGroup DeviceGroup::createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr)
+vkGroups::PipelineGroup DeviceGroup::createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
 {
 	vkGroups::PipelineGroup pipelineGroup;
 	for (DeviceContext& device : devices)
@@ -27,4 +27,14 @@ vkGroups::PipelineGroup DeviceGroup::createGraphicsPipeline(vk::PipelineCache pi
 		pipelineGroup.sets.insert(std::make_pair(&device, device.getDevice().createGraphicsPipeline(pipelineCache, createInfo, allocator)));
 	}
 	return pipelineGroup;
+}
+
+vkGroups::DescriptorPoolGroup DeviceGroup::createDescriptorPool(const vk::DescriptorPoolCreateInfo & poolInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
+{
+	vkGroups::DescriptorPoolGroup descriptorPoolGroup;
+	for (DeviceContext& device : devices)
+	{
+		descriptorPoolGroup.sets.insert(std::make_pair(&device, device.getDevice().createDescriptorPool(poolInfo, allocator)));
+	}
+	return descriptorPoolGroup;
 }

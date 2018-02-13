@@ -11,4 +11,12 @@ namespace vkGroups {
 	}
 
 
+	DescriptorPoolGroup::~DescriptorPoolGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().destroyDescriptorPool(set.second);
+		}
+	}
+
 }

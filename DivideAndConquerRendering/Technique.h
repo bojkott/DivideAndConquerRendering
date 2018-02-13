@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderState.h"
+#include "DeviceGroup.h"
 
 #include <vulkan\vulkan.hpp>
 
@@ -11,7 +12,7 @@ public:
 private:
 	vk::Pipeline pipeline;
 	vk::DescriptorSetLayout descriptorSetLayout;
-	vk::DescriptorPool descriptorPool;
+	vkGroups::DescriptorPoolGroup descriptorPoolGroup;
 
 	//Material* material = nullptr;
 	RenderState* renderState = nullptr;
