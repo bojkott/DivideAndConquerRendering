@@ -7,6 +7,7 @@
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="Technique.cpp" />
     <ClCompile Include="DeviceGroup.cpp" />
+    <ClCompile Include="RenderState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
@@ -15,5 +16,6 @@
     <ClInclude Include="Technique.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="DeviceGroup.h" />
+    <ClInclude Include="RenderState.h" />
   </ItemGroup>
 </Project>
