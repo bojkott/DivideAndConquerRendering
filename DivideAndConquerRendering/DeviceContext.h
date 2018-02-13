@@ -7,8 +7,6 @@ class DeviceContext {
 public:
 	enum class DEVICE_MODE {WINDOW, HEADLESS};
 private:
-
-	
 	struct QueueFamilyIndices 
 	{
 		int graphicsFamily = -1;
@@ -48,6 +46,9 @@ private:
 public:
 	DeviceContext(vk::Instance& instance, vk::PhysicalDevice physicalDevice);
 	DeviceContext(vk::Instance& instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface);
+	~DeviceContext();
+
+	vk::Device& getDevice();
 private:
 	void createDevice(vk::Instance& instance);
 	void createSwapchain();

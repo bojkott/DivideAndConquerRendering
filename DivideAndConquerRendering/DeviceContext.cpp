@@ -1,20 +1,31 @@
 #include "DeviceContext.h"
 #include <set>
 #include "Renderer.h"
-DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice)
+#include "Window.h"
+DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice): physicalDevice(physicalDevice)
 {
-	this->physicalDevice = physicalDevice;
 	mode = DEVICE_MODE::HEADLESS;
 	createDevice(instance);
 }
 
-DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface)
+DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : physicalDevice(physicalDevice), surface(surface)
 {
-	this->physicalDevice = physicalDevice;
-	this->surface = surface;
 	mode = DEVICE_MODE::WINDOW;
 	createDevice(instance);
 	createSwapchain();
+}
+
+DeviceContext::~DeviceContext()
+{
+	device.destroySwapchainKHR(swapchain.swapchain);
+	device.destroy();
+	
+}
+
+vk::Device & DeviceContext::getDevice()
+{
+	return device;
+	device.createGraphicsPipeline()
 }
 
 void DeviceContext::createDevice(vk::Instance & instance)
@@ -220,7 +231,7 @@ vk::Extent2D DeviceContext::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR & 
 	}
 	else
 	{
-		VkExtent2D actualExtent = { 100, 100 }; //width/height here.
+		vk::Extent2D actualExtent = { Window::getWidth(), Window::getHeight() };
 
 		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
 		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));

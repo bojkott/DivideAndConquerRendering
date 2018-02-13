@@ -14,14 +14,15 @@ class Window
 public:
 
 private:
-
-
-	uint32_t height;
-	uint32_t width;
+	static uint32_t height;
+	static uint32_t width;
 public:
 	Window(int height, int width);
 	~Window();
 	static SDL_Window* window;
+
+	static uint32_t getWidth() { return width; }
+	static uint32_t getHeight() { return height; }
 
 private:
 

@@ -4,6 +4,8 @@
 
 
 SDL_Window* Window::window;
+uint32_t Window::height;
+uint32_t Window::width;
 
 Window::Window(int width, int height)
 {
