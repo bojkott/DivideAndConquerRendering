@@ -21,7 +21,11 @@
     <ClCompile Include="Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="Renderer.cpp">
+=======
+    <ClCompile Include="Technique.cpp">
+>>>>>>> Added Technique
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DeviceContext.cpp">
@@ -32,13 +36,20 @@
     <ClInclude Include="Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="DeviceContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+=======
+<<<<<<< HEAD
+>>>>>>> Added Technique
     <ClInclude Include="Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
+=======
+    <ClInclude Include="Technique.h">
+>>>>>>> Added Technique
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
