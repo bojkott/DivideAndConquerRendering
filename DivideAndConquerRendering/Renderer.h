@@ -4,7 +4,7 @@
 #include <SDL_vulkan.h>
 #include "Common.h"
 #include "Window.h"
-
+#include "DeviceGroup.h"
 
 class Renderer
 {
@@ -15,12 +15,13 @@ public:
 		static const bool enableValidationLayers = false;
 	#endif
 	static const std::vector<const char*> validationLayers;
+	static DeviceGroup deviceGroup;
 private:
 
 	#define FAILED(x) x != vk::Result::eSuccess
 
 	
-
+	vk::SurfaceKHR surface;
 	vk::Instance instance;
 	vk::DebugReportCallbackEXT callback;
 	
@@ -35,6 +36,10 @@ private:
 	bool checkValidationLayerSupport();
 	void createInstance();
 	void setupDebugCallBack();
+	void createSurface();
+	void setupDeviceGroup();
+	bool isDeviceSuitable(const vk::PhysicalDevice& device);
+	void arrangeGroup(std::vector<vk::PhysicalDevice>& devices);
 	std::vector<const char*> getRequiredExtensions();
 
 	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(

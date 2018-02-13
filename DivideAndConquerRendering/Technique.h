@@ -10,6 +10,8 @@ public:
 	int id;
 private:
 	vk::Pipeline pipeline;
+	vk::DescriptorSetLayout descriptorSetLayout;
+	vk::DescriptorPool descriptorPool;
 
 	//Material* material = nullptr;
 	RenderState* renderState = nullptr;
@@ -20,6 +22,7 @@ public:
 	~Technique();
 
 private:
-
-	
+	void createDescriptorPool();
+	void createDescriptorSet();
+	void createPipelineLayout();
 };
