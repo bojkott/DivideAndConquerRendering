@@ -8,12 +8,22 @@
 
 class Renderer
 {
+public:
+	#ifdef _DEBUG
+		static const bool enableValidationLayers = true;
+	#else
+		static const bool enableValidationLayers = false;
+	#endif
+	static const std::vector<const char*> validationLayers;
 private:
+
+	#define FAILED(x) x != vk::Result::eSuccess
+
+	
+
 	vk::Instance instance;
 	vk::DebugReportCallbackEXT callback;
-	const std::vector<const char*> validationLayers = {
-		"VK_LAYER_LUNARG_standard_validation"
-	};
+	
 
 public:
 	Renderer();
@@ -21,14 +31,6 @@ public:
 
 
 private:
-	#define FAILED(x) x != vk::Result::eSuccess
-
-#ifdef NDEBUG
-	const bool enableValidationLayers = false;
-#else
-	const bool enableValidationLayers = true;
-#endif
-
 
 	bool checkValidationLayerSupport();
 	void createInstance();

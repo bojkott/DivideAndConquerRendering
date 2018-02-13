@@ -1,5 +1,6 @@
 #include "DeviceContext.h"
 #include <set>
+#include "Renderer.h"
 DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice)
 {
 	this->physicalDevice = physicalDevice;
@@ -47,10 +48,10 @@ void DeviceContext::createDevice(vk::Instance & instance)
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-	if (enableValidationLayers)
+	if (Renderer::enableValidationLayers)
 	{
-		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
+		createInfo.enabledLayerCount = static_cast<uint32_t>(Renderer::validationLayers.size());
+		createInfo.ppEnabledLayerNames = Renderer::validationLayers.data();
 	}
 	else
 		createInfo.enabledLayerCount = 0;

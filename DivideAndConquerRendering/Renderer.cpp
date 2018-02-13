@@ -1,5 +1,9 @@
 #include "Renderer.h"
 
+const std::vector<const char*> Renderer::validationLayers = {
+	"VK_LAYER_LUNARG_standard_validation"
+};
+
 Renderer::Renderer()
 {
 	createInstance();
@@ -70,7 +74,6 @@ void Renderer::createInstance()
 	else {
 		createInfo.enabledLayerCount = 0;
 	}
-
 	vk::Result result = vk::createInstance(&createInfo, nullptr, &instance);
 	if (FAILED(result))
 	{

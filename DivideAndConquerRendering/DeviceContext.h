@@ -8,16 +8,7 @@ public:
 	enum class DEVICE_MODE {WINDOW, HEADLESS};
 private:
 
-	#ifdef _DEBUG
-		const bool enableValidationLayers = true;
-	#else
-		const bool enableValidationLayers = false;
-	#endif
-
-	const std::vector<const char*> validationLayers = {
-		"VK_LAYER_LUNARG_standard_validation"
-	};
-
+	
 	struct QueueFamilyIndices 
 	{
 		int graphicsFamily = -1;
