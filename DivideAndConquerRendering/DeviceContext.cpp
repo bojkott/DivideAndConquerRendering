@@ -25,7 +25,6 @@ DeviceContext::~DeviceContext()
 vk::Device & DeviceContext::getDevice()
 {
 	return device;
-	device.createGraphicsPipeline()
 }
 
 void DeviceContext::createDevice(vk::Instance & instance)

@@ -8,4 +8,6 @@ namespace vkGroups {
 		std::map<DeviceContext*, vk::Pipeline> sets;
 		~PipelineGroup();
 	};
+
+
 }
