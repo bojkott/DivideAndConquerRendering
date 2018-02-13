@@ -1,5 +1,4 @@
 #include "Technique.h"
-#include "DeviceGroup.h"
 #include "Renderer.h"
 
 int Technique::numberOfTechniques = 0;
@@ -85,19 +84,14 @@ void Technique::createDescriptorPool()
 	poolInfo.maxSets = 1;
 
 	
-
-	/*if (FAILED(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)))
-	{
-	fprintf(stderr, "failed to create descriptor pool!\n");
-	exit(-1);
-	}*/
+	descriptorPoolGroup = Renderer::deviceGroup.createDescriptorPool(poolInfo);
 }
 
 void Technique::createDescriptorSet()
 {
 	vk::DescriptorSetLayout layouts[] = { descriptorSetLayout };
 	vk::DescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.descriptorPool = descriptorPool;
+	//allocInfo.descriptorPool = descriptorPool;
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = layouts;
 
