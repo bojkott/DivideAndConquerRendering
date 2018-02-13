@@ -8,6 +8,9 @@ namespace vkGroups {
 		std::map<DeviceContext*, vk::Pipeline> sets;
 		~PipelineGroup();
 	};
-
+	struct DescriptorPoolGroup {
+		std::map<DeviceContext*, vk::DescriptorPool> sets;
+		~DescriptorPoolGroup();
+	};
 
 }

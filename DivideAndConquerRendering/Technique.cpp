@@ -1,6 +1,6 @@
 #include "Technique.h"
-
-#include <SDL_vulkan.h>
+#include "DeviceGroup.h"
+#include "Renderer.h"
 
 int Technique::numberOfTechniques = 0;
 
@@ -84,6 +84,7 @@ void Technique::createDescriptorPool()
 
 	poolInfo.maxSets = 1;
 
+	
 
 	/*if (FAILED(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)))
 	{
