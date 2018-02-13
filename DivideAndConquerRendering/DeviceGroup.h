@@ -6,7 +6,7 @@
 class DeviceContext;
 class DeviceGroup {
 private:
-	std::vector<DeviceContext> devices;
+	std::vector<DeviceContext*> devices;
 
 public:
 	DeviceGroup();

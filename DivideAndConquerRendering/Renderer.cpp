@@ -10,14 +10,17 @@ Renderer::Renderer()
 {
 	createInstance();
 	setupDebugCallBack();
+	createSurface();
 	setupDeviceGroup();
+
 }
 
 Renderer::~Renderer()
 {
 	deviceGroup.~DeviceGroup();
+	instance.destroySurfaceKHR(surface, nullptr);
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
-	vkDestroyInstance(instance, nullptr);
+	instance.destroy();
 }
 
 bool Renderer::checkValidationLayerSupport()
@@ -100,12 +103,15 @@ void Renderer::setupDebugCallBack()
 
 void Renderer::createSurface()
 {
-	vk::DisplaySurfaceCreateInfoKHR;
+	if (SDL_Vulkan_CreateSurface(Window::window, instance, (VkSurfaceKHR*)&surface) != SDL_TRUE)
+	{ 
+		throw std::runtime_error("Failed to create surface");
+	}
 }
 
 void Renderer::setupDeviceGroup()
 {
-	
+
 	uint32_t deviceCount = 0;
 	instance.enumeratePhysicalDevices(&deviceCount, nullptr);
 
@@ -126,12 +132,12 @@ void Renderer::setupDeviceGroup()
 	}
 
 	arrangeGroup(physicalDevices);
-	
-	
-	for (auto physicalDevice : physicalDevices)
-	{
-		deviceGroup.addDevice(instance, physicalDevice);
-	}	
+
+
+
+	deviceGroup.addDevice(instance, physicalDevices[0], surface);
+	/*for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
+		deviceGroup.addDevice(instance, *device);*/
 	
 }
 
