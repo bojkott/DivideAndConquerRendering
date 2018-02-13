@@ -130,7 +130,6 @@
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="Technique.h" />
     <ClInclude Include="Window.h" />
-
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
