@@ -1,5 +1,7 @@
 #include "Technique.h"
 
+#include <SDL_vulkan.h>
+
 int Technique::numberOfTechniques = 0;
 
 Technique::Technique(/*Material * m,*/ RenderState * r)
@@ -25,6 +27,9 @@ Technique::Technique(/*Material * m,*/ RenderState * r)
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
 	inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+
+
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
 	pipelineInfo.stageCount = 2;
@@ -60,8 +65,68 @@ Technique::Technique(/*Material * m,*/ RenderState * r)
 
 Technique::~Technique()
 {
-	/*
-	Destroy pipeline with device
-	Destroy pipeline layout with device
-	*/
+}
+
+void Technique::createDescriptorPool()
+{
+	std::vector<vk::DescriptorPoolSize> poolSizes;
+	vk::DescriptorPoolSize poolSize = {};
+	poolSize.type = vk::DescriptorType::eUniformBuffer;
+	poolSize.descriptorCount = 2;
+	poolSizes.push_back(poolSize);
+	poolSize.type = vk::DescriptorType::eCombinedImageSampler;
+	poolSize.descriptorCount = 1;
+	poolSizes.push_back(poolSize);
+
+	vk::DescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.poolSizeCount = poolSizes.size();
+	poolInfo.pPoolSizes = poolSizes.data();
+
+	poolInfo.maxSets = 1;
+
+
+	/*if (FAILED(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool)))
+	{
+	fprintf(stderr, "failed to create descriptor pool!\n");
+	exit(-1);
+	}*/
+}
+
+void Technique::createDescriptorSet()
+{
+	vk::DescriptorSetLayout layouts[] = { descriptorSetLayout };
+	vk::DescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorSetCount = 1;
+	allocInfo.pSetLayouts = layouts;
+
+	/*if (FAILED(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet))) {
+	fprintf(stderr, "failed to allocate descriptor set!\n");
+	exit(-1);
+	}*/
+}
+
+void Technique::createPipelineLayout()
+{
+	std::vector<vk::PushConstantRange> pushConstants;
+
+	vk::PushConstantRange pushConstantRange = {};
+	pushConstantRange.size = sizeof(float) * 4; //float4
+	pushConstantRange.offset = 0;
+	pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eVertex;
+	pushConstants.push_back(pushConstantRange);
+	pushConstantRange.stageFlags = vk::ShaderStageFlagBits::eFragment;
+	pushConstantRange.offset = sizeof(float) * 4;
+	pushConstants.push_back(pushConstantRange);
+
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	pipelineLayoutInfo.setLayoutCount = 1; // Optional
+	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
+	pipelineLayoutInfo.pushConstantRangeCount = pushConstants.size(); // Optional
+	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data(); // Optional
+
+	/*if (FAILED(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout))) {
+		fprintf(stderr, "failed to create pipeline layout!\n");
+		exit(-1);
+	}*/
 }
