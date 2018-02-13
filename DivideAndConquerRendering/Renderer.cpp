@@ -15,6 +15,7 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
+	deviceGroup.~DeviceGroup();
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
 	vkDestroyInstance(instance, nullptr);
 }
@@ -125,12 +126,12 @@ void Renderer::setupDeviceGroup()
 	}
 
 	arrangeGroup(physicalDevices);
-
-
-
-
-	for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
-		deviceGroup.addDevice(instance, *device);
+	
+	
+	for (auto physicalDevice : physicalDevices)
+	{
+		deviceGroup.addDevice(instance, physicalDevice);
+	}	
 	
 }
 

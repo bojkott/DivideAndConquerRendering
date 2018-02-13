@@ -18,10 +18,14 @@ DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physica
 DeviceContext::~DeviceContext()
 {
 	device.destroyRenderPass(renderPass);
-	for (vk::ImageView& view : swapchain.imageViews) {
-		device.destroyImageView(view);
+
+	if (mode == DEVICE_MODE::WINDOW) {
+		for (vk::ImageView& view : swapchain.imageViews) {
+			device.destroyImageView(view);
+		}
+		device.destroySwapchainKHR(swapchain.swapchain);
 	}
-	device.destroySwapchainKHR(swapchain.swapchain);
+
 	device.destroy();
 	
 }
