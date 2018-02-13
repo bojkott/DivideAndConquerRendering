@@ -136,8 +136,8 @@ void Renderer::setupDeviceGroup()
 
 
 	deviceGroup.addDevice(instance, physicalDevices[0], surface);
-	/*for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
-		deviceGroup.addDevice(instance, *device);*/
+	for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
+		deviceGroup.addDevice(instance, *device);
 	
 }
 
