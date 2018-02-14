@@ -12,5 +12,12 @@ namespace vkGroups {
 		std::map<DeviceContext*, vk::DescriptorPool> sets;
 		~DescriptorPoolGroup();
 	};
-
+	struct DescriptorSetGroup {
+		std::map<DeviceContext*, vk::DescriptorSet> sets;
+		~DescriptorSetGroup();
+	};
+	struct PipelineLayoutGroup {
+		std::map<DeviceContext*, vk::PipelineLayout> sets;
+		~PipelineLayoutGroup();
+	};
 }

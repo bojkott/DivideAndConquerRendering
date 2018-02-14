@@ -89,16 +89,8 @@ void Technique::createDescriptorPool()
 
 void Technique::createDescriptorSet()
 {
-	vk::DescriptorSetLayout layouts[] = { descriptorSetLayout };
-	vk::DescriptorSetAllocateInfo allocInfo = {};
-	//allocInfo.descriptorPool = descriptorPool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = layouts;
-
-	/*if (FAILED(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet))) {
-	fprintf(stderr, "failed to allocate descriptor set!\n");
-	exit(-1);
-	}*/
+	//If this fail, check the function for more info.
+	descriptorSetGroup = Renderer::deviceGroup.allocateDescriptorSet(descriptorPoolGroup, descriptorSetLayout);
 }
 
 void Technique::createPipelineLayout()
@@ -120,8 +112,5 @@ void Technique::createPipelineLayout()
 	pipelineLayoutInfo.pushConstantRangeCount = pushConstants.size(); // Optional
 	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data(); // Optional
 
-	/*if (FAILED(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout))) {
-		fprintf(stderr, "failed to create pipeline layout!\n");
-		exit(-1);
-	}*/
+	pipelineLayoutGroup = Renderer::deviceGroup.createPipelineLayout(pipelineLayoutInfo);
 }

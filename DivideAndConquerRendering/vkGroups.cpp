@@ -19,4 +19,17 @@ namespace vkGroups {
 		}
 	}
 
+	DescriptorSetGroup::~DescriptorSetGroup()
+	{
+		//No destroy
+	}
+
+	PipelineLayoutGroup::~PipelineLayoutGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().destroyPipelineLayout(set.second);
+		}
+	}
+
 }

@@ -123,6 +123,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderState.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="vkGroups.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="Technique.cpp" />
@@ -133,6 +134,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="RenderState.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="Technique.h" />
     <ClInclude Include="vkGroups.h" />
     <ClInclude Include="Window.h" />
