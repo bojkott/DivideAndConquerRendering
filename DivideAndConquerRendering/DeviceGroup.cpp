@@ -40,3 +40,30 @@ vkGroups::DescriptorPoolGroup DeviceGroup::createDescriptorPool(const vk::Descri
 	}
 	return descriptorPoolGroup;
 }
+
+vkGroups::DescriptorSetGroup DeviceGroup::allocateDescriptorSet(const vkGroups::DescriptorPoolGroup & descriptorPool, const vk::DescriptorSetLayout descriptorSetLayout)
+{
+	vkGroups::DescriptorSetGroup descriptorSetGroup;
+	for (DeviceContext* device : devices)
+	{
+		vk::DescriptorSet descriptorSet;
+		vk::DescriptorSetLayout layouts[] = { descriptorSetLayout };
+		vk::DescriptorSetAllocateInfo allocInfo = {};
+		allocInfo.descriptorPool = descriptorPool.sets.at(device);
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = layouts;
+		device->getDevice().allocateDescriptorSets(&allocInfo, &descriptorSet);
+		descriptorSetGroup.sets.insert(std::make_pair(device, descriptorSet));	//If this fail it could be due to that descriptorSet is defined in the loop and go out of scope. How this works needs to be reworked.
+	}
+	return descriptorSetGroup;
+}
+
+vkGroups::PipelineLayoutGroup DeviceGroup::createPipelineLayout(const vk::PipelineLayoutCreateInfo & pipelineLayoutInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
+{
+	vkGroups::PipelineLayoutGroup pipelineLayoutGroup;
+	for (DeviceContext* device : devices)
+	{
+		pipelineLayoutGroup.sets.insert(std::make_pair(device, device->getDevice().createPipelineLayout(pipelineLayoutInfo, allocator)));
+	}
+	return pipelineLayoutGroup;
+}

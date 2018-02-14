@@ -13,6 +13,8 @@ private:
 	vk::Pipeline pipeline;
 	vk::DescriptorSetLayout descriptorSetLayout;
 	vkGroups::DescriptorPoolGroup descriptorPoolGroup;
+	vkGroups::DescriptorSetGroup descriptorSetGroup;
+	vkGroups::PipelineLayoutGroup pipelineLayoutGroup;
 
 	//Material* material = nullptr;
 	RenderState* renderState = nullptr;
