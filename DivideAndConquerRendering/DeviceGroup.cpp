@@ -13,12 +13,22 @@ DeviceGroup::~DeviceGroup()
 
 void DeviceGroup::addDevice(vk::Instance & instance, vk::PhysicalDevice physicalDevice)
 {
-	devices.push_back(new DeviceContext(instance, physicalDevice));
+	devices.push_back(new DeviceContext(this, instance, physicalDevice));
 }
 
 void DeviceGroup::addDevice(vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR & surface)
 {
-	devices.push_back(new DeviceContext(instance, physicalDevice, surface));
+	devices.push_back(new DeviceContext(this, instance, physicalDevice, surface));
+}
+
+unsigned int DeviceGroup::getGroupSize()
+{
+	return devices.size();
+}
+
+DeviceContext * DeviceGroup::getMainDevice()
+{
+	return devices[0];
 }
 
 vkGroups::PipelineGroup DeviceGroup::createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vk::Optional<const vk::AllocationCallbacks> allocator)

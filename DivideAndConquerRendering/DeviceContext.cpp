@@ -2,13 +2,14 @@
 #include <set>
 #include "Renderer.h"
 #include "Window.h"
-DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice): physicalDevice(physicalDevice)
+#include "DeviceGroup.h"
+DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): deviceGroup(group), physicalDevice(physicalDevice)
 {
 	mode = DEVICE_MODE::HEADLESS;
 	createDevice(instance);
 }
 
-DeviceContext::DeviceContext(vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : physicalDevice(physicalDevice), surface(surface)
+DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : deviceGroup(group), physicalDevice(physicalDevice), surface(surface)
 {
 	mode = DEVICE_MODE::WINDOW;
 	createDevice(instance);
@@ -81,15 +82,28 @@ void DeviceContext::createDevice(vk::Instance & instance)
 
 void DeviceContext::createRenderPass()
 {
+	//Create standard render pass that will write to an image that will be used in the next pass.
 	vk::AttachmentDescription colorAttachment;
-	colorAttachment.format = swapchain.imageFormat;
+	colorAttachment.format = deviceGroup->getMainDevice()->swapchain.imageFormat; //maybe hardcode?
 	colorAttachment.samples = vk::SampleCountFlagBits::e1;
 	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
 	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 	colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
-	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+	//If we are the main GPU we will set our final layout to an image to be used for input in the next pass.
+	//If we are a slave GPU we will set our layout to an image to be used as a source for a copy operation.
+	switch (mode)
+	{
+		case DEVICE_MODE::WINDOW:
+			colorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+			break;
+		case DEVICE_MODE::HEADLESS:
+			colorAttachment.finalLayout = vk::ImageLayout::eTransferSrcOptimal;
+			break;
+	}
+	
 
 	vk::AttachmentReference colorAttachmentRef;
 	colorAttachmentRef.attachment = 0;
@@ -110,6 +124,15 @@ void DeviceContext::createRenderPass()
 	renderPassInfo.dependencyCount = 1;
 
 	renderPass = device.createRenderPass(renderPassInfo);
+
+
+	if (mode == DEVICE_MODE::WINDOW) 
+		createPresentRenderPass();
+
+}
+
+void DeviceContext::createPresentRenderPass()
+{
 
 }
 
@@ -304,4 +327,9 @@ vk::Extent2D DeviceContext::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR & 
 
 		return actualExtent;
 	}
+}
+
+DeviceContext::Swapchain & DeviceContext::getSwapchain()
+{
+	return swapchain;
 }
