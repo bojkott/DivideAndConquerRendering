@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include "Window.h"
+#include "Renderer.h"
 
 std::vector<vk::PipelineShaderStageCreateInfo> Shader::createPipelineShaderStage(const std::string & vertexFilename, const std::string & fragmentFilename, vk::Device& device)
 {
@@ -36,7 +37,9 @@ vk::PipelineShaderStageCreateInfo Shader::createShaderModule(const std::string &
 	createInfo.pCode = reinterpret_cast<const uint32_t*> (shaderCode.data());
 
 	vk::ShaderModule shaderModule; 
-	device.createShaderModule(&createInfo, nullptr, &shaderModule);
+
+	vkGroups::ShaderModuleGroup shaderModuleGroup;
+	shaderModuleGroup = Renderer::deviceGroup.createShaderModules(createInfo);
 	
 	vk::PipelineShaderStageCreateInfo shaderStageInfo = {};
 	shaderStageInfo.stage = static_cast<vk::ShaderStageFlagBits> (shaderType);

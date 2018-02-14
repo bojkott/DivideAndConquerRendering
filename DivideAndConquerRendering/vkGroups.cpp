@@ -32,4 +32,13 @@ namespace vkGroups {
 		}
 	}
 
+
+	ShaderModuleGroup::~ShaderModuleGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().destroyShaderModule(set.second);
+		}
+	}
+
 }

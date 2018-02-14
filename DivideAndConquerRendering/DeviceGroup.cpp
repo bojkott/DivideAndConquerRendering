@@ -77,3 +77,14 @@ vkGroups::PipelineLayoutGroup DeviceGroup::createPipelineLayout(const vk::Pipeli
 	}
 	return pipelineLayoutGroup;
 }
+
+vkGroups::ShaderModuleGroup DeviceGroup::createShaderModules(const vk::ShaderModuleCreateInfo& createInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr)
+{
+	vkGroups::ShaderModuleGroup shaderModuleGroup;
+	for (DeviceContext* device : devices)
+	{
+		shaderModuleGroup.sets.insert(std::make_pair(device, device->getDevice().createShaderModule(createInfo, allocator)));
+	}
+	return shaderModuleGroup;
+}
+

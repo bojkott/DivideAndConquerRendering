@@ -1,12 +1,12 @@
 #pragma once
 #include "Common.h"
+#include "DeviceGroup.h"
 #include <fstream>
 #include <vulkan/vulkan.hpp>
 
 class Shader
 {
 private:
-
 
 public:
 	enum class Type { VERTEX = 0x00000001, FRAGMENT = 0x00000010 };
