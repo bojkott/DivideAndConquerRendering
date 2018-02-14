@@ -9,6 +9,7 @@
     <ClCompile Include="DeviceGroup.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="vkGroups.cpp" />
+    <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
@@ -19,5 +20,6 @@
     <ClInclude Include="DeviceGroup.h" />
     <ClInclude Include="RenderState.h" />
     <ClInclude Include="vkGroups.h" />
+    <ClInclude Include="Shader.h" />
   </ItemGroup>
 </Project>
