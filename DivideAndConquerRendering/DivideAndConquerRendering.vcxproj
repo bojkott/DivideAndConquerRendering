@@ -121,6 +121,7 @@
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="DeviceGroup.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -131,6 +132,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="DeviceGroup.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="RenderState.h" />

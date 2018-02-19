@@ -47,19 +47,7 @@ Technique::Technique(/*Material * m,*/ RenderState * r)
 
 	/*
 	Create graphics pipelines with deice. Throw if error
-	*/
-
-	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	//pipelineLayoutInfo.pSetLayouts = m->getDescriptorSetLayout();	//Or something like tahat
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	pipelineLayoutInfo.pPushConstantRanges = 0;
-
-	/*
-	Create pipeline layot with device. Throw if error
-	 */
-
-	
+	*/	
 }
 
 Technique::~Technique()
