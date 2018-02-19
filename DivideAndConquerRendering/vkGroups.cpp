@@ -32,4 +32,16 @@ namespace vkGroups {
 		}
 	}
 
+
+	PipelineShaderStageGroup::~PipelineShaderStageGroup()
+	{
+		for (auto const& set : sets)
+		{
+			for (auto const& pipeline : set.second)
+			{
+				set.first->getDevice().destroyShaderModule(pipeline.module);
+			}
+		}
+	}
+
 }

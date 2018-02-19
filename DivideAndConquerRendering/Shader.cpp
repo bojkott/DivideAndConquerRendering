@@ -1,7 +1,8 @@
 #include "Shader.h"
 #include "Window.h"
+#include "Renderer.h"
 
-std::vector<vk::PipelineShaderStageCreateInfo> Shader::createPipelineShaderStage(const std::string & vertexFilename, const std::string & fragmentFilename, vk::Device& device)
+std::vector<vk::PipelineShaderStageCreateInfo> Shader::createPipelineShaderStage(const std::string & vertexFilename, const std::string & fragmentFilename, const vk::Device& device)
 {
 	std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
 	shaderStages.push_back(createShaderModule(vertexFilename, Type::VERTEX, device));
@@ -28,7 +29,7 @@ std::vector<char> Shader::readFile(const std::string & filename)
 }
 
 vk::PipelineShaderStageCreateInfo Shader::createShaderModule(const std::string & filename, Type shaderType,
-	vk::Device& device)
+	 const vk::Device& device)
 {
 	std::vector<char> shaderCode = readFile(filename);
 	vk::ShaderModuleCreateInfo createInfo = {};
@@ -36,7 +37,11 @@ vk::PipelineShaderStageCreateInfo Shader::createShaderModule(const std::string &
 	createInfo.pCode = reinterpret_cast<const uint32_t*> (shaderCode.data());
 
 	vk::ShaderModule shaderModule; 
-	device.createShaderModule(&createInfo, nullptr, &shaderModule);
+	if (FAILED(device.createShaderModule(&createInfo, nullptr, &shaderModule)))
+	{
+		throw std::runtime_error("Failed to create shader module");
+	}
+
 	
 	vk::PipelineShaderStageCreateInfo shaderStageInfo = {};
 	shaderStageInfo.stage = static_cast<vk::ShaderStageFlagBits> (shaderType);
