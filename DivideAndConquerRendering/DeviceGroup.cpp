@@ -78,13 +78,13 @@ vkGroups::PipelineLayoutGroup DeviceGroup::createPipelineLayout(const vk::Pipeli
 	return pipelineLayoutGroup;
 }
 
-vkGroups::ShaderModuleGroup DeviceGroup::createShaderModules(const vk::ShaderModuleCreateInfo& createInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr)
+vkGroups::PipelineShaderStageGroup DeviceGroup::pipelineShaderStage(const std::string& vertexFilename, const std::string& fragmentFilename)
 {
-	vkGroups::ShaderModuleGroup shaderModuleGroup;
-	for (DeviceContext* device : devices)
+	vkGroups::PipelineShaderStageGroup pipelineShaderStageGroup;
+	for (DeviceContext* const device : devices)
 	{
-		shaderModuleGroup.sets.insert(std::make_pair(device, device->getDevice().createShaderModule(createInfo, allocator)));
+		pipelineShaderStageGroup.sets.insert(std::make_pair(device, Shader::createPipelineShaderStage(vertexFilename, fragmentFilename, device->getDevice())));
 	}
-	return shaderModuleGroup;
+	return pipelineShaderStageGroup;
 }
 

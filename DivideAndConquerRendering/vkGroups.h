@@ -21,9 +21,9 @@ namespace vkGroups {
 		~PipelineLayoutGroup();
 	};
 
-	struct ShaderModuleGroup {
-		std::map<DeviceContext*, vk::ShaderModule> sets;
-		~ShaderModuleGroup();
+	struct PipelineShaderStageGroup {
+		std::map<DeviceContext*, std::vector<vk::PipelineShaderStageCreateInfo>> sets;
+		~PipelineShaderStageGroup();
 	};
 
 }
