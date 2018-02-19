@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <memory>
 
+class RenderTexture;
 class DeviceGroup;
 class DeviceContext {
 public:
@@ -15,8 +16,13 @@ public:
 		std::vector<vk::Image> images;
 		std::vector<vk::Framebuffer> framebuffers;
 		vk::SwapchainKHR swapchain;
+		std::vector<vk::CommandBuffer> commandBuffers;
 	};
 private:
+
+	RenderTexture* renderTexture;
+	vk::Framebuffer renderTextureFrameBuffer;
+	vk::CommandBuffer renderPassCommandBuffer;
 
 	DeviceGroup* deviceGroup;
 	DEVICE_MODE mode;
@@ -31,6 +37,7 @@ private:
 	vk::Queue graphicsQueue;
 
 	Swapchain swapchain;
+	
 
 	struct QueueFamilyIndices
 	{
@@ -58,10 +65,15 @@ public:
 	Swapchain& getSwapchain();
 
 	vk::Device& getDevice();
+
+	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
 	void createDevice(vk::Instance& instance);
 	void createRenderPass();
 	void createPresentRenderPass();
+	void createFrameBuffers();
+	void createRenderTexture();
+	void createCommandPool();
 	void createCommandBuffers();
 
 
@@ -75,5 +87,6 @@ private:
 	vk::PresentModeKHR chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> availablePresentModes);
 	vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities);
 
+	DeviceContext* getMainDevice();
 
 };

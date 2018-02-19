@@ -3,10 +3,15 @@
 #include "Renderer.h"
 #include "Window.h"
 #include "DeviceGroup.h"
+#include "RenderTexture.h"
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): deviceGroup(group), physicalDevice(physicalDevice)
 {
 	mode = DEVICE_MODE::HEADLESS;
 	createDevice(instance);
+	createRenderPass();
+	createRenderTexture();
+	createCommandPool();
+	createCommandBuffers();
 }
 
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : deviceGroup(group), physicalDevice(physicalDevice), surface(surface)
@@ -14,13 +19,28 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 	mode = DEVICE_MODE::WINDOW;
 	createDevice(instance);
 	createSwapchain();
+	createRenderPass();
+	createPresentRenderPass();
+	createRenderTexture();
+	createFrameBuffers();
+	createCommandPool();
+	createCommandBuffers();
+
 }
 
 DeviceContext::~DeviceContext()
 {
+	device.destroyCommandPool(commandPool);
+	for (auto framebuffer : swapchain.framebuffers) {
+		device.destroyFramebuffer(framebuffer);
+	}
+
 	device.destroyRenderPass(renderPass);
 
 	if (mode == DEVICE_MODE::WINDOW) {
+
+		device.destroyRenderPass(presentRenderPass);
+
 		for (vk::ImageView& view : swapchain.imageViews) {
 			device.destroyImageView(view);
 		}
@@ -34,6 +54,18 @@ DeviceContext::~DeviceContext()
 vk::Device & DeviceContext::getDevice()
 {
 	return device;
+}
+
+uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+{
+	vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Failed to find memory type");
 }
 
 void DeviceContext::createDevice(vk::Instance & instance)
@@ -84,7 +116,7 @@ void DeviceContext::createRenderPass()
 {
 	//Create standard render pass that will write to an image that will be used in the next pass.
 	vk::AttachmentDescription colorAttachment;
-	colorAttachment.format = deviceGroup->getMainDevice()->swapchain.imageFormat; //maybe hardcode?
+	colorAttachment.format = getMainDevice()->swapchain.imageFormat; //maybe hardcode?
 	colorAttachment.samples = vk::SampleCountFlagBits::e1;
 	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -121,19 +153,89 @@ void DeviceContext::createRenderPass()
 	renderPassInfo.pAttachments = &colorAttachment;
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
-	renderPassInfo.dependencyCount = 1;
 
 	renderPass = device.createRenderPass(renderPassInfo);
-
-
-	if (mode == DEVICE_MODE::WINDOW) 
-		createPresentRenderPass();
 
 }
 
 void DeviceContext::createPresentRenderPass()
 {
+	//Create final render pass that will write to an image that will be used in the next pass.
+	vk::AttachmentDescription colorAttachment;
+	colorAttachment.format = swapchain.imageFormat; //maybe hardcode?
+	colorAttachment.samples = vk::SampleCountFlagBits::e1;
+	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
+	vk::AttachmentReference colorAttachmentRef;
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+	vk::SubpassDescription subpass;
+	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentRef;
+
+
+	vk::RenderPassCreateInfo renderPassInfo;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+
+	presentRenderPass = device.createRenderPass(renderPassInfo);
+}
+
+void DeviceContext::createFrameBuffers()
+{
+	int frameBufferCount = swapchain.imageViews.size();
+	swapchain.framebuffers.resize(frameBufferCount);
+
+	//create an image view for the output to the swap texture.
+	for (size_t i = 0; i < frameBufferCount; i++) {
+		vk::ImageView attachments[] = {swapchain.imageViews[i]};
+
+		vk::FramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.renderPass = presentRenderPass;
+		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.width = swapchain.extent.width;
+		framebufferInfo.height = swapchain.extent.height;
+		framebufferInfo.layers = 1;
+
+		swapchain.framebuffers[i] = device.createFramebuffer(framebufferInfo);
+	}
+
+}
+
+void DeviceContext::createRenderTexture()
+{
+
+	renderTexture = new RenderTexture(this,
+		getMainDevice()->swapchain.extent.width,
+		getMainDevice()->swapchain.extent.height,
+		vk::Format::eR8G8B8A8Unorm,
+		vk::ImageTiling::eLinear,
+		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled,
+		vk::MemoryPropertyFlagBits::eHostVisible);
+
+
+	vk::ImageView attachments[] = { renderTexture->getImageView() };
+
+	vk::FramebufferCreateInfo framebufferInfo = {};
+	framebufferInfo.renderPass = renderPass;
+	framebufferInfo.attachmentCount = 1;
+	framebufferInfo.pAttachments = attachments;
+	framebufferInfo.width = renderTexture->getExtends().width;
+	framebufferInfo.height = renderTexture->getExtends().height;
+	framebufferInfo.layers = 1;
+
+	renderTextureFrameBuffer = device.createFramebuffer(framebufferInfo);
 }
 
 void DeviceContext::createSwapchain()
@@ -220,6 +322,30 @@ void DeviceContext::createSwapchainImageViews()
 
 void DeviceContext::createCommandBuffers()
 {
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandBufferCount = 1;
+	renderPassCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+
+	swapchain.commandBuffers.resize(swapchain.framebuffers.size());
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandBufferCount = (uint32_t)swapchain.commandBuffers.size();
+
+	swapchain.commandBuffers = device.allocateCommandBuffers(allocInfo);
+}
+
+void DeviceContext::createCommandPool()
+{
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilies();
+
+	VkCommandPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
+	poolInfo.flags = 0; // Optional
+
+	commandPool = device.createCommandPool(poolInfo);
 }
 
 DeviceContext::QueueFamilyIndices DeviceContext::findQueueFamilies()
@@ -326,6 +452,19 @@ vk::Extent2D DeviceContext::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR & 
 		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
 		return actualExtent;
+	}
+}
+
+DeviceContext * DeviceContext::getMainDevice()
+{
+	switch (mode)
+	{
+	case DEVICE_MODE::WINDOW:
+		return this;
+		break;
+	case DEVICE_MODE::HEADLESS:
+		return deviceGroup->getMainDevice();
+		break;
 	}
 }
 
