@@ -80,6 +80,7 @@ vkGroups::PipelineLayoutGroup DeviceGroup::createPipelineLayout(const vk::Pipeli
 
 vkGroups::PipelineShaderStageGroup DeviceGroup::createPipelineShaderStage(const std::string& shaderFilename, Shader::Type shaderType)
 {
+
 	vkGroups::PipelineShaderStageGroup pipelineShaderStageGroup;
 	for (DeviceContext* const device : devices)
 	{

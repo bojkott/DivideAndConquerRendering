@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "DeviceGroup.h"
 #include <fstream>
 #include <vulkan/vulkan.hpp>
 
@@ -17,7 +16,7 @@ public:
 
 	
 private:
-	Shader();
+	
 	static std::vector<char> readFile(const std::string& filename);
 
 	static vk::PipelineShaderStageCreateInfo createShaderModule(const std::string& filename,
