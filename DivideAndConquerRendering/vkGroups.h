@@ -26,4 +26,9 @@ namespace vkGroups {
 		~PipelineShaderStageGroup();
 	};
 
+	struct GraphicsPipelineCreateInfoGroup {
+		std::map<DeviceContext*, vk::GraphicsPipelineCreateInfo> sets;
+		~GraphicsPipelineCreateInfoGroup();
+	};
+
 }
