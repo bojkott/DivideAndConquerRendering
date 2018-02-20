@@ -11,7 +11,6 @@ Technique::Technique(Material * m, RenderState * r)
 	material = m;
 	renderState = r;
 
-	
 
 	//std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = m->getBindingDescriptions();
 	//std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions = m->getAttributeDescriptions();
@@ -48,7 +47,7 @@ Technique::Technique(Material * m, RenderState * r)
 	pipelineInfo.subpass = 0;
 
 	/*
-	Create graphics pipelines with deice. Throw if error
+	Create graphics pipelines with. Throw if error
 	*/	
 }
 

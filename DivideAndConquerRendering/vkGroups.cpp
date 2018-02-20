@@ -41,4 +41,12 @@ namespace vkGroups {
 		}
 	}
 
+	GraphicsPipelineCreateInfoGroup::~GraphicsPipelineCreateInfoGroup()
+	{
+		for (auto const& set : sets)
+		{
+			//set.first->getDevice().destroyPipeline(set.second.);
+		}
+	}
+
 }

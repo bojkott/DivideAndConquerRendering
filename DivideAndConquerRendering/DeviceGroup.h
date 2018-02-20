@@ -24,6 +24,6 @@ public:
 	vkGroups::DescriptorPoolGroup createDescriptorPool(const vk::DescriptorPoolCreateInfo& poolInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 	vkGroups::DescriptorSetGroup allocateDescriptorSet(const vkGroups::DescriptorPoolGroup& descriptorPool, const vk::DescriptorSetLayout descriptorSetLayout);
 	vkGroups::PipelineLayoutGroup createPipelineLayout(const vk::PipelineLayoutCreateInfo& pipelineLayoutInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-
-	vkGroups::PipelineShaderStageGroup DeviceGroup::createPipelineShaderStage(const std::string& shaderFilename, Shader::Type shaderType);
+	vkGroups::PipelineShaderStageGroup createPipelineShaderStage(const std::string& shaderFilename, Shader::Type shaderType);
+	//vkGroups::PipelineShaderStageCreateInfoGroup create
 };
