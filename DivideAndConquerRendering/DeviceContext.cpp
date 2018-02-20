@@ -25,7 +25,7 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 	createFrameBuffers();
 	createCommandPool();
 	createCommandBuffers();
-
+	createSemaphores();
 }
 
 DeviceContext::~DeviceContext()
@@ -54,6 +54,71 @@ DeviceContext::~DeviceContext()
 vk::Device & DeviceContext::getDevice()
 {
 	return device;
+}
+
+void DeviceContext::clearBuffer()
+{
+	device.resetCommandPool(commandPool, vk::CommandPoolResetFlagBits::eReleaseResources);
+
+	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
+	{
+		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
+		vk::CommandBufferBeginInfo beginInfo;
+		beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+
+		commandBuffer.begin(beginInfo);
+
+		vk::RenderPassBeginInfo presentRenderPassInfo;
+		presentRenderPassInfo.renderPass = presentRenderPass;
+		presentRenderPassInfo.framebuffer = swapchain.framebuffers[i];
+		presentRenderPassInfo.renderArea.offset = { 0, 0 };
+		presentRenderPassInfo.renderArea.extent = swapchain.extent;
+		presentRenderPassInfo.clearValueCount = 1;
+
+		vk::ClearValue clearColor(std::array<float, 4>{0.0f, 1.0f, 0.0f, 1.0f});
+		presentRenderPassInfo.pClearValues = &clearColor;
+
+		commandBuffer.beginRenderPass(presentRenderPassInfo, vk::SubpassContents::eInline);
+		commandBuffer.endRenderPass();
+		commandBuffer.end();
+	}
+	
+}
+
+void DeviceContext::tempPresent()
+{
+	uint32_t imageIndex = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, imageAvailableSemaphore, vk::Fence()).value;
+
+
+	vk::SubmitInfo submitInfo;
+
+	vk::Semaphore waitSemaphores[] = { imageAvailableSemaphore };
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &swapchain.commandBuffers[imageIndex];
+
+	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	graphicsQueue.submit(1, &submitInfo, vk::Fence());
+
+	vk::PresentInfoKHR presentInfo = {};
+
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	vk::SwapchainKHR swapChains[] = { swapchain.swapchain };
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+
+	presentQueue.presentKHR(presentInfo);
+	presentQueue.waitIdle();
 }
 
 uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
@@ -109,6 +174,10 @@ void DeviceContext::createDevice(vk::Instance & instance)
 
 
 	device = physicalDevice.createDevice(createInfo);
+
+	graphicsQueue = device.getQueue(indices.graphicsFamily, 0);
+	if(mode == DEVICE_MODE::WINDOW)
+		presentQueue = device.getQueue(indices.presentFamily, 0);
 
 }
 
@@ -336,6 +405,15 @@ void DeviceContext::createCommandBuffers()
 		swapchain.commandBuffers = device.allocateCommandBuffers(allocInfo);
 	}
 	
+}
+
+void DeviceContext::createSemaphores()
+{
+	//TODO more things
+	vk::SemaphoreCreateInfo semaphoreInfo;
+
+	imageAvailableSemaphore = device.createSemaphore(semaphoreInfo);
+	renderFinishedSemaphore = device.createSemaphore(semaphoreInfo);
 }
 
 void DeviceContext::createCommandPool()

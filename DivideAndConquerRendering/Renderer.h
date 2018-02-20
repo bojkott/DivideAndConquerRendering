@@ -29,8 +29,8 @@ private:
 public:
 	Renderer();
 	~Renderer();
-
-
+	
+	void render();
 private:
 
 	bool checkValidationLayerSupport();

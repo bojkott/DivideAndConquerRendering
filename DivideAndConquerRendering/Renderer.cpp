@@ -1,5 +1,5 @@
 #include "Renderer.h"
-
+#include "DeviceContext.h"
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
@@ -21,6 +21,13 @@ Renderer::~Renderer()
 	instance.destroySurfaceKHR(surface, nullptr);
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
 	instance.destroy();
+}
+
+void Renderer::render()
+{
+	DeviceContext* device = deviceGroup.getMainDevice();
+	device->clearBuffer();
+	device->tempPresent();
 }
 
 bool Renderer::checkValidationLayerSupport()

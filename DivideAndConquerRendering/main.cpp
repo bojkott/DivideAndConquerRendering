@@ -23,6 +23,7 @@ void run() {
 		}
 		//updateScene();
 		//renderScene();
+		renderer->render();
 	}
 }
 

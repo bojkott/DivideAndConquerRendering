@@ -37,8 +37,13 @@ private:
 	vk::RenderPass renderPass;
 	vk::CommandPool commandPool;
 	vk::Queue graphicsQueue;
+	vk::Queue presentQueue;
 
 	Swapchain swapchain;
+
+
+	vk::Semaphore imageAvailableSemaphore;
+	vk::Semaphore renderFinishedSemaphore;
 	
 
 	struct QueueFamilyIndices
@@ -68,6 +73,9 @@ public:
 
 	vk::Device& getDevice();
 
+	void clearBuffer();
+	void tempPresent();
+
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
 	void createDevice(vk::Instance& instance);
@@ -77,6 +85,7 @@ private:
 	void createRenderTexture();
 	void createCommandPool();
 	void createCommandBuffers();
+	void createSemaphores();
 
 
 	QueueFamilyIndices findQueueFamilies();
