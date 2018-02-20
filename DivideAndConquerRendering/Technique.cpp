@@ -3,13 +3,15 @@
 
 int Technique::numberOfTechniques = 0;
 
-Technique::Technique(/*Material * m,*/ RenderState * r)
+Technique::Technique(Material * m, RenderState * r)
 {
 	id = numberOfTechniques;
 	numberOfTechniques++;
 
-	//material = m;
+	material = m;
 	renderState = r;
+
+	
 
 	//std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = m->getBindingDescriptions();
 	//std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions = m->getAttributeDescriptions();

@@ -2,13 +2,11 @@
 #include "Window.h"
 #include "Renderer.h"
 
-std::vector<vk::PipelineShaderStageCreateInfo> Shader::createPipelineShaderStage(const std::string & vertexFilename, const std::string & fragmentFilename, const vk::Device& device)
+vk::PipelineShaderStageCreateInfo Shader::createPipelineShaderStage(const std::string & shaderFilename, Type shaderType, const vk::Device& device)
 {
-	std::vector<vk::PipelineShaderStageCreateInfo> shaderStages(2);
-	shaderStages.push_back(createShaderModule(vertexFilename, Type::VERTEX, device));
-	shaderStages.push_back(createShaderModule(fragmentFilename, Type::FRAGMENT, device));
-
-	return shaderStages;
+	vk::PipelineShaderStageCreateInfo shaderStage;
+	shaderStage = createShaderModule(shaderFilename, shaderType, device);
+	return shaderStage;
 }
 
 std::vector<char> Shader::readFile(const std::string & filename)

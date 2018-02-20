@@ -22,7 +22,7 @@ namespace vkGroups {
 	};
 
 	struct PipelineShaderStageGroup {
-		std::map<DeviceContext*, std::vector<vk::PipelineShaderStageCreateInfo>> sets;
+		std::map<DeviceContext*, vk::PipelineShaderStageCreateInfo> sets;
 		~PipelineShaderStageGroup();
 	};
 

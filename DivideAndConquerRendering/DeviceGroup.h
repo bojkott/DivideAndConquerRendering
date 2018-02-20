@@ -4,6 +4,7 @@
 #include <vulkan\vulkan.hpp>
 #include "VkGroups.h"
 #include "Shader.h"
+
 class DeviceContext;
 class DeviceGroup {
 private:
@@ -23,5 +24,5 @@ public:
 	vkGroups::DescriptorSetGroup allocateDescriptorSet(const vkGroups::DescriptorPoolGroup& descriptorPool, const vk::DescriptorSetLayout descriptorSetLayout);
 	vkGroups::PipelineLayoutGroup createPipelineLayout(const vk::PipelineLayoutCreateInfo& pipelineLayoutInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 
-	vkGroups::PipelineShaderStageGroup DeviceGroup::pipelineShaderStage(const std::string& vertexFilename, const std::string& fragmentFilename);
+	vkGroups::PipelineShaderStageGroup DeviceGroup::createPipelineShaderStage(const std::string& shaderFilename, Shader::Type shaderType);
 };

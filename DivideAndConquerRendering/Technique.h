@@ -2,6 +2,7 @@
 
 #include "RenderState.h"
 #include "DeviceGroup.h"
+#include "Material.h"
 
 #include <vulkan\vulkan.hpp>
 
@@ -16,12 +17,12 @@ private:
 	vkGroups::DescriptorSetGroup descriptorSetGroup;
 	vkGroups::PipelineLayoutGroup pipelineLayoutGroup;
 
-	//Material* material = nullptr;
+	Material* material = nullptr;
 	RenderState* renderState = nullptr;
 
 	static int numberOfTechniques;
 public:
-	Technique(/*Material* m, */ RenderState* r);
+	Technique(Material* m, RenderState* r);
 	~Technique();
 
 private:

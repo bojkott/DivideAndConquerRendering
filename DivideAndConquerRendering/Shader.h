@@ -10,8 +10,9 @@ private:
 
 public:
 	enum class Type { VERTEX = 0x00000001, FRAGMENT = 0x00000010 };
-	static std::vector<vk::PipelineShaderStageCreateInfo> createPipelineShaderStage(
-		const std::string& vertexFilename, const std::string& fragmentFilename,
+	static vk::PipelineShaderStageCreateInfo createPipelineShaderStage(
+		const std::string& shaderFilename,
+		Type shaderType,
 		const vk::Device& device);
 
 	
