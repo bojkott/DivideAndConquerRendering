@@ -31,5 +31,6 @@ int main()
 {
 	window = new Window(800, 600);
 	renderer = new Renderer();
+	run();
 	return 0;
 }

@@ -141,6 +141,7 @@ void DeviceContext::createRenderPass()
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
+
 	vk::SubpassDescription subpass;
 	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 
@@ -219,10 +220,7 @@ void DeviceContext::createRenderTexture()
 	renderTexture = new RenderTexture(this,
 		getMainDevice()->swapchain.extent.width,
 		getMainDevice()->swapchain.extent.height,
-		vk::Format::eR8G8B8A8Unorm,
-		vk::ImageTiling::eLinear,
-		vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled,
-		vk::MemoryPropertyFlagBits::eHostVisible);
+		getMainDevice()->swapchain.imageFormat);
 
 
 	vk::ImageView attachments[] = { renderTexture->getImageView() };
@@ -328,12 +326,16 @@ void DeviceContext::createCommandBuffers()
 	allocInfo.commandBufferCount = 1;
 	renderPassCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
 
-	swapchain.commandBuffers.resize(swapchain.framebuffers.size());
-	allocInfo.commandPool = commandPool;
-	allocInfo.level = vk::CommandBufferLevel::ePrimary;
-	allocInfo.commandBufferCount = (uint32_t)swapchain.commandBuffers.size();
+	if(mode == DEVICE_MODE::WINDOW)
+	{
+		swapchain.commandBuffers.resize(swapchain.framebuffers.size());
+		allocInfo.commandPool = commandPool;
+		allocInfo.level = vk::CommandBufferLevel::ePrimary;
+		allocInfo.commandBufferCount = (uint32_t)swapchain.commandBuffers.size();
 
-	swapchain.commandBuffers = device.allocateCommandBuffers(allocInfo);
+		swapchain.commandBuffers = device.allocateCommandBuffers(allocInfo);
+	}
+	
 }
 
 void DeviceContext::createCommandPool()

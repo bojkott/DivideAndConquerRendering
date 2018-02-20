@@ -18,10 +18,12 @@ public:
 		vk::SwapchainKHR swapchain;
 		std::vector<vk::CommandBuffer> commandBuffers;
 	};
+	
 private:
 
 	RenderTexture* renderTexture;
 	vk::Framebuffer renderTextureFrameBuffer;
+
 	vk::CommandBuffer renderPassCommandBuffer;
 
 	DeviceGroup* deviceGroup;

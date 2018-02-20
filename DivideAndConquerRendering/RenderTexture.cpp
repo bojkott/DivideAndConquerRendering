@@ -1,9 +1,10 @@
 #include "RenderTexture.h"
 
-RenderTexture::RenderTexture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties)
+RenderTexture::RenderTexture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format)
 {
+	this->deviceContext = deviceContext;
 	extends = { width, height };
-	createImage(deviceContext, format, tiling, usage, properties);
+	createImage(deviceContext, format);
 	createImageView(deviceContext, format);
 }
 
@@ -17,7 +18,21 @@ vk::Extent2D & RenderTexture::getExtends()
 	return extends;
 }
 
-void RenderTexture::createImage(DeviceContext * deviceContext, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties)
+void RenderTexture::transferTextureTo(RenderTexture & destination)
+{
+	/*size_t size = extends.width * extends.height * 4;
+	void* dataA = this->deviceContext->getDevice().mapMemory(this->imageMemory, 0, size);
+
+	void* dataB = destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
+
+	memcpy(dataB, dataA, size);
+	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
+	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);
+*/
+
+}
+
+void RenderTexture::createImage(DeviceContext * deviceContext, vk::Format format)
 {
 	
 	vk::ImageCreateInfo imageInfo;
@@ -29,9 +44,9 @@ void RenderTexture::createImage(DeviceContext * deviceContext, vk::Format format
 	imageInfo.arrayLayers = 1;
 
 	imageInfo.format = format;
-	imageInfo.tiling = tiling;
+	imageInfo.tiling = vk::ImageTiling::eOptimal;
 	imageInfo.initialLayout = vk::ImageLayout::eUndefined;
-	imageInfo.usage = usage;
+	imageInfo.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc;
 	imageInfo.samples = vk::SampleCountFlagBits::e1;
 
 	image = deviceContext->getDevice().createImage(imageInfo);
@@ -40,7 +55,7 @@ void RenderTexture::createImage(DeviceContext * deviceContext, vk::Format format
 
 	vk::MemoryAllocateInfo allocInfo;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = deviceContext->findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = deviceContext->findMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 	imageMemory = deviceContext->getDevice().allocateMemory(allocInfo);
 
