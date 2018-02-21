@@ -31,4 +31,9 @@ namespace vkGroups {
 		~GraphicsPipelineCreateInfoGroup();
 	};
 
+	struct PipelineCacheGroup {
+		std::map<DeviceContext*, vk::PipelineCache> sets;
+		~PipelineCacheGroup();
+	};
+
 }

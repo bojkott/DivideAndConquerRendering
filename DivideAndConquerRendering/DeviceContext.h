@@ -77,6 +77,8 @@ public:
 
 	vk::Device& getDevice();
 
+	vk::RenderPass& getRenderpass();
+
 	void clearBuffer(float r, float g, float b, float a);
 	void startFinalRenderPass();
 	void tempPresent();
