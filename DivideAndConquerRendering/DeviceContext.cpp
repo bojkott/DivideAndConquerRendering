@@ -26,6 +26,15 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 	createCommandPool();
 	createCommandBuffers();
 	createSemaphores();
+
+	targetTexture = new Texture(this,
+		getMainDevice()->swapchain.extent.width,
+		getMainDevice()->swapchain.extent.height,
+		swapchain.imageFormat,
+		vk::ImageLayout::ePreinitialized,
+		vk::ImageTiling::eLinear,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 }
 
 DeviceContext::~DeviceContext()
@@ -61,6 +70,11 @@ vk::RenderPass & DeviceContext::getRenderpass()
 	return renderPass;
 }
 
+Texture * DeviceContext::getTargetTexture()
+{
+	return targetTexture;
+}
+
 void DeviceContext::clearBuffer(float r, float g, float b, float a)
 {
 	vk::ClearValue clearColor(std::array<float, 4>{r, g, b, a});
@@ -85,9 +99,27 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		renderPassInfo.renderArea.extent = renderTexture->getExtends();
 		renderPassInfo.framebuffer = renderTextureFrameBuffer;
 		renderPassCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-
 		//this should not be here later :)
 		renderPassCommandBuffer.endRenderPass();
+
+		// Transition destination image to transfer destination layout
+		vk::ImageMemoryBarrier memoryBarrier;
+		memoryBarrier.srcAccessMask = {};
+		memoryBarrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+		memoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
+		memoryBarrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+		memoryBarrier.image = targetTexture->getImage();
+		memoryBarrier.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+		renderPassCommandBuffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer,
+			vk::PipelineStageFlagBits::eTransfer,
+			{},
+			0, nullptr,
+			0, nullptr,
+			1, &memoryBarrier);
+
+
 
 		vk::ImageCopy imageCopyInfo;
 		imageCopyInfo.extent.width = renderTexture->getExtends().width;
@@ -108,13 +140,13 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 
 
 		// Transition destination image to general layout, which is the required layout for mapping the image memory later on
-		vk::ImageMemoryBarrier memoryBarrier;
-		memoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		memoryBarrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
-		memoryBarrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
-		memoryBarrier.newLayout = vk::ImageLayout::eGeneral;
-		memoryBarrier.image = targetTexture->getImage();
-		memoryBarrier.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		vk::ImageMemoryBarrier memoryBarrier2;
+		memoryBarrier2.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		memoryBarrier2.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+		memoryBarrier2.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+		memoryBarrier2.newLayout = vk::ImageLayout::eGeneral;
+		memoryBarrier2.image = targetTexture->getImage();
+		memoryBarrier2.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
 		renderPassCommandBuffer.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer,
@@ -122,7 +154,7 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 			{},
 			0, nullptr,
 			0, nullptr,
-			1, &memoryBarrier);
+			1, &memoryBarrier2);
 
 		renderPassCommandBuffer.end();
 	}
@@ -136,8 +168,10 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		renderPassInfo.framebuffer = swapchain.framebuffers[i];
 		renderPassInfo.renderArea.extent = swapchain.extent;
 
+		
 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 		commandBuffer.endRenderPass();
+
 	}
 	
 }
@@ -206,8 +240,6 @@ void DeviceContext::executeCommandQueue()
 	graphicsQueue.submit(1, &submitInfo, vk::Fence());
 
 	graphicsQueue.waitIdle();
-
-	targetTexture->transferTextureTo(*targetTexture);
 
 }
 
@@ -288,7 +320,7 @@ void DeviceContext::createRenderPass()
 	switch (mode)
 	{
 		case DEVICE_MODE::WINDOW:
-			colorAttachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			colorAttachment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
 			break;
 		case DEVICE_MODE::HEADLESS:
 			colorAttachment.finalLayout = vk::ImageLayout::eTransferSrcOptimal;
@@ -328,7 +360,7 @@ void DeviceContext::createPresentRenderPass()
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eLoad;
 	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	colorAttachment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+	colorAttachment.initialLayout = vk::ImageLayout::eTransferDstOptimal;
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
 	vk::AttachmentReference colorAttachmentRef;
@@ -385,8 +417,9 @@ void DeviceContext::createRenderTexture()
 		getMainDevice()->swapchain.extent.width,
 		getMainDevice()->swapchain.extent.height,
 		getMainDevice()->swapchain.imageFormat,
+		vk::ImageLayout::eUndefined,
 		vk::ImageTiling::eLinear,
-		vk::ImageUsageFlagBits::eTransferDst,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
 	vk::ImageView attachments[] = { renderTexture->getImageView() };
@@ -398,6 +431,8 @@ void DeviceContext::createRenderTexture()
 	framebufferInfo.width = renderTexture->getExtends().width;
 	framebufferInfo.height = renderTexture->getExtends().height;
 	framebufferInfo.layers = 1;
+
+
 
 	renderTextureFrameBuffer = device.createFramebuffer(framebufferInfo);
 }
@@ -426,7 +461,7 @@ void DeviceContext::createSwapchain()
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
 	createInfo.imageExtent = extent;
 	createInfo.imageArrayLayers = 1; // 1 if not VR
-	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
 
 
 	QueueFamilyIndices indices = findQueueFamilies();

@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
+#include "Texture.h"
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
@@ -28,9 +29,10 @@ void Renderer::render()
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 	for (DeviceContext* device : deviceGroup.getDevices())
 	{
-		device->clearBuffer(0, 0, 1, 1);
+		device->clearBuffer(1, 1, 0, 1);
 		if (device != mainDevice) {
 			device->executeCommandQueue();
+			device->getTargetTexture()->transferTextureTo(*mainDevice->getTargetTexture());
 		}
 			
 		//Divide and build geometry queue & cpu transfer command.

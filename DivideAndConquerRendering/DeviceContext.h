@@ -79,6 +79,8 @@ public:
 
 	vk::RenderPass& getRenderpass();
 
+	Texture* getTargetTexture();
+
 	void clearBuffer(float r, float g, float b, float a);
 	void startFinalRenderPass();
 	void tempPresent();
