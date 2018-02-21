@@ -18,6 +18,7 @@ public:
 	
 	unsigned int getGroupSize();
 	DeviceContext* getMainDevice();
+	std::vector<DeviceContext*> getDevices();
 
 	vkGroups::PipelineGroup createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 	vkGroups::DescriptorPoolGroup createDescriptorPool(const vk::DescriptorPoolCreateInfo& poolInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);

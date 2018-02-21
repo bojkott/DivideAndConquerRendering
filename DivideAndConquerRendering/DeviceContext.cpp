@@ -12,6 +12,7 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 	createRenderTexture();
 	createCommandPool();
 	createCommandBuffers();
+	createSemaphores();
 }
 
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : deviceGroup(group), physicalDevice(physicalDevice), surface(surface)
@@ -21,7 +22,6 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 	createSwapchain();
 	createRenderPass();
 	createPresentRenderPass();
-	createRenderTexture();
 	createFrameBuffers();
 	createCommandPool();
 	createCommandBuffers();
@@ -56,37 +56,58 @@ vk::Device & DeviceContext::getDevice()
 	return device;
 }
 
-void DeviceContext::clearBuffer()
+void DeviceContext::clearBuffer(float r, float g, float b, float a)
 {
+	vk::ClearValue clearColor(std::array<float, 4>{r, g, b, a});
 	device.resetCommandPool(commandPool, vk::CommandPoolResetFlagBits::eReleaseResources);
+
+	vk::CommandBufferBeginInfo beginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+	
+
+	vk::RenderPassBeginInfo renderPassInfo;
+	renderPassInfo.renderPass = renderPass;
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	
+	renderPassInfo.clearValueCount = 1;
+
+
+	renderPassInfo.pClearValues = &clearColor;
+
+	if (mode == DEVICE_MODE::HEADLESS)
+	{
+		renderPassCommandBuffer.begin(beginInfo);
+		renderPassInfo.renderArea.extent = renderTexture->getExtends();
+		renderPassInfo.framebuffer = renderTextureFrameBuffer;
+		renderPassCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+		//this should not be here later :)
+		vk::ImageCopy imageCopyInfo;
+		imageCopyInfo.extent.width = renderTexture->getExtends().width;
+		imageCopyInfo.extent.height = renderTexture->getExtends().height;
+		imageCopyInfo.extent.depth = 1;
+
+		renderPassCommandBuffer.copyImage(renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal, targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal, imageCopyInfo);
+	}
 
 	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
 	{
 		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
-		vk::CommandBufferBeginInfo beginInfo;
-		beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 
 		commandBuffer.begin(beginInfo);
 
-		vk::RenderPassBeginInfo presentRenderPassInfo;
-		presentRenderPassInfo.renderPass = presentRenderPass;
-		presentRenderPassInfo.framebuffer = swapchain.framebuffers[i];
-		presentRenderPassInfo.renderArea.offset = { 0, 0 };
-		presentRenderPassInfo.renderArea.extent = swapchain.extent;
-		presentRenderPassInfo.clearValueCount = 1;
+		renderPassInfo.framebuffer = swapchain.framebuffers[i];
+		renderPassInfo.renderArea.extent = swapchain.extent;
 
-		vk::ClearValue clearColor(std::array<float, 4>{0.0f, 1.0f, 0.0f, 1.0f});
-		presentRenderPassInfo.pClearValues = &clearColor;
-
-		commandBuffer.beginRenderPass(presentRenderPassInfo, vk::SubpassContents::eInline);
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 		commandBuffer.endRenderPass();
-		commandBuffer.end();
 	}
 	
 }
 
 void DeviceContext::tempPresent()
 {
+
 	uint32_t imageIndex = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, imageAvailableSemaphore, vk::Fence()).value;
 
 
@@ -119,6 +140,29 @@ void DeviceContext::tempPresent()
 
 	presentQueue.presentKHR(presentInfo);
 	presentQueue.waitIdle();
+}
+
+void DeviceContext::executeCommandQueue()
+{
+
+	vk::SubmitInfo submitInfo;
+
+	vk::Semaphore waitSemaphores[] = { imageAvailableSemaphore };
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &renderPassCommandBuffer;
+
+	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	graphicsQueue.submit(1, &submitInfo, vk::Fence());
+	graphicsQueue.waitIdle();
+
 }
 
 uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
@@ -189,8 +233,8 @@ void DeviceContext::createRenderPass()
 	colorAttachment.samples = vk::SampleCountFlagBits::e1;
 	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eClear;
+	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eStore;
 	colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
 
 	//If we are the main GPU we will set our final layout to an image to be used for input in the next pass.
@@ -198,7 +242,7 @@ void DeviceContext::createRenderPass()
 	switch (mode)
 	{
 		case DEVICE_MODE::WINDOW:
-			colorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+			colorAttachment.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 			break;
 		case DEVICE_MODE::HEADLESS:
 			colorAttachment.finalLayout = vk::ImageLayout::eTransferSrcOptimal;
@@ -234,11 +278,11 @@ void DeviceContext::createPresentRenderPass()
 	vk::AttachmentDescription colorAttachment;
 	colorAttachment.format = swapchain.imageFormat; //maybe hardcode?
 	colorAttachment.samples = vk::SampleCountFlagBits::e1;
-	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+	colorAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eLoad;
 	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	colorAttachment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
 	vk::AttachmentReference colorAttachmentRef;
@@ -291,6 +335,13 @@ void DeviceContext::createRenderTexture()
 		getMainDevice()->swapchain.extent.height,
 		getMainDevice()->swapchain.imageFormat);
 
+	targetTexture = new Texture(this,
+		getMainDevice()->swapchain.extent.width,
+		getMainDevice()->swapchain.extent.height,
+		getMainDevice()->swapchain.imageFormat,
+		vk::ImageTiling::eLinear,
+		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal);
 
 	vk::ImageView attachments[] = { renderTexture->getImageView() };
 
@@ -392,14 +443,14 @@ void DeviceContext::createCommandBuffers()
 	vk::CommandBufferAllocateInfo allocInfo;
 	allocInfo.commandPool = commandPool;
 	allocInfo.level = vk::CommandBufferLevel::ePrimary;
-	allocInfo.commandBufferCount = 1;
-	renderPassCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
-
-	if(mode == DEVICE_MODE::WINDOW)
+	if (mode == DEVICE_MODE::HEADLESS)
+	{
+		allocInfo.commandBufferCount = 1;
+		renderPassCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+	}
+	else
 	{
 		swapchain.commandBuffers.resize(swapchain.framebuffers.size());
-		allocInfo.commandPool = commandPool;
-		allocInfo.level = vk::CommandBufferLevel::ePrimary;
 		allocInfo.commandBufferCount = (uint32_t)swapchain.commandBuffers.size();
 
 		swapchain.commandBuffers = device.allocateCommandBuffers(allocInfo);
@@ -414,6 +465,28 @@ void DeviceContext::createSemaphores()
 
 	imageAvailableSemaphore = device.createSemaphore(semaphoreInfo);
 	renderFinishedSemaphore = device.createSemaphore(semaphoreInfo);
+}
+
+void DeviceContext::startFinalRenderPass()
+{
+	vk::RenderPassBeginInfo finalPassInfo;
+	finalPassInfo.renderPass = presentRenderPass;
+	finalPassInfo.renderArea.offset = { 0, 0 };
+
+	finalPassInfo.clearValueCount = 0;
+
+	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
+	{
+		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
+
+
+		finalPassInfo.framebuffer = swapchain.framebuffers[i];
+		finalPassInfo.renderArea.extent = swapchain.extent;
+
+		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
+		commandBuffer.endRenderPass();
+		commandBuffer.end();
+	}
 }
 
 void DeviceContext::createCommandPool()

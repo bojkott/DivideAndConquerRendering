@@ -25,9 +25,21 @@ Renderer::~Renderer()
 
 void Renderer::render()
 {
-	DeviceContext* device = deviceGroup.getMainDevice();
-	device->clearBuffer();
-	device->tempPresent();
+	DeviceContext* mainDevice = deviceGroup.getMainDevice();
+	for (DeviceContext* device : deviceGroup.getDevices())
+	{
+		device->clearBuffer(0, 0, 1, 1);
+		if (device != mainDevice) {
+			device->executeCommandQueue();
+		}
+			
+		//Divide and build geometry queue & cpu transfer command.
+		//Present queue
+		//Transfer to main device if headless
+	}
+	
+	mainDevice->startFinalRenderPass(); //Combine
+	mainDevice->tempPresent(); //Final pass
 }
 
 bool Renderer::checkValidationLayerSupport()

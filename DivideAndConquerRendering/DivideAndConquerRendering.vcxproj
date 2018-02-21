@@ -126,6 +126,7 @@
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="vkGroups.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="Technique.cpp" />
@@ -140,6 +141,7 @@
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Technique.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="vkGroups.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

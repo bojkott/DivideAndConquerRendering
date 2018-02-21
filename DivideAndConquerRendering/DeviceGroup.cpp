@@ -31,6 +31,11 @@ DeviceContext * DeviceGroup::getMainDevice()
 	return devices[0];
 }
 
+std::vector<DeviceContext*> DeviceGroup::getDevices()
+{
+	return devices;
+}
+
 vkGroups::PipelineGroup DeviceGroup::createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
 {
 	vkGroups::PipelineGroup pipelineGroup;

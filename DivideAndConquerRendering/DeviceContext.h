@@ -5,6 +5,7 @@
 #include <memory>
 
 class RenderTexture;
+class Texture;
 class DeviceGroup;
 class DeviceContext {
 public:
@@ -22,7 +23,10 @@ public:
 private:
 
 	RenderTexture* renderTexture;
+	Texture* targetTexture;
 	vk::Framebuffer renderTextureFrameBuffer;
+
+
 
 	vk::CommandBuffer renderPassCommandBuffer;
 
@@ -73,8 +77,10 @@ public:
 
 	vk::Device& getDevice();
 
-	void clearBuffer();
+	void clearBuffer(float r, float g, float b, float a);
+	void startFinalRenderPass();
 	void tempPresent();
+	void executeCommandQueue();
 
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
@@ -87,6 +93,7 @@ private:
 	void createCommandBuffers();
 	void createSemaphores();
 
+	
 
 	QueueFamilyIndices findQueueFamilies();
 
