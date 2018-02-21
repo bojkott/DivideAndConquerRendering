@@ -93,3 +93,46 @@ vkGroups::PipelineShaderStageGroup DeviceGroup::createPipelineShaderStage(const 
 	return pipelineShaderStageGroup;
 }
 
+vkGroups::PipelineCacheGroup DeviceGroup::createPipelineCache()
+{
+	vkGroups::PipelineCacheGroup group;
+	for (DeviceContext* device : devices)
+	{
+		group.sets.insert(std::make_pair(device, device->getDevice().createPipelineCache(vk::PipelineCacheCreateInfo())));
+	}
+	return group;
+}
+
+vkGroups::PipelineGroup DeviceGroup::createPipeline(vk::GraphicsPipelineCreateInfo & pipelineInfo,
+	vkGroups::PipelineCacheGroup pipelineCacheGroup,
+	vkGroups::PipelineShaderStageGroup vertexShader,
+	vkGroups::PipelineShaderStageGroup fragmentShader,
+	vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
+	vk::Optional<const vk::AllocationCallbacks> allocator)
+{
+	vkGroups::PipelineGroup group;
+	for (DeviceContext* device : devices)
+	{
+		vk::PipelineShaderStageCreateInfo stages[2] = { vertexShader.sets.at(device), fragmentShader.sets.at(device) };	//This only supports vertex- and fragmentshader.
+		pipelineInfo.stageCount = 2;
+		pipelineInfo.pStages = stages;
+		pipelineInfo.layout = pipelineLayoutGroup.sets.at(device);
+		pipelineInfo.renderPass = device->getRenderpass();
+		group.sets.insert(std::make_pair(device, device->getDevice().createGraphicsPipeline(pipelineCacheGroup.sets.at(device), pipelineInfo)));
+	}
+	return group;
+}
+
+
+std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> DeviceGroup::getShaderStages(vkGroups::PipelineShaderStageGroup vertexShader, vkGroups::PipelineShaderStageGroup fragmentShader)
+{
+	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> vec;
+	std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
+	for (DeviceContext* const device : devices)
+	{
+		shaderStages.push_back(vertexShader.sets[device]);
+		shaderStages.push_back(fragmentShader.sets[device]);
+		vec.push_back(shaderStages);
+	}
+	return vec;
+}

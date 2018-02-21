@@ -28,13 +28,8 @@ Technique::Technique(Material * m, RenderState * r)
 	inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-
-
-
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
-	pipelineInfo.stageCount = 2;
-	//pipelineInfo.pStages = m->getShaderStages();	//Or something like tahat
-	pipelineInfo.pVertexInputState = &vertexInputInfo;
+	pipelineInfo.pVertexInputState = &vertexInputInfo;	//Specific for device? Don't think so. Should be same for the same shaders. So will only differ when we change technique.
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
 	pipelineInfo.pViewportState = r->getViewportState();
 	pipelineInfo.pRasterizationState = r->getRasterizer();
@@ -42,13 +37,10 @@ Technique::Technique(Material * m, RenderState * r)
 	pipelineInfo.pDynamicState = nullptr;
 	pipelineInfo.pDepthStencilState = nullptr;
 	pipelineInfo.pColorBlendState = r->getColorBlending();
-	//pipelineInfo.layout = VulkanRenderer::pipelineLayout;
-	//pipelineInfo.renderPass = VulkanRenderer::renderPass;	//Or something like tahat
 	pipelineInfo.subpass = 0;
 
-	/*
-	Create graphics pipelines with. Throw if error
-	*/	
+	pipelineGroup = Renderer::deviceGroup.createPipeline(pipelineInfo, pipelineCacheGroup, m->getVertexShader(), m->getFragmentShader(), pipelineLayoutGroup);
+	
 }
 
 Technique::~Technique()
@@ -102,4 +94,9 @@ void Technique::createPipelineLayout()
 	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data(); // Optional
 
 	pipelineLayoutGroup = Renderer::deviceGroup.createPipelineLayout(pipelineLayoutInfo);
+}
+
+void Technique::createPipelineCache()
+{
+	pipelineCacheGroup = Renderer::deviceGroup.createPipelineCache();
 }

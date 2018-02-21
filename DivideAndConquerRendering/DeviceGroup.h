@@ -25,5 +25,13 @@ public:
 	vkGroups::DescriptorSetGroup allocateDescriptorSet(const vkGroups::DescriptorPoolGroup& descriptorPool, const vk::DescriptorSetLayout descriptorSetLayout);
 	vkGroups::PipelineLayoutGroup createPipelineLayout(const vk::PipelineLayoutCreateInfo& pipelineLayoutInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 	vkGroups::PipelineShaderStageGroup createPipelineShaderStage(const std::string& shaderFilename, Shader::Type shaderType);
-	//vkGroups::PipelineShaderStageCreateInfoGroup create
+	vkGroups::PipelineCacheGroup createPipelineCache();
+	vkGroups::PipelineGroup createPipeline(vk::GraphicsPipelineCreateInfo& pipelineInfo,
+		vkGroups::PipelineCacheGroup pipelineCacheGroup,
+		vkGroups::PipelineShaderStageGroup vertexShader,
+		vkGroups::PipelineShaderStageGroup fragmentShader,
+		vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
+		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+	
+	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> getShaderStages(vkGroups::PipelineShaderStageGroup vertexShader, vkGroups::PipelineShaderStageGroup fragmentShader);
 };

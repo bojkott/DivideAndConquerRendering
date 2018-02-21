@@ -49,4 +49,11 @@ namespace vkGroups {
 		}
 	}
 
+	PipelineCacheGroup::~PipelineCacheGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().destroyPipelineCache(set.second);
+		}
+	}
 }

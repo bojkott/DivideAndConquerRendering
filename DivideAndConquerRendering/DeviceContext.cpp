@@ -56,6 +56,11 @@ vk::Device & DeviceContext::getDevice()
 	return device;
 }
 
+vk::RenderPass & DeviceContext::getRenderpass()
+{
+	return renderPass;
+}
+
 void DeviceContext::clearBuffer(float r, float g, float b, float a)
 {
 	vk::ClearValue clearColor(std::array<float, 4>{r, g, b, a});
