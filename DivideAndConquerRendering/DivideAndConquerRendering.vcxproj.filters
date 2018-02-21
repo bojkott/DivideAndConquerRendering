@@ -13,6 +13,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
@@ -27,5 +28,6 @@
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="VertexBuffer.h" />
   </ItemGroup>
 </Project>

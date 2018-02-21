@@ -136,7 +136,7 @@ void Renderer::setupDeviceGroup()
 
 	if (!deviceCount)
 	{
-		throw std::runtime_error("FAiled to find VULKAN supported gfx card");
+		throw std::runtime_error("Failed to find VULKAN supported gfx card");
 	}
 
 	std::vector<vk::PhysicalDevice> physicalDevices(deviceCount);
