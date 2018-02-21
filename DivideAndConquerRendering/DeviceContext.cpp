@@ -82,12 +82,44 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		renderPassCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
 		//this should not be here later :)
+		renderPassCommandBuffer.endRenderPass();
+
 		vk::ImageCopy imageCopyInfo;
 		imageCopyInfo.extent.width = renderTexture->getExtends().width;
 		imageCopyInfo.extent.height = renderTexture->getExtends().height;
 		imageCopyInfo.extent.depth = 1;
+		imageCopyInfo.srcOffset = { 0,0 };
+		imageCopyInfo.dstOffset = { 0,0 };
+
+		vk::ImageSubresourceLayers subResource;
+		subResource.aspectMask = vk::ImageAspectFlagBits::eColor;
+		subResource.mipLevel = 0;
+		subResource.baseArrayLayer = 0;
+		subResource.layerCount = 1;
+		imageCopyInfo.srcSubresource = subResource;
+		imageCopyInfo.dstSubresource = subResource;
 
 		renderPassCommandBuffer.copyImage(renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal, targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal, imageCopyInfo);
+
+
+		// Transition destination image to general layout, which is the required layout for mapping the image memory later on
+		vk::ImageMemoryBarrier memoryBarrier;
+		memoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		memoryBarrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+		memoryBarrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+		memoryBarrier.newLayout = vk::ImageLayout::eGeneral;
+		memoryBarrier.image = targetTexture->getImage();
+		memoryBarrier.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+		renderPassCommandBuffer.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer,
+			vk::PipelineStageFlagBits::eTransfer,
+			{},
+			0, nullptr,
+			0, nullptr,
+			1, &memoryBarrier);
+
+		renderPassCommandBuffer.end();
 	}
 
 	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
@@ -147,10 +179,9 @@ void DeviceContext::executeCommandQueue()
 
 	vk::SubmitInfo submitInfo;
 
-	vk::Semaphore waitSemaphores[] = { imageAvailableSemaphore };
+
 	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.waitSemaphoreCount = 0;
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
@@ -161,7 +192,17 @@ void DeviceContext::executeCommandQueue()
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	graphicsQueue.submit(1, &submitInfo, vk::Fence());
+
+	submitInfo.commandBufferCount = 0;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = signalSemaphores;
+	submitInfo.signalSemaphoreCount = 0;
+
+	graphicsQueue.submit(1, &submitInfo, vk::Fence());
+
 	graphicsQueue.waitIdle();
+
+	targetTexture->transferTextureTo(*targetTexture);
 
 }
 
@@ -340,8 +381,8 @@ void DeviceContext::createRenderTexture()
 		getMainDevice()->swapchain.extent.height,
 		getMainDevice()->swapchain.imageFormat,
 		vk::ImageTiling::eLinear,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eDeviceLocal);
+		vk::ImageUsageFlagBits::eTransferDst,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
 	vk::ImageView attachments[] = { renderTexture->getImageView() };
 

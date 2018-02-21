@@ -28,11 +28,13 @@ void Texture::transferTextureTo(Texture & destination)
 	size_t size = extends.width * extends.height * 4;
 	void* dataA = this->deviceContext->getDevice().mapMemory(this->imageMemory, 0, size);
 
-	void* dataB = destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
+	std::vector<float> pixelData { (float*)dataA, (float*)dataA + size };
 
-	memcpy(dataB, dataA, size);
-	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
-	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);
+	//void* dataB = destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
+
+	//memcpy(dataB, dataA, size);
+	//this->deviceContext->getDevice().unmapMemory(this->imageMemory);
+	//destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);
 }
 
 void Texture::createImage(DeviceContext * deviceContext, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties)
