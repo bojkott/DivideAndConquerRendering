@@ -11,7 +11,8 @@ class Technique
 public:
 	int id;
 private:
-	vk::Pipeline pipeline;
+	vkGroups::PipelineGroup pipelineGroup;
+	vkGroups::PipelineCacheGroup pipelineCacheGroup;
 	vk::DescriptorSetLayout descriptorSetLayout;
 	vkGroups::DescriptorPoolGroup descriptorPoolGroup;
 	vkGroups::DescriptorSetGroup descriptorSetGroup;
@@ -29,4 +30,5 @@ private:
 	void createDescriptorPool();
 	void createDescriptorSet();
 	void createPipelineLayout();
+	void createPipelineCache();
 };

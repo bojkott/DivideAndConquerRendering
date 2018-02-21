@@ -16,7 +16,11 @@ public:
 	Material(std::string& vertexFilename, std::string& fragmentFilename);
 	~Material();
 
-	std::vector<vk::PipelineShaderStageCreateInfo> getShaderStages();
+	vkGroups::PipelineShaderStageGroup getVertexShader();
+	vkGroups::PipelineShaderStageGroup getFragmentShader();
+	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> getShaderStages();
+	std::vector<vk::VertexInputBindingDescription> getBindingDescriptions();
+	std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
 private:
 
 
