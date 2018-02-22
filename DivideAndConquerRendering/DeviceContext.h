@@ -81,6 +81,8 @@ public:
 
 	vk::RenderPass& getRenderpass();
 
+	Texture* getTargetTexture();
+	vk::CommandPool getCommandPool();
 	std::map<DeviceContext*, Texture*> getTargetTextures();
 
 	void clearBuffer(float r, float g, float b, float a);

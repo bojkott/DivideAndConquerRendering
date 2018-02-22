@@ -128,6 +128,7 @@
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="vkGroups.cpp" />
     <ClCompile Include="VulkanHelpers.cpp" />
@@ -137,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="DeviceGroup.h" />
+    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Material.h" />
