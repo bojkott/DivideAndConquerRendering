@@ -36,8 +36,11 @@ void Texture::transferTextureTo(Texture & destination)
 	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);
 }
 
+
+
 void Texture::createImage(DeviceContext * deviceContext, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties)
 {
+	
 	vk::ImageCreateInfo imageInfo;
 	imageInfo.imageType = vk::ImageType::e2D;
 	imageInfo.extent.width = extends.width;

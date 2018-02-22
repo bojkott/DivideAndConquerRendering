@@ -4,6 +4,7 @@
 #include "Window.h"
 #include "DeviceGroup.h"
 #include "RenderTexture.h"
+#include "VulkanHelpers.h"
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): deviceGroup(group), physicalDevice(physicalDevice)
 {
 	mode = DEVICE_MODE::HEADLESS;
@@ -99,62 +100,30 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		renderPassInfo.renderArea.extent = renderTexture->getExtends();
 		renderPassInfo.framebuffer = renderTextureFrameBuffer;
 		renderPassCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+		
 		//this should not be here later :)
 		renderPassCommandBuffer.endRenderPass();
 
-		// Transition destination image to transfer destination layout
-		vk::ImageMemoryBarrier memoryBarrier;
-		memoryBarrier.srcAccessMask = {};
-		memoryBarrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-		memoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
-		memoryBarrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
-		memoryBarrier.image = targetTexture->getImage();
-		memoryBarrier.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		renderPassCommandBuffer.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer,
-			vk::PipelineStageFlagBits::eTransfer,
-			{},
-			0, nullptr,
-			0, nullptr,
-			1, &memoryBarrier);
+		VulkanHelpers::cmdTransitionLayout(
+			renderPassCommandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eUndefined,vk::ImageLayout::eTransferDstOptimal,
+			{}, vk::AccessFlagBits::eTransferWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
 
-
-		vk::ImageCopy imageCopyInfo;
-		imageCopyInfo.extent.width = renderTexture->getExtends().width;
-		imageCopyInfo.extent.height = renderTexture->getExtends().height;
-		imageCopyInfo.extent.depth = 1;
-		imageCopyInfo.srcOffset = { 0,0 };
-		imageCopyInfo.dstOffset = { 0,0 };
-
-		vk::ImageSubresourceLayers subResource;
-		subResource.aspectMask = vk::ImageAspectFlagBits::eColor;
-		subResource.mipLevel = 0;
-		subResource.baseArrayLayer = 0;
-		subResource.layerCount = 1;
-		imageCopyInfo.srcSubresource = subResource;
-		imageCopyInfo.dstSubresource = subResource;
-
-		renderPassCommandBuffer.copyImage(renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal, targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal, imageCopyInfo);
+		VulkanHelpers::cmdCopyImageSimple(renderPassCommandBuffer,
+			renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
+			targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
+			renderTexture->getExtends().width, renderTexture->getExtends().height);
 
 
-		// Transition destination image to general layout, which is the required layout for mapping the image memory later on
-		vk::ImageMemoryBarrier memoryBarrier2;
-		memoryBarrier2.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		memoryBarrier2.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
-		memoryBarrier2.oldLayout = vk::ImageLayout::eTransferDstOptimal;
-		memoryBarrier2.newLayout = vk::ImageLayout::eGeneral;
-		memoryBarrier2.image = targetTexture->getImage();
-		memoryBarrier2.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		renderPassCommandBuffer.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer,
-			vk::PipelineStageFlagBits::eTransfer,
-			{},
-			0, nullptr,
-			0, nullptr,
-			1, &memoryBarrier2);
+		VulkanHelpers::cmdTransitionLayout(
+			renderPassCommandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eTransferDstOptimal,vk::ImageLayout::eGeneral,
+			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
 		renderPassCommandBuffer.end();
 	}
@@ -563,6 +532,59 @@ void DeviceContext::startFinalRenderPass()
 
 		finalPassInfo.framebuffer = swapchain.framebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
+
+		//vk::ImageMemoryBarrier memoryBarrier;
+		//memoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		//memoryBarrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+		//memoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
+		//memoryBarrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+		//memoryBarrier.image = targetTexture->getImage();
+		//memoryBarrier.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+		//commandBuffer.pipelineBarrier(
+		//	vk::PipelineStageFlagBits::eTransfer,
+		//	vk::PipelineStageFlagBits::eTransfer,
+		//	{},
+		//	0, nullptr,
+		//	0, nullptr,
+		//	1, &memoryBarrier);
+
+
+
+		//vk::ImageCopy imageCopyInfo;
+		//imageCopyInfo.extent.width = swapchain.extent.width;
+		//imageCopyInfo.extent.height = swapchain.extent.height;
+		//imageCopyInfo.extent.depth = 1;
+		//imageCopyInfo.srcOffset = { 0,0 };
+		//imageCopyInfo.dstOffset = { 0,0 };
+
+		//vk::ImageSubresourceLayers subResource;
+		//subResource.aspectMask = vk::ImageAspectFlagBits::eColor;
+		//subResource.mipLevel = 0;
+		//subResource.baseArrayLayer = 0;
+		//subResource.layerCount = 1;
+		//imageCopyInfo.srcSubresource = subResource;
+		//imageCopyInfo.dstSubresource = subResource;
+
+		//commandBuffer.copyImage(targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal, swapchain.images[i], vk::ImageLayout::eTransferDstOptimal, imageCopyInfo);
+		//
+
+		//// Transition src image to general layout, which is the required layout for mapping the image memory later on
+		//vk::ImageMemoryBarrier memoryBarrier2;
+		//memoryBarrier2.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		//memoryBarrier2.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+		//memoryBarrier2.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+		//memoryBarrier2.newLayout = vk::ImageLayout::eGeneral;
+		//memoryBarrier2.image = targetTexture->getImage();
+		//memoryBarrier2.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+		//commandBuffer.pipelineBarrier(
+		//	vk::PipelineStageFlagBits::eTransfer,
+		//	vk::PipelineStageFlagBits::eTransfer,
+		//	{},
+		//	0, nullptr,
+		//	0, nullptr,
+		//	1, &memoryBarrier2);
 
 		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 		commandBuffer.endRenderPass();

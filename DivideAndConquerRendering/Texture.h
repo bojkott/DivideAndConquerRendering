@@ -16,6 +16,9 @@ public:
 	vk::Image& getImage();
 	vk::Extent2D& getExtends();
 	void transferTextureTo(Texture& destination);
+
+
+	void cmdCopyImage(Texture& other);
 private:
 	void createImage(DeviceContext * deviceContext, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties);
 	void createImageView(DeviceContext * deviceContext, vk::Format format);

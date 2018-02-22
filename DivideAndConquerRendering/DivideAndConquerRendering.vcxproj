@@ -129,6 +129,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="vkGroups.cpp" />
+    <ClCompile Include="VulkanHelpers.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="Technique.cpp" />
   </ItemGroup>
@@ -145,6 +146,7 @@
     <ClInclude Include="Technique.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="vkGroups.h" />
+    <ClInclude Include="VulkanHelpers.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
