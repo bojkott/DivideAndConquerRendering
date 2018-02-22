@@ -212,6 +212,33 @@ void DeviceContext::executeCommandQueue()
 
 }
 
+void DeviceContext::executeSingleTimeQueue(std::function< void(vk::CommandBuffer)> commands)
+{
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandPool = commandPool;
+	allocInfo.commandBufferCount = 1;
+	
+	vk::CommandBuffer commandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+
+	vk::CommandBufferBeginInfo beginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+	commandBuffer.begin(beginInfo);
+
+	commands(commandBuffer);
+
+	commandBuffer.end();
+	
+	vk::SubmitInfo submitInfo;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	graphicsQueue.submit(submitInfo, {});
+	graphicsQueue.waitIdle();
+	device.freeCommandBuffers(commandPool, commandBuffer);
+}
+
 uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
 {
 	vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
@@ -548,9 +575,6 @@ void DeviceContext::startFinalRenderPass()
 		//	0, nullptr,
 		//	0, nullptr,
 		//	1, &memoryBarrier);
-
-
-
 		//vk::ImageCopy imageCopyInfo;
 		//imageCopyInfo.extent.width = swapchain.extent.width;
 		//imageCopyInfo.extent.height = swapchain.extent.height;

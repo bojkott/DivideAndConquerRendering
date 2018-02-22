@@ -9,4 +9,5 @@ public:
 	//Copy image with same extends and no offset.
 	static void cmdCopyImageSimple(vk::CommandBuffer commandBuffer, vk::Image srcImage, vk::ImageLayout srcImageLayout,
 		vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height);
+
 };

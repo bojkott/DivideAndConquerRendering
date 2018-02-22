@@ -3,6 +3,7 @@
 #include <vulkan\vulkan.hpp>
 #include <SDL.h>
 #include <memory>
+#include <functional>
 
 class RenderTexture;
 class Texture;
@@ -85,6 +86,8 @@ public:
 	void startFinalRenderPass();
 	void tempPresent();
 	void executeCommandQueue();
+
+	void executeSingleTimeQueue(std::function< void (vk::CommandBuffer)> commands);
 
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
