@@ -19,8 +19,9 @@ public:
 	vkGroups::PipelineShaderStageGroup getVertexShader();
 	vkGroups::PipelineShaderStageGroup getFragmentShader();
 	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> getShaderStages();
-	std::vector<vk::VertexInputBindingDescription> getBindingDescriptions();
-	std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
+	virtual std::vector<vk::VertexInputBindingDescription> getBindingDescriptions() = 0;
+	virtual std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions() = 0;
+
 private:
 
 

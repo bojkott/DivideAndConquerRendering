@@ -12,16 +12,16 @@ Technique::Technique(Material * m, RenderState * r)
 	renderState = r;
 
 
-	//std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = m->getBindingDescriptions();
-	//std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions = m->getAttributeDescriptions();
+	std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = m->getBindingDescriptions();
+	std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions = m->getAttributeDescriptions();
 
 
 	//vertex input
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-	//vertexInputInfo.vertexBindingDescriptionCount = vertexBindingDescriptions.size();
-	//vertexInputInfo.pVertexBindingDescriptions = vertexBindingDescriptions.data();
-	//vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptions.size();
-	//vertexInputInfo.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
+	vertexInputInfo.vertexBindingDescriptionCount = vertexBindingDescriptions.size();
+	vertexInputInfo.pVertexBindingDescriptions = vertexBindingDescriptions.data();
+	vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptions.size();
+	vertexInputInfo.pVertexAttributeDescriptions = vertexAttributeDescriptions.data();
 
 	//input assembly
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
@@ -29,7 +29,7 @@ Technique::Technique(Material * m, RenderState * r)
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
-	pipelineInfo.pVertexInputState = &vertexInputInfo;	//Specific for device? Don't think so. Should be same for the same shaders. So will only differ when we change technique.
+	pipelineInfo.pVertexInputState = &vertexInputInfo;
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
 	pipelineInfo.pViewportState = r->getViewportState();
 	pipelineInfo.pRasterizationState = r->getRasterizer();
