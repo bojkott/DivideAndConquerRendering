@@ -32,10 +32,21 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 		getMainDevice()->swapchain.extent.width,
 		getMainDevice()->swapchain.extent.height,
 		swapchain.imageFormat,
-		vk::ImageLayout::ePreinitialized,
+		vk::ImageLayout::eUndefined,
 		vk::ImageTiling::eLinear,
 		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+	executeSingleTimeQueue(
+		[this](vk::CommandBuffer commandBuffer)
+	{
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			this->getTargetTexture()->getImage(),
+			vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+			{}, vk::AccessFlagBits::eMemoryWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+	});
 }
 
 DeviceContext::~DeviceContext()
@@ -560,55 +571,26 @@ void DeviceContext::startFinalRenderPass()
 		finalPassInfo.framebuffer = swapchain.framebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
 
-		//vk::ImageMemoryBarrier memoryBarrier;
-		//memoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		//memoryBarrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
-		//memoryBarrier.oldLayout = vk::ImageLayout::eUndefined;
-		//memoryBarrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
-		//memoryBarrier.image = targetTexture->getImage();
-		//memoryBarrier.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
+			vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
-		//commandBuffer.pipelineBarrier(
-		//	vk::PipelineStageFlagBits::eTransfer,
-		//	vk::PipelineStageFlagBits::eTransfer,
-		//	{},
-		//	0, nullptr,
-		//	0, nullptr,
-		//	1, &memoryBarrier);
-		//vk::ImageCopy imageCopyInfo;
-		//imageCopyInfo.extent.width = swapchain.extent.width;
-		//imageCopyInfo.extent.height = swapchain.extent.height;
-		//imageCopyInfo.extent.depth = 1;
-		//imageCopyInfo.srcOffset = { 0,0 };
-		//imageCopyInfo.dstOffset = { 0,0 };
+		VulkanHelpers::cmdBlitSimple(
+			commandBuffer,
+			targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
+			swapchain.images[i], vk::ImageLayout::eTransferDstOptimal,
+			swapchain.extent.width, swapchain.extent.height,
+			vk::Filter::eNearest);
 
-		//vk::ImageSubresourceLayers subResource;
-		//subResource.aspectMask = vk::ImageAspectFlagBits::eColor;
-		//subResource.mipLevel = 0;
-		//subResource.baseArrayLayer = 0;
-		//subResource.layerCount = 1;
-		//imageCopyInfo.srcSubresource = subResource;
-		//imageCopyInfo.dstSubresource = subResource;
-
-		//commandBuffer.copyImage(targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal, swapchain.images[i], vk::ImageLayout::eTransferDstOptimal, imageCopyInfo);
-		//
-
-		//// Transition src image to general layout, which is the required layout for mapping the image memory later on
-		//vk::ImageMemoryBarrier memoryBarrier2;
-		//memoryBarrier2.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		//memoryBarrier2.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
-		//memoryBarrier2.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
-		//memoryBarrier2.newLayout = vk::ImageLayout::eGeneral;
-		//memoryBarrier2.image = targetTexture->getImage();
-		//memoryBarrier2.subresourceRange = vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-		//commandBuffer.pipelineBarrier(
-		//	vk::PipelineStageFlagBits::eTransfer,
-		//	vk::PipelineStageFlagBits::eTransfer,
-		//	{},
-		//	0, nullptr,
-		//	0, nullptr,
-		//	1, &memoryBarrier2);
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral,
+			vk::AccessFlagBits::eMemoryRead, vk::AccessFlagBits::eMemoryWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
 		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 		commandBuffer.endRenderPass();

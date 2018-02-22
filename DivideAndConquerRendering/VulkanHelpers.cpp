@@ -39,3 +39,22 @@ void VulkanHelpers::cmdCopyImageSimple(vk::CommandBuffer commandBuffer, vk::Imag
 
 	commandBuffer.copyImage(srcImage, srcImageLayout, dstImage, dstImageLayout, imageCopyInfo);
 }
+
+void VulkanHelpers::cmdBlitSimple(vk::CommandBuffer commandBuffer, vk::Image srcImage, vk::ImageLayout srcImageLayout,
+	vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height, vk::Filter filter)
+{
+	vk::Offset3D blitSize;
+	blitSize.x = width;
+	blitSize.y = height;
+	blitSize.z = 1;
+	vk::ImageBlit imageBlitRegion;
+	imageBlitRegion.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	imageBlitRegion.srcSubresource.layerCount = 1;
+	imageBlitRegion.srcOffsets[1] = blitSize;
+	imageBlitRegion.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	imageBlitRegion.dstSubresource.layerCount = 1;
+	imageBlitRegion.dstOffsets[1] = blitSize;
+
+
+	commandBuffer.blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, imageBlitRegion, filter);
+}

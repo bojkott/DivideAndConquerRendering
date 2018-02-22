@@ -30,7 +30,7 @@ void Texture::transferTextureTo(Texture & destination)
 
 	void* dataB = destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
 
-	memcpy(dataA, dataB, size);
+	memcpy(dataB, dataA, size);
 
 	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);

@@ -29,10 +29,14 @@ void Renderer::render()
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 	for (DeviceContext* device : deviceGroup.getDevices())
 	{
-		device->clearBuffer(1, 1, 0, 1);
+		
 		if (device != mainDevice) {
+			device->clearBuffer(0, 0, 1, 1);
 			device->executeCommandQueue();
 			device->getTargetTexture()->transferTextureTo(*mainDevice->getTargetTexture());
+		}
+		else {
+			device->clearBuffer(1, 1, 0, 1);
 		}
 			
 		//Divide and build geometry queue & cpu transfer command.
