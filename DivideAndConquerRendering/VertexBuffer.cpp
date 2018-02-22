@@ -1,6 +1,6 @@
 #include "VertexBuffer.h"
 
-vk::Buffer VertexBuffer::CreateBuffer(std::vector<uint32_t> verts, DeviceContext& device)
+VertexBuffer::VertexBuffer(std::vector<uint32_t> verts, DeviceContext& device)
 {
 	// TODO, return useful data
 	vk::BufferCreateInfo bufferInfo = {};
@@ -29,11 +29,17 @@ vk::Buffer VertexBuffer::CreateBuffer(std::vector<uint32_t> verts, DeviceContext
 
 	device.getDevice().bindBufferMemory(vertexBuffer, vertexBufferMemory, 0);
 
-
-	return vertexBuffer;
+	// Map to cpu 
+	void* data;
+	if (!verts.size())
+	{
+		data = device.getDevice().mapMemory(vertexBufferMemory, 0, bufferInfo.size);
+		memcpy(data, verts.data(), (size_t)bufferInfo.size);
+		device.getDevice().unmapMemory(vertexBufferMemory);
+	}
+	else
+	{
+		throw std::runtime_error("Inital data for vertexbuffer creation was nil");
+	}
 }
 
-uint32_t VertexBuffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-	return uint32_t();
-}
