@@ -16,6 +16,8 @@ public:
 	void addDevice(vk::Instance& instance, vk::PhysicalDevice physicalDevice);
 	void addDevice(vk::Instance& instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface);
 	
+	void initDevices();
+
 	unsigned int getGroupSize();
 	DeviceContext* getMainDevice();
 	std::vector<DeviceContext*> getDevices();

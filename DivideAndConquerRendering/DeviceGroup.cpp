@@ -21,6 +21,12 @@ void DeviceGroup::addDevice(vk::Instance & instance, vk::PhysicalDevice physical
 	devices.push_back(new DeviceContext(this, instance, physicalDevice, surface));
 }
 
+void DeviceGroup::initDevices()
+{
+	for (DeviceContext* device : devices)
+		device->initDevice();
+}
+
 unsigned int DeviceGroup::getGroupSize()
 {
 	return devices.size();

@@ -5,52 +5,76 @@
 #include "DeviceGroup.h"
 #include "RenderTexture.h"
 #include "VulkanHelpers.h"
-DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): deviceGroup(group), physicalDevice(physicalDevice)
+DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): mode(DEVICE_MODE::HEADLESS), deviceGroup(group), physicalDevice(physicalDevice)
 {
-	mode = DEVICE_MODE::HEADLESS;
 	createDevice(instance);
-	createRenderPass();
-	createRenderTexture();
-	createCommandPool();
-	createCommandBuffers();
-	createSemaphores();
 }
 
-DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : deviceGroup(group), physicalDevice(physicalDevice), surface(surface)
+DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface) : mode(DEVICE_MODE::WINDOW), deviceGroup(group), physicalDevice(physicalDevice), surface(surface)
 {
-	mode = DEVICE_MODE::WINDOW;
 	createDevice(instance);
-	createSwapchain();
-	createRenderPass();
-	createPresentRenderPass();
-	createFrameBuffers();
-	createCommandPool();
-	createCommandBuffers();
-	createSemaphores();
+}
 
-	targetTexture = new Texture(this,
-		getMainDevice()->swapchain.extent.width,
-		getMainDevice()->swapchain.extent.height,
-		swapchain.imageFormat,
-		vk::ImageLayout::eUndefined,
-		vk::ImageTiling::eLinear,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-
-	executeSingleTimeQueue(
-		[this](vk::CommandBuffer commandBuffer)
+void DeviceContext::initDevice()
+{
+	if (mode == DEVICE_MODE::HEADLESS) 
 	{
-		VulkanHelpers::cmdTransitionLayout(
-			commandBuffer,
-			this->getTargetTexture()->getImage(),
-			vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
-			{}, vk::AccessFlagBits::eMemoryWrite,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
-	});
+		createRenderPass();
+		createRenderTexture();
+		createCommandPool();
+		createCommandBuffers();
+		createSemaphores();
+	}
+	else
+	{
+		createSwapchain();
+		createRenderPass();
+		createPresentRenderPass();
+		createFrameBuffers();
+		createCommandPool();
+		createCommandBuffers();
+		createSemaphores();
+		
+		for (DeviceContext* deviceContext : deviceGroup->getDevices()) //one for each subdevice. so -1 to remove the primary device.
+		{
+			if (deviceContext == this)
+				continue;
+			Texture* targetTexture = new Texture(this,
+				getMainDevice()->swapchain.extent.width,
+				getMainDevice()->swapchain.extent.height,
+				swapchain.imageFormat,
+				vk::ImageLayout::eUndefined,
+				vk::ImageTiling::eLinear,
+				vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+			executeSingleTimeQueue(
+				[targetTexture](vk::CommandBuffer commandBuffer)
+			{
+				VulkanHelpers::cmdTransitionLayout(
+					commandBuffer,
+					targetTexture->getImage(),
+					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+					{}, vk::AccessFlagBits::eMemoryWrite,
+					vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+			});
+
+			targetTextures.insert(std::make_pair(deviceContext, targetTexture));
+		}
+
+		
+
+	}
 }
 
 DeviceContext::~DeviceContext()
 {
+
+	for (auto texMap : targetTextures)
+		delete texMap.second;
+
+	targetTextures.clear();
+
 	device.destroyCommandPool(commandPool);
 	for (auto framebuffer : swapchain.framebuffers) {
 		device.destroyFramebuffer(framebuffer);
@@ -82,9 +106,9 @@ vk::RenderPass & DeviceContext::getRenderpass()
 	return renderPass;
 }
 
-Texture * DeviceContext::getTargetTexture()
+std::map<DeviceContext*, Texture*> DeviceContext::getTargetTextures()
 {
-	return targetTexture;
+	return targetTextures;
 }
 
 void DeviceContext::clearBuffer(float r, float g, float b, float a)
@@ -114,6 +138,8 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		
 		//this should not be here later :)
 		renderPassCommandBuffer.endRenderPass();
+
+		Texture* targetTexture = targetTextures[this];
 
 		VulkanHelpers::cmdTransitionLayout(
 			renderPassCommandBuffer,
@@ -420,14 +446,16 @@ void DeviceContext::createRenderTexture()
 		getMainDevice()->swapchain.extent.height,
 		getMainDevice()->swapchain.imageFormat);
 
-	targetTexture = new Texture(this,
+	targetTextures.insert(
+		std::make_pair(this,
+			new Texture(this,
 		getMainDevice()->swapchain.extent.width,
 		getMainDevice()->swapchain.extent.height,
 		getMainDevice()->swapchain.imageFormat,
 		vk::ImageLayout::eUndefined,
 		vk::ImageTiling::eLinear,
 		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)));
 
 	vk::ImageView attachments[] = { renderTexture->getImageView() };
 
@@ -571,26 +599,31 @@ void DeviceContext::startFinalRenderPass()
 		finalPassInfo.framebuffer = swapchain.framebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
 
-		VulkanHelpers::cmdTransitionLayout(
-			commandBuffer,
-			targetTexture->getImage(),
-			vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
-			vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+		for (auto& texMap : targetTextures)
+		{
+			Texture* targetTexture = texMap.second;
 
-		VulkanHelpers::cmdBlitSimple(
-			commandBuffer,
-			targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
-			swapchain.images[i], vk::ImageLayout::eTransferDstOptimal,
-			swapchain.extent.width, swapchain.extent.height,
-			vk::Filter::eNearest);
+			VulkanHelpers::cmdTransitionLayout(
+				commandBuffer,
+				targetTexture->getImage(),
+				vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
-		VulkanHelpers::cmdTransitionLayout(
-			commandBuffer,
-			targetTexture->getImage(),
-			vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral,
-			vk::AccessFlagBits::eMemoryRead, vk::AccessFlagBits::eMemoryWrite,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+			VulkanHelpers::cmdBlitSimple(
+				commandBuffer,
+				targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
+				swapchain.images[i], vk::ImageLayout::eTransferDstOptimal,
+				swapchain.extent.width, swapchain.extent.height,
+				vk::Filter::eNearest);
+
+			VulkanHelpers::cmdTransitionLayout(
+				commandBuffer,
+				targetTexture->getImage(),
+				vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral,
+				vk::AccessFlagBits::eMemoryRead, vk::AccessFlagBits::eMemoryWrite,
+				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+		}
 
 		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 		commandBuffer.endRenderPass();
