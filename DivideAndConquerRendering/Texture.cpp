@@ -8,6 +8,11 @@ Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height,
 	createImageView(deviceContext, format);
 }
 
+void Texture::copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
+{
+	//vk::CommandBuffer commandBuffer = 
+}
+
 vk::ImageView & Texture::getImageView()
 {
 	return imageView;
@@ -82,4 +87,22 @@ void Texture::createImageView(DeviceContext * deviceContext, vk::Format format)
 
 
 	imageView = deviceContext->getDevice().createImageView(viewInfo);
+}
+
+vk::CommandBuffer Texture::beginSingleTimeCommands()
+{
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	allocInfo.commandPool = deviceContext->getCommandPool();
+	allocInfo.commandBufferCount = 1;
+
+	vk::CommandBuffer commandBuffer;
+	deviceContext->getDevice().allocateCommandBuffers(&allocInfo, &commandBuffer);
+
+	vk::CommandBufferBeginInfo beginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+
+	
+
+	return vk::CommandBuffer();
 }

@@ -111,6 +111,11 @@ std::map<DeviceContext*, Texture*> DeviceContext::getTargetTextures()
 	return targetTextures;
 }
 
+vk::CommandPool DeviceContext::getCommandPool()
+{
+	return commandPool;
+}
+
 void DeviceContext::clearBuffer(float r, float g, float b, float a)
 {
 	vk::ClearValue clearColor(std::array<float, 4>{r, g, b, a});

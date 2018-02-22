@@ -58,3 +58,23 @@ void VulkanHelpers::cmdBlitSimple(vk::CommandBuffer commandBuffer, vk::Image src
 
 	commandBuffer.blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, imageBlitRegion, filter);
 }
+
+void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlagBits usage, vk::MemoryPropertyFlagBits properties, vk::Buffer & buffer, vk::DeviceMemory & bufferMemory, DeviceContext& const context)
+{
+	vk::BufferCreateInfo bufferInfo = {};
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+	buffer = context.getDevice().createBuffer(bufferInfo, nullptr);
+	
+	vk::MemoryRequirements memRequirements;
+	memRequirements = context.getDevice().getBufferMemoryRequirements(buffer);
+
+	vk::MemoryAllocateInfo allocInfo = {};
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = context.findMemoryType(memRequirements.memoryTypeBits, properties);
+
+
+	bufferMemory = context.getDevice().allocateMemory(allocInfo);
+	context.getDevice().bindBufferMemory(buffer, bufferMemory, 0);
+}
