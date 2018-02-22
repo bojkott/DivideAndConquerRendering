@@ -122,6 +122,7 @@
     <ClCompile Include="DeviceGroup.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="materials\DaQCombineMaterial.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="RenderTexture.cpp" />
@@ -136,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="DeviceGroup.h" />
+    <ClInclude Include="materials\DaQCombineMaterial.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Renderer.h" />

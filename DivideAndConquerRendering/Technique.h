@@ -13,7 +13,7 @@ public:
 private:
 	vkGroups::PipelineGroup pipelineGroup;
 	vkGroups::PipelineCacheGroup pipelineCacheGroup;
-	vk::DescriptorSetLayout descriptorSetLayout;
+	vkGroups::DescriptorSetLayoutGroup descriptorSetLayoutGroup;
 	vkGroups::DescriptorPoolGroup descriptorPoolGroup;
 	vkGroups::DescriptorSetGroup descriptorSetGroup;
 	vkGroups::PipelineLayoutGroup pipelineLayoutGroup;
@@ -26,9 +26,4 @@ public:
 	Technique(Material* m, RenderState* r);
 	~Technique();
 
-private:
-	void createDescriptorPool();
-	void createDescriptorSet();
-	void createPipelineLayout();
-	void createPipelineCache();
 };

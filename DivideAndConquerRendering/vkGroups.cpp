@@ -56,4 +56,11 @@ namespace vkGroups {
 			set.first->getDevice().destroyPipelineCache(set.second);
 		}
 	}
+	DescriptorSetLayoutGroup::~DescriptorSetLayoutGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().destroyDescriptorSetLayout(set.second);
+		}
+	}
 }

@@ -10,7 +10,9 @@ DeviceGroup Renderer::deviceGroup;
 Renderer::Renderer()
 {
 	createInstance();
+#ifdef _DEBUG
 	setupDebugCallBack();
+#endif
 	createSurface();
 	setupDeviceGroup();
 
