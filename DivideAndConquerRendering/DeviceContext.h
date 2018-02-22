@@ -91,6 +91,7 @@ public:
 	void initDevice();
 
 	void executeSingleTimeQueue(std::function< void (vk::CommandBuffer)> commands);
+	void transferRenderTexture();
 
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:

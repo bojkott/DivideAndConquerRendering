@@ -134,35 +134,9 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		renderPassCommandBuffer.begin(beginInfo);
 		renderPassInfo.renderArea.extent = renderTexture->getExtends();
 		renderPassInfo.framebuffer = renderTextureFrameBuffer;
+
 		renderPassCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-		
-		//this should not be here later :)
-		renderPassCommandBuffer.endRenderPass();
-
-		Texture* targetTexture = targetTextures[this];
-
-		VulkanHelpers::cmdTransitionLayout(
-			renderPassCommandBuffer,
-			targetTexture->getImage(),
-			vk::ImageLayout::eUndefined,vk::ImageLayout::eTransferDstOptimal,
-			{}, vk::AccessFlagBits::eTransferWrite,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
-
-
-		VulkanHelpers::cmdCopyImageSimple(renderPassCommandBuffer,
-			renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
-			targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
-			renderTexture->getExtends().width, renderTexture->getExtends().height);
-
-
-		VulkanHelpers::cmdTransitionLayout(
-			renderPassCommandBuffer,
-			targetTexture->getImage(),
-			vk::ImageLayout::eTransferDstOptimal,vk::ImageLayout::eGeneral,
-			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
-
-		renderPassCommandBuffer.end();
+	
 	}
 
 	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
@@ -274,6 +248,41 @@ void DeviceContext::executeSingleTimeQueue(std::function< void(vk::CommandBuffer
 	graphicsQueue.submit(submitInfo, {});
 	graphicsQueue.waitIdle();
 	device.freeCommandBuffers(commandPool, commandBuffer);
+}
+
+void DeviceContext::transferRenderTexture()
+{
+	if (mode == DEVICE_MODE::HEADLESS)
+	{
+	
+		//this should not be here later :)
+		renderPassCommandBuffer.endRenderPass();
+
+		Texture* targetTexture = targetTextures[this];
+
+		VulkanHelpers::cmdTransitionLayout(
+			renderPassCommandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+			{}, vk::AccessFlagBits::eTransferWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+
+
+		VulkanHelpers::cmdCopyImageSimple(renderPassCommandBuffer,
+			renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
+			targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
+			renderTexture->getExtends().width, renderTexture->getExtends().height);
+
+
+		VulkanHelpers::cmdTransitionLayout(
+			renderPassCommandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral,
+			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+
+		renderPassCommandBuffer.end();
+	}
 }
 
 uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)

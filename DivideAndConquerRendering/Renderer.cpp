@@ -29,20 +29,20 @@ void Renderer::render()
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
 	mainDevice->clearBuffer(1, 1, 0, 1);
-
+	//mainDevice->DrawGeometry
 	for (auto& slaveDevices : mainDevice->getTargetTextures())
 	{
 		DeviceContext* device = slaveDevices.first;
 
 		device->clearBuffer(0, 0, 1, 1);
+		//device->DrawGeometry
+		device->transferRenderTexture();
 		device->executeCommandQueue();
-		device->getTargetTextures().at(device)->transferTextureTo(*slaveDevices.second);
-			
-		//Divide and build geometry queue & cpu transfer command.
-		//Present queue
-		//Transfer to main device if headless
+		device->getTargetTextures()[device]->transferTextureTo(*slaveDevices.second);
 	}
 	
+	//Sync GPUs
+
 	mainDevice->startFinalRenderPass(); //Combine
 	mainDevice->tempPresent(); //Final pass
 }
