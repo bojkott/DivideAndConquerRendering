@@ -27,23 +27,22 @@ Renderer::~Renderer()
 void Renderer::render()
 {
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
-	for (DeviceContext* device : deviceGroup.getDevices())
+
+	mainDevice->clearBuffer(1, 1, 0, 1);
+	//mainDevice->DrawGeometry
+	for (auto& slaveDevices : mainDevice->getTargetTextures())
 	{
-		
-		if (device != mainDevice) {
-			device->clearBuffer(0, 0, 1, 1);
-			device->executeCommandQueue();
-			device->getTargetTexture()->transferTextureTo(*mainDevice->getTargetTexture());
-		}
-		else {
-			device->clearBuffer(1, 1, 0, 1);
-		}
-			
-		//Divide and build geometry queue & cpu transfer command.
-		//Present queue
-		//Transfer to main device if headless
+		DeviceContext* device = slaveDevices.first;
+
+		device->clearBuffer(0, 0, 1, 1);
+		//device->DrawGeometry
+		device->transferRenderTexture();
+		device->executeCommandQueue();
+		device->getTargetTextures()[device]->transferTextureTo(*slaveDevices.second);
 	}
 	
+	//Sync GPUs
+
 	mainDevice->startFinalRenderPass(); //Combine
 	mainDevice->tempPresent(); //Final pass
 }
@@ -163,6 +162,8 @@ void Renderer::setupDeviceGroup()
 	deviceGroup.addDevice(instance, physicalDevices[0], surface);
 	for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
 		deviceGroup.addDevice(instance, *device);
+
+	deviceGroup.initDevices();
 	
 }
 

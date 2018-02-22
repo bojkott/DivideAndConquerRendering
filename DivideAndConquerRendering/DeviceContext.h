@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <memory>
 #include <functional>
+#include <map>
 
 class RenderTexture;
 class Texture;
@@ -24,7 +25,7 @@ public:
 private:
 
 	RenderTexture* renderTexture;
-	Texture* targetTexture;
+	std::map<DeviceContext*, Texture*> targetTextures;
 	vk::Framebuffer renderTextureFrameBuffer;
 
 
@@ -80,14 +81,17 @@ public:
 
 	vk::RenderPass& getRenderpass();
 
-	Texture* getTargetTexture();
+	std::map<DeviceContext*, Texture*> getTargetTextures();
 
 	void clearBuffer(float r, float g, float b, float a);
 	void startFinalRenderPass();
 	void tempPresent();
 	void executeCommandQueue();
 
+	void initDevice();
+
 	void executeSingleTimeQueue(std::function< void (vk::CommandBuffer)> commands);
+	void transferRenderTexture();
 
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
