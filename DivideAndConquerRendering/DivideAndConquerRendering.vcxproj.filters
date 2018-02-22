@@ -15,6 +15,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="VulkanHelpers.cpp" />
+    <ClCompile Include="IndexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
@@ -31,5 +32,6 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="VulkanHelpers.h" />
+    <ClInclude Include="IndexBuffer.h" />
   </ItemGroup>
 </Project>

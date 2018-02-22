@@ -6,6 +6,14 @@
 
 class VertexBuffer
 {
+private:
+	vk::DeviceMemory vertexBufferMemory;
+	vk::Buffer vertexBuffer;
+
 public:
 	VertexBuffer(std::vector<uint32_t> verts, DeviceContext& device);
+	~VertexBuffer();
+	vk::Buffer& getVertexBuffer();
+	vk::DeviceMemory& getVertexBufferMemory();
+
 };

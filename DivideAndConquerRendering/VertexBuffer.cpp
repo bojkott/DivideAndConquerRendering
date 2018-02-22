@@ -8,7 +8,6 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t> verts, DeviceContext& device)
 	bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
 	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-	vk::Buffer vertexBuffer;
 	vertexBuffer = device.getDevice().createBuffer(bufferInfo, nullptr);
 
 	// Find out what we need
@@ -22,7 +21,7 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t> verts, DeviceContext& device)
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	allocInfo.allocationSize = memRequirements.size;
 
-	vk::DeviceMemory vertexBufferMemory;
+	
 
 
 	vertexBufferMemory = device.getDevice().allocateMemory(allocInfo);
@@ -41,5 +40,20 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t> verts, DeviceContext& device)
 	{
 		throw std::runtime_error("Inital data for vertexbuffer creation was nil");
 	}
+}
+
+VertexBuffer::~VertexBuffer()
+{
+	
+}
+
+vk::Buffer& VertexBuffer::getVertexBuffer()
+{
+	return vertexBuffer;
+}
+
+vk::DeviceMemory& VertexBuffer::getVertexBufferMemory() 
+{
+	return vertexBufferMemory;
 }
 

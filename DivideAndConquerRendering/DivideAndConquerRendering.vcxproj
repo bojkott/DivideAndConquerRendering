@@ -120,6 +120,7 @@
   <ItemGroup>
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="DeviceGroup.cpp" />
+    <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -136,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="DeviceGroup.h" />
+    <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Renderer.h" />
