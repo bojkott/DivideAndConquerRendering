@@ -36,6 +36,7 @@ Technique::Technique(Material * m, RenderState * r)
 
 	Renderer::deviceGroup.createPipeline(pipelineInfo, pipelineCacheGroup, m->getVertexShader(), m->getFragmentShader(), pipelineLayoutGroup, pipelineGroup);
 
+
 }
 
 Technique::~Technique()

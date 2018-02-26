@@ -18,6 +18,11 @@ Renderer::Renderer()
 	setupDeviceGroup();
 
 	 Material::addMaterial<DaQCombineMaterial>();
+	std::vector<uint32_t> verts;
+	verts.push_back(1);
+	verts.push_back(2);
+	verts.push_back(3);
+	vkGroups::VertexBufferGroup test;
 }
 
 Renderer::~Renderer()

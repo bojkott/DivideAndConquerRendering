@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <vulkan\vulkan.hpp>
+#include "VertexBuffer.h"
 
 class Shader;
 class DeviceContext;
@@ -36,6 +37,11 @@ namespace vkGroups {
 	struct PipelineCacheGroup {
 		std::map<DeviceContext*, vk::PipelineCache> sets;
 		~PipelineCacheGroup();
+	};
+
+	struct VertexBufferGroup {
+		std::map<DeviceContext*, VertexBuffer> sets;
+		~VertexBufferGroup();
 	};
 
 }

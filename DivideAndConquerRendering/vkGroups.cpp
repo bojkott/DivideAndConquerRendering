@@ -53,4 +53,12 @@ namespace vkGroups {
 			delete set.second;
 		}
 	}
+
+	VertexBufferGroup::~VertexBufferGroup()
+	{
+		for (auto& set : sets)
+		{
+			set.second.Destroy();
+		}
+	}
 }
