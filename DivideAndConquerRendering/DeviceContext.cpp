@@ -605,7 +605,7 @@ void DeviceContext::createSemaphores()
 	renderFinishedSemaphore = device.createSemaphore(semaphoreInfo);
 }
 
-void DeviceContext::startFinalRenderPass()
+void DeviceContext::startFinalRenderPass(vk::Pipeline combineTechnique)
 {
 	vk::RenderPassBeginInfo finalPassInfo;
 	finalPassInfo.renderPass = presentRenderPass;
@@ -620,6 +620,8 @@ void DeviceContext::startFinalRenderPass()
 
 		finalPassInfo.framebuffer = swapchain.framebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
+
+		
 
 		for (auto& texMap : targetTextures)
 		{
@@ -648,6 +650,11 @@ void DeviceContext::startFinalRenderPass()
 		}
 
 		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
+
+		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, combineTechnique);
+
+		commandBuffer.draw(3, 1, 0, 0);
+
 		commandBuffer.endRenderPass();
 		commandBuffer.end();
 	}

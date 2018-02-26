@@ -26,4 +26,5 @@ public:
 	Technique(Material* m, RenderState* r);
 	~Technique();
 
+	vk::Pipeline getPipeline(DeviceContext* device);
 };

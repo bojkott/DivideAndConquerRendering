@@ -43,3 +43,8 @@ Technique::~Technique()
 {
 	
 }
+
+vk::Pipeline Technique::getPipeline(DeviceContext * device)
+{
+	return pipelineGroup.sets.at(device);
+}

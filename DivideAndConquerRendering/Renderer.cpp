@@ -53,7 +53,7 @@ void Renderer::render()
 	
 	//Sync GPUs
 
-	mainDevice->startFinalRenderPass(); //Combine
+	mainDevice->startFinalRenderPass(daQCombineTechnique->getPipeline(mainDevice)); //Combine
 	mainDevice->tempPresent(); //Final pass
 }
 

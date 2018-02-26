@@ -87,7 +87,7 @@ public:
 	std::map<DeviceContext*, Texture*> getTargetTextures();
 
 	void clearBuffer(float r, float g, float b, float a);
-	void startFinalRenderPass();
+	void startFinalRenderPass(vk::Pipeline combineTechnique);
 	void tempPresent();
 	void executeCommandQueue();
 
