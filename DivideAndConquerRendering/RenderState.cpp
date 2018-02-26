@@ -11,7 +11,7 @@ RenderState::RenderState()
 
 
 	scissor.offset = { 0,0 };
-	scissor.extent = 0.0f; //Get swap chain from renderer
+	scissor.extent = {Window::getWidth(), Window::getHeight()}; //Get swap chain from renderer
 
 
 	viewportState.viewportCount = 1;

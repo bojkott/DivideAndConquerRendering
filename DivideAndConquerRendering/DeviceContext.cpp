@@ -394,12 +394,23 @@ void DeviceContext::createRenderPass()
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
 
+	vk::SubpassDependency dependecy;
+	dependecy.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependecy.dstSubpass = 0;
+	dependecy.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	dependecy.srcAccessMask = {};
+
+	dependecy.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	dependecy.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+
 
 	vk::RenderPassCreateInfo renderPassInfo;
 	renderPassInfo.attachmentCount = 1;
 	renderPassInfo.pAttachments = &colorAttachment;
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependecy;
 
 	renderPass = device.createRenderPass(renderPassInfo);
 
