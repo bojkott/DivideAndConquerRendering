@@ -4,10 +4,7 @@
 class DaQCombineMaterial : public Material
 {
 public:
-
+	DaQCombineMaterial();
 	vk::PipelineVertexInputStateCreateInfo getVertexinputInfo();
-	vk::DescriptorPoolCreateInfo getDescriptorPoolInfo();
-	vk::PipelineLayoutCreateInfo getPipelineLayoutInfo();
-	vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo();
 
 };

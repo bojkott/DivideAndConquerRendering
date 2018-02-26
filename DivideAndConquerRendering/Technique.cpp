@@ -27,14 +27,14 @@ Technique::Technique(Material * m, RenderState * r)
 	pipelineInfo.pDepthStencilState = nullptr;
 	pipelineInfo.pColorBlendState = r->getColorBlending();
 	pipelineInfo.subpass = 0;
-
-	pipelineGroup = Renderer::deviceGroup.createPipeline(pipelineInfo, pipelineCacheGroup, m->getVertexShader(), m->getFragmentShader(), pipelineLayoutGroup);
 	
-	descriptorPoolGroup = Renderer::deviceGroup.createDescriptorPool(material->getDescriptorPoolInfo());
-	descriptorSetLayoutGroup = Renderer::deviceGroup.createDescriptorSetLayout(material->getDescriptorSetLayoutInfo());
-	descriptorSetGroup = Renderer::deviceGroup.allocateDescriptorSet(descriptorPoolGroup, descriptorSetLayoutGroup);
-	pipelineLayoutGroup = Renderer::deviceGroup.createPipelineLayout(material->getPipelineLayoutInfo(), descriptorSetLayoutGroup);
-	pipelineCacheGroup = Renderer::deviceGroup.createPipelineCache();
+	Renderer::deviceGroup.createDescriptorPool(material->getDescriptorPoolInfo(), descriptorPoolGroup);
+	Renderer::deviceGroup.createDescriptorSetLayout(material->getDescriptorSetLayoutInfo(), descriptorSetLayoutGroup);
+	Renderer::deviceGroup.allocateDescriptorSet(descriptorPoolGroup, descriptorSetLayoutGroup, descriptorSetGroup);
+	Renderer::deviceGroup.createPipelineLayout(material->getPipelineLayoutInfo(), descriptorSetLayoutGroup, pipelineLayoutGroup);
+	Renderer::deviceGroup.createPipelineCache(pipelineCacheGroup);
+
+	Renderer::deviceGroup.createPipeline(pipelineInfo, pipelineCacheGroup, m->getVertexShader(), m->getFragmentShader(), pipelineLayoutGroup, pipelineGroup);
 
 }
 

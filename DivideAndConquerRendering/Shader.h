@@ -5,21 +5,22 @@
 
 class Shader
 {
-private:
-
 public:
-	enum class Type { VERTEX = 0x00000001, FRAGMENT = 0x00000010 };
-	static vk::PipelineShaderStageCreateInfo createPipelineShaderStage(
-		const std::string& shaderFilename,
-		Type shaderType,
-		const vk::Device& device);
-
+	enum class ShaderType { VS = VK_SHADER_STAGE_VERTEX_BIT, PS = VK_SHADER_STAGE_FRAGMENT_BIT, GS = VK_SHADER_STAGE_GEOMETRY_BIT, CS = VK_SHADER_STAGE_COMPUTE_BIT };
+private:
+	vk::ShaderModule shaderModule;
+	DeviceContext* deviceContext;
+	ShaderType shaderType;
+public:
 	
+
+	Shader(const std::string& shaderFilename, ShaderType shaderType, DeviceContext* deviceContext);
+	~Shader();
+	vk::PipelineShaderStageCreateInfo getShaderStageInfo();
+
 private:
 	
-	static std::vector<char> readFile(const std::string& filename);
-
-	static vk::PipelineShaderStageCreateInfo createShaderModule(const std::string& filename,
-		Type shaderType, const vk::Device& device);
+	std::vector<char> readFile(const std::string& filename);
+	void createShaderModule(const std::string & filename);
 
 };

@@ -8,23 +8,59 @@ class Shader;
 class Material
 {
 public:
-	enum class ShaderType { VS = 0, PS = 1, GS = 2, CS = 3 };
+	
 private:
-	vkGroups::PipelineShaderStageGroup vertexShader;
-	vkGroups::PipelineShaderStageGroup fragmentShader;
+	vkGroups::ShaderGroup vertexShader;
+	vkGroups::ShaderGroup fragmentShader;
+
+	std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutbindings;
+	std::map<vk::DescriptorType, int> poolSizes;
+	std::map<vk::ShaderStageFlagBits, size_t> pushConstants;
+
+
+	static std::vector<Material*> materials;
+
 public:
-	Material(std::string& vertexFilename, std::string& fragmentFilename);
+	Material(std::string vertexFilename, std::string fragmentFilename);
 	~Material();
 
-	vkGroups::PipelineShaderStageGroup getVertexShader();
-	vkGroups::PipelineShaderStageGroup getFragmentShader();
-	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> getShaderStages();
+	vkGroups::ShaderGroup getVertexShader();
+	vkGroups::ShaderGroup getFragmentShader();
 
 	virtual vk::PipelineVertexInputStateCreateInfo getVertexinputInfo() = 0;
-	virtual vk::DescriptorPoolCreateInfo getDescriptorPoolInfo() = 0;
-	virtual vk::PipelineLayoutCreateInfo getPipelineLayoutInfo() = 0;
-	virtual vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo() = 0;
-private:
+	vk::DescriptorPoolCreateInfo getDescriptorPoolInfo();
+	vk::PipelineLayoutCreateInfo getPipelineLayoutInfo();
+	vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo();
 
+	template<typename T>
+	static T* getMaterial();
 
+	template<typename T>
+	static T* addMaterial();
+
+protected:
+	void addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags);
+	void setPushConstant(vk::ShaderStageFlagBits shaderFlag, size_t size);
 };
+
+template<typename T>
+static inline T * Material::getMaterial()
+{
+	for (Material* material : materials)
+	{
+		T* instance = dynamic_cast<T*>(material);
+		if (instance != nullptr)
+			return instance;
+		else
+			throw std::runtime_error("failed to find material");
+
+	}
+}
+
+template<typename T>
+static inline T * Material::addMaterial()
+{
+	T* mat = new T();
+	materials.push_back(mat);
+	return mat;
+}

@@ -2,19 +2,33 @@
 #include "Window.h"
 #include "Renderer.h"
 
-vk::PipelineShaderStageCreateInfo Shader::createPipelineShaderStage(const std::string & shaderFilename, Type shaderType, const vk::Device& device)
+Shader::Shader(const std::string & shaderFilename, ShaderType shaderType, DeviceContext * deviceContext): shaderType(shaderType), deviceContext(deviceContext)
 {
-	vk::PipelineShaderStageCreateInfo shaderStage;
-	shaderStage = createShaderModule(shaderFilename, shaderType, device);
-	return shaderStage;
+	createShaderModule(shaderFilename);
+}
+
+Shader::~Shader()
+{
+	deviceContext->getDevice().destroyShaderModule(shaderModule);
+}
+
+vk::PipelineShaderStageCreateInfo Shader::getShaderStageInfo()
+{
+	vk::PipelineShaderStageCreateInfo shaderStageInfo = {};
+	shaderStageInfo.stage = (vk::ShaderStageFlagBits)shaderType;
+	shaderStageInfo.module = shaderModule;
+	shaderStageInfo.pName = "main";
+
+
+	return shaderStageInfo;
 }
 
 std::vector<char> Shader::readFile(const std::string & filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
-	if (!file.is_open())
-		throw std::runtime_error("failed to open shader file");
+	if (!file.good())
+		throw std::runtime_error("failed to open shader file: " + filename);
 
 	size_t fileSize = (size_t)file.tellg();
 	std::vector<char> buffer(fileSize);
@@ -26,26 +40,14 @@ std::vector<char> Shader::readFile(const std::string & filename)
 	return buffer;
 }
 
-vk::PipelineShaderStageCreateInfo Shader::createShaderModule(const std::string & filename, Type shaderType,
-	 const vk::Device& device)
+void Shader::createShaderModule(const std::string & filename)
 {
 	std::vector<char> shaderCode = readFile(filename);
 	vk::ShaderModuleCreateInfo createInfo = {};
 	createInfo.codeSize = shaderCode.size();
 	createInfo.pCode = reinterpret_cast<const uint32_t*> (shaderCode.data());
 
-	vk::ShaderModule shaderModule; 
-	if (FAILED(device.createShaderModule(&createInfo, nullptr, &shaderModule)))
-	{
-		throw std::runtime_error("Failed to create shader module");
-	}
 
+	shaderModule = deviceContext->getDevice().createShaderModule(createInfo);
 	
-	vk::PipelineShaderStageCreateInfo shaderStageInfo = {};
-	shaderStageInfo.stage = static_cast<vk::ShaderStageFlagBits> (shaderType);
-	shaderStageInfo.module = shaderModule;
-	shaderStageInfo.pName = "main";
-
-
-	return shaderStageInfo;
 }

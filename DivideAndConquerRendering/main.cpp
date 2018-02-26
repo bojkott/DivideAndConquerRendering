@@ -4,7 +4,7 @@
 //#include <type_traits> 
 //#include <assert.h>
 #include <string>
-
+#include "Common.h"
 #include "Window.h"
 #include "Renderer.h"
 
@@ -57,8 +57,16 @@ void run() {
 #undef main SDL_main	//Beacuse SDL_main was defined as main...
 int main()
 {
-	window = new Window(800, 600);
-	renderer = new Renderer();
-	run();
+	try {
+		window = new Window(800, 600);
+		renderer = new Renderer();
+		run();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << "Error: " << e.what() << std::endl;
+		system("pause");
+	}
+
 	return 0;
 }

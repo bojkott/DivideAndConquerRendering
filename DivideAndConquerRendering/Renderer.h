@@ -26,6 +26,7 @@ private:
 	vk::DebugReportCallbackEXT callback;
 	
 
+
 public:
 	Renderer();
 	~Renderer();

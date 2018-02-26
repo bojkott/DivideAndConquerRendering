@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
 #include "Texture.h"
+#include "materials\DaQCombineMaterial.h"
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
@@ -16,6 +17,7 @@ Renderer::Renderer()
 	createSurface();
 	setupDeviceGroup();
 
+	 Material::addMaterial<DaQCombineMaterial>();
 }
 
 Renderer::~Renderer()

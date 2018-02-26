@@ -72,10 +72,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\include;..\GLEW\include;..\SDL\include;$(IncludePath);..\;$(Vulkan_SDK)\Include</IncludePath>
     <LibraryPath>..\GLEW\lib\Release\x64;..\SDL\lib\x64;$(Vulkan_SDK)\Lib;..\Shaderc\lib\x64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Platform)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\include;..\GLEW\include;..\SDL\include;$(IncludePath);..\;$(Vulkan_SDK)\Include</IncludePath>
     <LibraryPath>..\GLEW\lib\Release\x64;..\SDL\lib\x64;$(Vulkan_SDK)\Lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Platform)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

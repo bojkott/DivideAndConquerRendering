@@ -22,21 +22,24 @@ public:
 	DeviceContext* getMainDevice();
 	std::vector<DeviceContext*> getDevices();
 
-	vkGroups::PipelineGroup createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-	vkGroups::DescriptorPoolGroup createDescriptorPool(const vk::DescriptorPoolCreateInfo& poolInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-	vkGroups::DescriptorSetLayoutGroup createDescriptorSetLayout(const vk::DescriptorSetLayoutCreateInfo& createInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-	vkGroups::DescriptorSetGroup allocateDescriptorSet(const vkGroups::DescriptorPoolGroup& descriptorPool, const vkGroups::DescriptorSetLayoutGroup& descriptorSetLayout);
-	vkGroups::PipelineLayoutGroup createPipelineLayout(vk::PipelineLayoutCreateInfo& pipelineLayoutInfo, 
-		const vkGroups::DescriptorSetLayoutGroup& descriptorSetLayout, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+	void createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vkGroups::PipelineGroup& pipelineGroup, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+	void createDescriptorPool(const vk::DescriptorPoolCreateInfo& poolInfo, vkGroups::DescriptorPoolGroup& descriptorPoolGroup, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 
-	vkGroups::PipelineShaderStageGroup createPipelineShaderStage(const std::string& shaderFilename, Shader::Type shaderType);
-	vkGroups::PipelineCacheGroup createPipelineCache();
-	vkGroups::PipelineGroup createPipeline(vk::GraphicsPipelineCreateInfo& pipelineInfo,
-		vkGroups::PipelineCacheGroup pipelineCacheGroup,
-		vkGroups::PipelineShaderStageGroup vertexShader,
-		vkGroups::PipelineShaderStageGroup fragmentShader,
-		vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
+	void createDescriptorSetLayout(const vk::DescriptorSetLayoutCreateInfo& createInfo, vkGroups::DescriptorSetLayoutGroup& createDescriptorSetLayoutGroup, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+
+	void allocateDescriptorSet(const vkGroups::DescriptorPoolGroup& descriptorPool, const vkGroups::DescriptorSetLayoutGroup& descriptorSetLayout, vkGroups::DescriptorSetGroup& descriptorSetGroup);
+
+	void createPipelineLayout(vk::PipelineLayoutCreateInfo& pipelineLayoutInfo, const vkGroups::DescriptorSetLayoutGroup& descriptorSetLayout, vkGroups::PipelineLayoutGroup& layoutGroup,
 		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-	
-	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> getShaderStages(vkGroups::PipelineShaderStageGroup vertexShader, vkGroups::PipelineShaderStageGroup fragmentShader);
+
+	void createShaderGroup(const std::string& shaderFilename, Shader::ShaderType shaderType, vkGroups::ShaderGroup& shaderGroup);
+	void createPipelineCache(vkGroups::PipelineCacheGroup& group);
+	void createPipeline(vk::GraphicsPipelineCreateInfo& pipelineInfo,
+		vkGroups::PipelineCacheGroup pipelineCacheGroup,
+		vkGroups::ShaderGroup vertexShader,
+		vkGroups::ShaderGroup fragmentShader,
+		vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
+		vkGroups::PipelineGroup& group,
+		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+
 };

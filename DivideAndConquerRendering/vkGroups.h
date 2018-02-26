@@ -2,6 +2,7 @@
 #include <map>
 #include <vulkan\vulkan.hpp>
 
+class Shader;
 class DeviceContext;
 namespace vkGroups {
 	struct PipelineGroup {
@@ -27,14 +28,9 @@ namespace vkGroups {
 		~PipelineLayoutGroup();
 	};
 
-	struct PipelineShaderStageGroup {
-		std::map<DeviceContext*, vk::PipelineShaderStageCreateInfo> sets;
-		~PipelineShaderStageGroup();
-	};
-
-	struct GraphicsPipelineCreateInfoGroup {
-		std::map<DeviceContext*, vk::GraphicsPipelineCreateInfo> sets;
-		~GraphicsPipelineCreateInfoGroup();
+	struct ShaderGroup {
+		std::map<DeviceContext*, Shader*> sets;
+		~ShaderGroup();
 	};
 
 	struct PipelineCacheGroup {
