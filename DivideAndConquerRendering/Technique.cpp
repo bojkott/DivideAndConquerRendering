@@ -36,6 +36,7 @@ Technique::Technique(Material * m, RenderState * r)
 	pipelineLayoutGroup = Renderer::deviceGroup.createPipelineLayout(material->getPipelineLayoutInfo(), descriptorSetLayoutGroup);
 	pipelineCacheGroup = Renderer::deviceGroup.createPipelineCache();
 
+
 }
 
 Technique::~Technique()

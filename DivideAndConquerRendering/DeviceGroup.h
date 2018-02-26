@@ -38,5 +38,7 @@ public:
 		vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
 		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 	
+	void createVertexBuffer(vkGroups::VertexBufferGroup&  group, std::vector<uint32_t>& verts);
+
 	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> getShaderStages(vkGroups::PipelineShaderStageGroup vertexShader, vkGroups::PipelineShaderStageGroup fragmentShader);
 };

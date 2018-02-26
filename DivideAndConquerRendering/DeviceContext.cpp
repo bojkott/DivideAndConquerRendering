@@ -92,6 +92,9 @@ DeviceContext::~DeviceContext()
 		device.destroySwapchainKHR(swapchain.swapchain);
 	}
 
+	device.destroySemaphore(imageAvailableSemaphore);
+	device.destroySemaphore(renderFinishedSemaphore);
+
 	device.destroy();
 	
 }
@@ -99,6 +102,11 @@ DeviceContext::~DeviceContext()
 vk::Device & DeviceContext::getDevice()
 {
 	return device;
+}
+
+vk::Device * DeviceContext::getAddressOfDevice()
+{
+	return &device;
 }
 
 vk::RenderPass & DeviceContext::getRenderpass()

@@ -63,4 +63,12 @@ namespace vkGroups {
 			set.first->getDevice().destroyDescriptorSetLayout(set.second);
 		}
 	}
+
+	VertexBufferGroup::~VertexBufferGroup()
+	{
+		for (auto& set : sets)
+		{
+			set.second.Destroy();
+		}
+	}
 }

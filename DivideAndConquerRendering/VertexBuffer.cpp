@@ -1,50 +1,53 @@
 #include "VertexBuffer.h"
 
-VertexBuffer::VertexBuffer(std::vector<uint32_t> verts, DeviceContext& device)
+VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context)
 {
-	// TODO, return useful data
 	vk::BufferCreateInfo bufferInfo = {};
 	bufferInfo.size = sizeof(verts[0] * verts.size());
 	bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
 	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-	vertexBuffer = device.getDevice().createBuffer(bufferInfo, nullptr);
+	vertexBuffer = context->getDevice().createBuffer(bufferInfo, nullptr);
 
 	// Find out what we need
 	vk::MemoryRequirements memRequirements;
-	device.getDevice().getBufferMemoryRequirements(vertexBuffer, &memRequirements);
+	context->getDevice().getBufferMemoryRequirements(vertexBuffer, &memRequirements);
 
 	// Find out what we got
 
 	vk::MemoryAllocateInfo allocInfo = {};
-	allocInfo.memoryTypeIndex = device.findMemoryType(memRequirements.memoryTypeBits, 
+	allocInfo.memoryTypeIndex = context->findMemoryType(memRequirements.memoryTypeBits,
 		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 	allocInfo.allocationSize = memRequirements.size;
 
 	
 
 
-	vertexBufferMemory = device.getDevice().allocateMemory(allocInfo);
+	vertexBufferMemory = context->getDevice().allocateMemory(allocInfo);
 
-	device.getDevice().bindBufferMemory(vertexBuffer, vertexBufferMemory, 0);
+	context->getDevice().bindBufferMemory(vertexBuffer, vertexBufferMemory, 0);
 
 	// Map to cpu 
 	void* data;
-	if (!verts.size())
+	if (verts.size() != 0)
 	{
-		data = device.getDevice().mapMemory(vertexBufferMemory, 0, bufferInfo.size);
+		data = context->getDevice().mapMemory(vertexBufferMemory, 0, bufferInfo.size);
 		memcpy(data, verts.data(), (size_t)bufferInfo.size);
-		device.getDevice().unmapMemory(vertexBufferMemory);
+		context->getDevice().unmapMemory(vertexBufferMemory);
 	}
 	else
 	{
 		throw std::runtime_error("Inital data for vertexbuffer creation was nil");
 	}
+
+	// Everything worked, saving device 
+	device = context->getAddressOfDevice();
 }
 
-VertexBuffer::~VertexBuffer()
+void VertexBuffer::Destroy()
 {
-	
+	device->destroyBuffer(vertexBuffer, nullptr);
+	device->freeMemory(vertexBufferMemory, nullptr);
 }
 
 vk::Buffer& VertexBuffer::getVertexBuffer()

@@ -146,6 +146,14 @@ vkGroups::PipelineGroup DeviceGroup::createPipeline(vk::GraphicsPipelineCreateIn
 }
 
 
+void DeviceGroup::createVertexBuffer(vkGroups::VertexBufferGroup& group, std::vector<uint32_t>& verts)
+{
+	for (DeviceContext* device : devices)
+	{
+		group.sets[device] = VertexBuffer(verts, device);
+	}
+}
+
 std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> DeviceGroup::getShaderStages(vkGroups::PipelineShaderStageGroup vertexShader, vkGroups::PipelineShaderStageGroup fragmentShader)
 {
 	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> vec;

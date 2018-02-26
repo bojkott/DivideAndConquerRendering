@@ -78,6 +78,7 @@ public:
 	Swapchain& getSwapchain();
 
 	vk::Device& getDevice();
+	vk::Device* getAddressOfDevice();
 
 	vk::RenderPass& getRenderpass();
 
