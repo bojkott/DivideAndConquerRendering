@@ -25,9 +25,8 @@ vkGroups::ShaderGroup Material::getFragmentShader()
 
 vk::DescriptorPoolCreateInfo Material::getDescriptorPoolInfo()
 {
-
-	std::vector<vk::DescriptorPoolSize> poolSizesValues;
-
+	poolSizesValues.clear();
+	
 	for (auto& poolSize : poolSizes)
 	{
 		vk::DescriptorPoolSize descriptor;
@@ -47,7 +46,8 @@ vk::DescriptorPoolCreateInfo Material::getDescriptorPoolInfo()
 
 vk::PipelineLayoutCreateInfo Material::getPipelineLayoutInfo()
 {
-	std::vector<vk::PushConstantRange> pushConstantsValues;
+	
+	pushConstantsValues.clear();
 
 	for (auto &pushConsant : pushConstants) 
 	{
@@ -103,3 +103,13 @@ void Material::setPushConstant(vk::ShaderStageFlagBits shaderFlags, size_t size)
 	
 }
 
+vk::PipelineVertexInputStateCreateInfo Material::getVertexinputInfo()
+{
+	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+	vertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
+	vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+	vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+	return vertexInputInfo;
+}

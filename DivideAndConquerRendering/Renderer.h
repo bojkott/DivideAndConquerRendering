@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "DeviceGroup.h"
 
+class Technique;
 class Renderer
 {
 public:
@@ -25,7 +26,7 @@ private:
 	vk::Instance instance;
 	vk::DebugReportCallbackEXT callback;
 	
-
+	Technique* daQCombineTechnique;
 
 public:
 	Renderer();

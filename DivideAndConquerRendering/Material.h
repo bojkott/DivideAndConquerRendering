@@ -15,7 +15,9 @@ private:
 
 	std::vector<vk::DescriptorSetLayoutBinding> descriptorSetLayoutbindings;
 	std::map<vk::DescriptorType, int> poolSizes;
+	std::vector<vk::DescriptorPoolSize> poolSizesValues;
 	std::map<vk::ShaderStageFlagBits, size_t> pushConstants;
+	std::vector<vk::PushConstantRange> pushConstantsValues;
 
 
 	static std::vector<Material*> materials;
@@ -27,11 +29,10 @@ public:
 	vkGroups::ShaderGroup getVertexShader();
 	vkGroups::ShaderGroup getFragmentShader();
 
-	virtual vk::PipelineVertexInputStateCreateInfo getVertexinputInfo() = 0;
 	vk::DescriptorPoolCreateInfo getDescriptorPoolInfo();
 	vk::PipelineLayoutCreateInfo getPipelineLayoutInfo();
 	vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo();
-
+	vk::PipelineVertexInputStateCreateInfo getVertexinputInfo();
 	template<typename T>
 	static T* getMaterial();
 
@@ -41,6 +42,9 @@ public:
 protected:
 	void addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags);
 	void setPushConstant(vk::ShaderStageFlagBits shaderFlag, size_t size);
+
+	std::vector<vk::VertexInputBindingDescription> bindingDescriptions;
+	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 };
 
 template<typename T>

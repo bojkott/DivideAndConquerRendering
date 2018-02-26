@@ -3,11 +3,7 @@
 DaQCombineMaterial::DaQCombineMaterial() : Material("DaQCombine.vert", "DaQCombine.frag")
 {
 	addBinding(0, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);
-}
 
-vk::PipelineVertexInputStateCreateInfo DaQCombineMaterial::getVertexinputInfo()
-{
-	std::vector<vk::VertexInputBindingDescription> bindingDescriptions;
 
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.binding = 0;
@@ -24,7 +20,6 @@ vk::PipelineVertexInputStateCreateInfo DaQCombineMaterial::getVertexinputInfo()
 	bindingDescriptions.push_back(bindingDescription);
 
 
-	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 
 	VkVertexInputAttributeDescription attributeDescription = {};
 	attributeDescription.binding = 0;
@@ -44,13 +39,4 @@ vk::PipelineVertexInputStateCreateInfo DaQCombineMaterial::getVertexinputInfo()
 	attributeDescription.format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	attributeDescription.offset = 0;
 	attributeDescriptions.push_back(attributeDescription);
-
-
-	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-	vertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
-	vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-	vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
-	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-	return vertexInputInfo;
 }

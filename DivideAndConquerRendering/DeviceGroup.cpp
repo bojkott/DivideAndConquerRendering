@@ -138,16 +138,3 @@ void DeviceGroup::createVertexBuffer(vkGroups::VertexBufferGroup& group, std::ve
 		group.sets[device] = VertexBuffer(verts, device);
 	}
 }
-
-std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> DeviceGroup::getShaderStages(vkGroups::PipelineShaderStageGroup vertexShader, vkGroups::PipelineShaderStageGroup fragmentShader)
-{
-	std::vector<std::vector<vk::PipelineShaderStageCreateInfo>> vec;
-	std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-	for (DeviceContext* const device : devices)
-	{
-		shaderStages.push_back(vertexShader.sets[device]);
-		shaderStages.push_back(fragmentShader.sets[device]);
-		vec.push_back(shaderStages);
-	}
-	return vec;
-}

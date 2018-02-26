@@ -1,11 +1,11 @@
 #include "RenderState.h"
-
+#include "Window.h"
 RenderState::RenderState()
 {
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = 0.0f;	//Get swap chain extent width from renderer
-	viewport.height = 0.0f;	//Get swap chain extent height from renderer
+	viewport.width = Window::getWidth();	//Get swap chain extent width from renderer
+	viewport.height = Window::getHeight();	//Get swap chain extent height from renderer
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
