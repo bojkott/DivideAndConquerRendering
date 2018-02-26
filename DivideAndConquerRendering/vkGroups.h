@@ -44,4 +44,15 @@ namespace vkGroups {
 		~VertexBufferGroup();
 	};
 
+	struct BufferGroup
+	{
+		std::map<DeviceContext*, vk::Buffer> sets;
+		~BufferGroup();
+	};
+
+	struct BufferMemoryGroup
+	{
+		std::map<DeviceContext*, vk::DeviceMemory> sets;
+		~BufferMemoryGroup();
+	};
 }

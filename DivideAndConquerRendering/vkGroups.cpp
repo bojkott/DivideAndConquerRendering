@@ -41,6 +41,7 @@ namespace vkGroups {
 	}
 	DescriptorSetLayoutGroup::~DescriptorSetLayoutGroup()
 	{
+
 		for (auto const& set : sets)
 		{
 			set.first->getDevice().destroyDescriptorSetLayout(set.second);
@@ -59,6 +60,20 @@ namespace vkGroups {
 		for (auto& set : sets)
 		{
 			set.second.Destroy();
+		}
+	}
+	BufferGroup::~BufferGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().destroyBuffer(set.second);
+		}
+	}
+	BufferMemoryGroup::~BufferMemoryGroup()
+	{
+		for (auto const& set : sets)
+		{
+			set.first->getDevice().freeMemory(set.second);
 		}
 	}
 }

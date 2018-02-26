@@ -4,6 +4,8 @@
 #include <vulkan\vulkan.hpp>
 #include "VkGroups.h"
 #include "Shader.h"
+#include "stb_image.h"
+
 
 class DeviceContext;
 class DeviceGroup {
@@ -41,6 +43,12 @@ public:
 		vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
 		vkGroups::PipelineGroup& group,
 		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+	vkGroups::BufferGroup createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+	vkGroups::BufferMemoryGroup allocateMemory(vkGroups::BufferGroup& bufferGroup, vk::MemoryPropertyFlags properies, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+
+	void bindBufferMemory(vkGroups::BufferGroup& bufferGroup, vkGroups::BufferMemoryGroup& bufferMemoryGroup, vk::DeviceSize memoryOffest);
+	void copyDataToGPUs(stbi_uc * bufferData, vkGroups::BufferMemoryGroup bufferMemoryGroup, vk::DeviceSize imageSize, vk::DeviceSize offset, vk::MemoryMapFlags flasg);
+
 	
 	void createVertexBuffer(vkGroups::VertexBufferGroup&  group, std::vector<uint32_t>& verts);
 };

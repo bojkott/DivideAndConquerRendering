@@ -79,6 +79,28 @@ void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage
 	context.getDevice().bindBufferMemory(buffer, bufferMemory, 0);
 }
 
+void VulkanHelpers::cmdCopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer srcBuffer, vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height)
+{
+	vk::BufferImageCopy region;
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+	region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = {
+		width,
+		height,
+		1
+	};
+	
+	commandBuffer.copyBufferToImage(srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+
+}
+
 void VulkanHelpers::cmdCopyBuffer(vk::CommandBuffer& commandBuffer, const vk::Buffer& srcBuffer, vk::Buffer& dstBuffer, vk::DeviceSize size)
 {
 	vk::BufferCopy copyRegion = {};

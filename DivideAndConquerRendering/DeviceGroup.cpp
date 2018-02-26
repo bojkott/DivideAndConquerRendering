@@ -130,11 +130,55 @@ void DeviceGroup::createPipeline(vk::GraphicsPipelineCreateInfo & pipelineInfo,
 	}
 }
 
+vkGroups::BufferGroup DeviceGroup::createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
+{
+	vkGroups::BufferGroup group;
+	for (DeviceContext* device : devices)
+	{
+		group.sets.insert(std::make_pair(device, device->getDevice().createBuffer(bufferInfo)));
+	}
+	return group;
+}
+
+vkGroups::BufferMemoryGroup DeviceGroup::allocateMemory(vkGroups::BufferGroup & bufferGroup, vk::MemoryPropertyFlags properies, vk::Optional<const vk::AllocationCallbacks> allocator)
+{
+	vkGroups::BufferMemoryGroup group;
+	for (DeviceContext* device : devices)
+	{
+		vk::MemoryRequirements memRequirements = device->getDevice().getBufferMemoryRequirements(bufferGroup.sets[device]);
+		vk::MemoryAllocateInfo allocInfo;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = device->findMemoryType(memRequirements.memoryTypeBits, properies);
+
+		group.sets.insert(std::make_pair(device, device->getDevice().allocateMemory(allocInfo)));
+	}
+	return group;
+}
+
 
 void DeviceGroup::createVertexBuffer(vkGroups::VertexBufferGroup& group, std::vector<uint32_t>& verts)
 {
 	for (DeviceContext* device : devices)
 	{
 		group.sets[device] = VertexBuffer(verts, device);
+	}
+}
+
+void DeviceGroup::bindBufferMemory(vkGroups::BufferGroup & bufferGroup, vkGroups::BufferMemoryGroup & bufferMemoryGroup, vk::DeviceSize memoryOffest)
+{
+	for (DeviceContext* device : devices)
+	{
+		device->getDevice().bindBufferMemory(bufferGroup.sets[device], bufferMemoryGroup.sets[device], memoryOffest);
+	}
+}
+
+void DeviceGroup::copyDataToGPUs(stbi_uc * bufferData, vkGroups::BufferMemoryGroup bufferMemoryGroup, vk::DeviceSize imageSize, vk::DeviceSize offset, vk::MemoryMapFlags flasg)
+{
+	for (DeviceContext* device : devices)
+	{
+		void* data;
+		device->getDevice().mapMemory(bufferMemoryGroup.sets[device], offset, imageSize, flasg, &data);
+		memcpy(data, bufferData, static_cast<size_t>(imageSize));
+		device->getDevice().unmapMemory(bufferMemoryGroup.sets[device]);
 	}
 }
