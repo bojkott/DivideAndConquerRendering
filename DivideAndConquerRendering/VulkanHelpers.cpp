@@ -59,7 +59,7 @@ void VulkanHelpers::cmdBlitSimple(vk::CommandBuffer commandBuffer, vk::Image src
 	commandBuffer.blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, imageBlitRegion, filter);
 }
 
-void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlagBits usage, vk::MemoryPropertyFlagBits properties, vk::Buffer & buffer, vk::DeviceMemory & bufferMemory, DeviceContext& const context)
+void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer & buffer, vk::DeviceMemory & bufferMemory, DeviceContext& const context)
 {
 	vk::BufferCreateInfo bufferInfo = {};
 	bufferInfo.size = size;
@@ -77,4 +77,13 @@ void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlagBits us
 
 	bufferMemory = context.getDevice().allocateMemory(allocInfo);
 	context.getDevice().bindBufferMemory(buffer, bufferMemory, 0);
+}
+
+void VulkanHelpers::cmdCopyBuffer(vk::CommandBuffer& commandBuffer, const vk::Buffer& srcBuffer, vk::Buffer& dstBuffer, vk::DeviceSize size)
+{
+	vk::BufferCopy copyRegion = {};
+	copyRegion.srcOffset = 0; // Optional
+	copyRegion.dstOffset = 0; // Optional
+	copyRegion.size = size; 
+	commandBuffer.copyBuffer(srcBuffer, dstBuffer, 1, &copyRegion);
 }

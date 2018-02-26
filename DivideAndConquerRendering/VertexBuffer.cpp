@@ -1,39 +1,66 @@
 #include "VertexBuffer.h"
+#include "VulkanHelpers.h"
 
 VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context)
 {
-	vk::BufferCreateInfo bufferInfo = {};
-	bufferInfo.size = sizeof(verts[0] * verts.size());
-	bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
-	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+	//vk::BufferCreateInfo bufferInfo = {};
+	vk::DeviceSize bufferSize = sizeof(verts[0] * verts.size());
 
-	vertexBuffer = context->getDevice().createBuffer(bufferInfo, nullptr);
+	//bufferInfo.size = bufferSize;
+	//bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
+	//bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-	// Find out what we need
-	vk::MemoryRequirements memRequirements;
-	context->getDevice().getBufferMemoryRequirements(vertexBuffer, &memRequirements);
+	//vertexBuffer = context->getDevice().createBuffer(bufferInfo, nullptr);
 
-	// Find out what we got
+	//// Find out what we need
+	//vk::MemoryRequirements memRequirements;
+	//context->getDevice().getBufferMemoryRequirements(vertexBuffer, &memRequirements);
 
-	vk::MemoryAllocateInfo allocInfo = {};
-	allocInfo.memoryTypeIndex = context->findMemoryType(memRequirements.memoryTypeBits,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-	allocInfo.allocationSize = memRequirements.size;
+	//// Find out what we got
 
+	//vk::MemoryAllocateInfo allocInfo = {};
+	//allocInfo.memoryTypeIndex = context->findMemoryType(memRequirements.memoryTypeBits,
+	//	vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	//allocInfo.allocationSize = memRequirements.size;
+	//
+
+	vk::Buffer stagingBuffer;
+	vk::DeviceMemory stagingBufferMemory;
+	VulkanHelpers::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		stagingBuffer, stagingBufferMemory, *context);
 	
 
 
-	vertexBufferMemory = context->getDevice().allocateMemory(allocInfo);
+	//vertexBufferMemory = context->getDevice().allocateMemory(allocInfo);
 
-	context->getDevice().bindBufferMemory(vertexBuffer, vertexBufferMemory, 0);
+	//context->getDevice().bindBufferMemory(stagingBuffer, stagingBufferMemory, 0);
 
 	// Map to cpu 
 	void* data;
 	if (verts.size() != 0)
 	{
-		data = context->getDevice().mapMemory(vertexBufferMemory, 0, bufferInfo.size);
-		memcpy(data, verts.data(), (size_t)bufferInfo.size);
-		context->getDevice().unmapMemory(vertexBufferMemory);
+		data = context->getDevice().mapMemory(stagingBufferMemory, 0, bufferSize);
+		memcpy(data, verts.data(), (size_t)bufferSize);
+		context->getDevice().unmapMemory(stagingBufferMemory);
+
+
+		// Create the actual buffer
+		VulkanHelpers::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferDst
+			| vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vertexBuffer, vertexBufferMemory, *context);
+
+
+		context->executeSingleTimeQueue(
+			[this, bufferSize, stagingBuffer](vk::CommandBuffer commandBuffer)
+		{
+			VulkanHelpers::cmdCopyBuffer(commandBuffer, stagingBuffer, vertexBuffer, bufferSize);
+		});
+
+
+		device->destroyBuffer(stagingBuffer);
+		device->freeMemory(stagingBufferMemory);
+
 	}
 	else
 	{
