@@ -670,6 +670,26 @@ void DeviceContext::createSemaphores()
 
 void DeviceContext::startFinalRenderPass(Technique* combineTechnique)
 {
+
+	vk::DescriptorImageInfo inputImageInfo;
+	inputImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+	inputImageInfo.imageView = secondaryDeviceTextures.at(deviceGroup->getDevices()[1])->renderTexture->getImageView();
+	inputImageInfo.sampler = nullptr;
+
+	std::vector<vk::WriteDescriptorSet> writes(1);
+
+	writes[0] = {};
+	writes[0].dstSet = combineTechnique->getDescriptionSets()[0];
+	writes[0].dstBinding = 0;
+	writes[0].descriptorCount = 1;
+	writes[0].descriptorType = vk::DescriptorType::eInputAttachment;
+	writes[0].pImageInfo = &inputImageInfo;
+	writes[0].pBufferInfo = nullptr;
+	writes[0].pTexelBufferView = nullptr;
+	writes[0].dstArrayElement = 0;
+
+	device.updateDescriptorSets(writes, {});
+
 	vk::RenderPassBeginInfo finalPassInfo;
 	finalPassInfo.renderPass = presentRenderPass;
 	finalPassInfo.renderArea.offset = { 0, 0 };

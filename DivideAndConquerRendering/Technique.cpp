@@ -67,3 +67,8 @@ void Technique::bind(vk::CommandBuffer& commandBuffer)
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSets, {});
 }
+
+std::vector<vk::DescriptorSet> Technique::getDescriptionSets()
+{
+	return descriptorSets;
+}

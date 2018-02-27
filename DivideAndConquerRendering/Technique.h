@@ -30,4 +30,6 @@ public:
 	~Technique();
 
 	void bind(vk::CommandBuffer& commandBuffer);
+
+	std::vector<vk::DescriptorSet> getDescriptionSets();
 };
