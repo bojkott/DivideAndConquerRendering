@@ -19,6 +19,7 @@ Renderer::Renderer()
 	setupDeviceGroup();
 
 	daQCombineTechnique = new Technique(deviceGroup.getMainDevice(), Material::addMaterial<DaQCombineMaterial>(), new RenderState());
+	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
 	std::vector<uint32_t> verts;
 	verts.push_back(1);
 	verts.push_back(2);
@@ -53,7 +54,7 @@ void Renderer::render()
 	
 	//Sync GPUs
 
-	mainDevice->startFinalRenderPass(daQCombineTechnique); //Combine
+	mainDevice->startFinalRenderPass(); //Combine
 	mainDevice->tempPresent(); //Final pass
 }
 

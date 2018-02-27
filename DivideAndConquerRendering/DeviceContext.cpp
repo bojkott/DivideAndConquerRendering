@@ -32,7 +32,7 @@ void DeviceContext::initDevice()
 	{
 		createSwapchain();
 		createRenderPass();
-		createPresentRenderPass();
+		
 		createCommandPool();
 				
 		for (DeviceContext* deviceContext : deviceGroup->getDevices()) //one for each subdevice. so -1 to remove the primary device.
@@ -42,7 +42,7 @@ void DeviceContext::initDevice()
 
 			createSecondaryDeviceTexture(deviceContext);
 		}
-
+		createPresentRenderPass();
 		createFrameBuffers();
 		
 		createCommandBuffers();
@@ -51,6 +51,35 @@ void DeviceContext::initDevice()
 		
 
 	}
+}
+
+void DeviceContext::setCombineTechnique(Technique * combineTechnique)
+{
+	this->combineTechnique = combineTechnique;
+
+	std::vector<vk::WriteDescriptorSet> writes;
+	for (auto& texturePairs : secondaryDeviceTextures)
+	{
+		vk::DescriptorImageInfo inputImageInfo;
+		inputImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		inputImageInfo.imageView = texturePairs.second->renderTexture->getImageView();
+		inputImageInfo.sampler = nullptr;
+
+		vk::WriteDescriptorSet write;
+
+		write.dstSet = combineTechnique->getDescriptionSets()[0];
+		write.dstBinding = 0;
+		write.descriptorCount = 1;
+		write.descriptorType = vk::DescriptorType::eInputAttachment;
+		write.pImageInfo = &inputImageInfo;
+		write.pBufferInfo = nullptr;
+		write.pTexelBufferView = nullptr;
+		write.dstArrayElement = 0;
+
+		writes.push_back(write);
+	}
+
+	device.updateDescriptorSets(writes, {});
 }
 
 DeviceContext::~DeviceContext()
@@ -433,34 +462,47 @@ void DeviceContext::createPresentRenderPass()
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
 
-	vk::AttachmentDescription inputAttatchment;
-	inputAttatchment.format = swapchain.imageFormat; //maybe hardcode?
-	inputAttatchment.samples = vk::SampleCountFlagBits::e1;
-	inputAttatchment.loadOp = vk::AttachmentLoadOp::eLoad;
-	inputAttatchment.storeOp = vk::AttachmentStoreOp::eStore;
-	inputAttatchment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-	inputAttatchment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	inputAttatchment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-	inputAttatchment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
 
-	vk::AttachmentDescription attatchments[] = { colorAttachment, inputAttatchment };
 
+	std::vector<vk::AttachmentDescription> attatchments = { colorAttachment };
+	std::vector<vk::AttachmentReference> inputAttatchmentRefs;
+
+	int i = 1;
+	for (auto& secondaryTexture : secondaryDeviceTextures)
+	{
+
+		vk::AttachmentDescription inputAttatchment;
+		inputAttatchment.format = swapchain.imageFormat; //maybe hardcode?
+		inputAttatchment.samples = vk::SampleCountFlagBits::e1;
+		inputAttatchment.loadOp = vk::AttachmentLoadOp::eLoad;
+		inputAttatchment.storeOp = vk::AttachmentStoreOp::eStore;
+		inputAttatchment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+		inputAttatchment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+		inputAttatchment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		inputAttatchment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
+
+		attatchments.push_back(inputAttatchment);
+
+		vk::AttachmentReference inputAttatchmentRef;
+		inputAttatchmentRef.attachment = i;
+		inputAttatchmentRef.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		inputAttatchmentRefs.push_back(inputAttatchmentRef);
+
+		i++;
+	}
 
 	vk::AttachmentReference colorAttachmentRef;
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
-
-	vk::AttachmentReference inputAttatchmentRef;
-	inputAttatchmentRef.attachment = 1;
-	inputAttatchmentRef.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+	
 
 	vk::SubpassDescription subpass;
 	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
-	subpass.inputAttachmentCount = 1;
-	subpass.pInputAttachments = &inputAttatchmentRef;
+	subpass.inputAttachmentCount = inputAttatchmentRefs.size();
+	subpass.pInputAttachments = inputAttatchmentRefs.data();
 
 
 	vk::SubpassDependency dependecy;
@@ -473,8 +515,8 @@ void DeviceContext::createPresentRenderPass()
 	dependecy.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
 	vk::RenderPassCreateInfo renderPassInfo;
-	renderPassInfo.attachmentCount = 2;
-	renderPassInfo.pAttachments = attatchments;
+	renderPassInfo.attachmentCount = attatchments.size();
+	renderPassInfo.pAttachments = attatchments.data();
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 	renderPassInfo.dependencyCount = 1;
@@ -668,27 +710,9 @@ void DeviceContext::createSemaphores()
 	renderFinishedSemaphore = device.createSemaphore(semaphoreInfo);
 }
 
-void DeviceContext::startFinalRenderPass(Technique* combineTechnique)
+void DeviceContext::startFinalRenderPass()
 {
-
-	vk::DescriptorImageInfo inputImageInfo;
-	inputImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-	inputImageInfo.imageView = secondaryDeviceTextures.at(deviceGroup->getDevices()[1])->renderTexture->getImageView();
-	inputImageInfo.sampler = nullptr;
-
-	std::vector<vk::WriteDescriptorSet> writes(1);
-
-	writes[0] = {};
-	writes[0].dstSet = combineTechnique->getDescriptionSets()[0];
-	writes[0].dstBinding = 0;
-	writes[0].descriptorCount = 1;
-	writes[0].descriptorType = vk::DescriptorType::eInputAttachment;
-	writes[0].pImageInfo = &inputImageInfo;
-	writes[0].pBufferInfo = nullptr;
-	writes[0].pTexelBufferView = nullptr;
-	writes[0].dstArrayElement = 0;
-
-	device.updateDescriptorSets(writes, {});
+	
 
 	vk::RenderPassBeginInfo finalPassInfo;
 	finalPassInfo.renderPass = presentRenderPass;
@@ -703,8 +727,7 @@ void DeviceContext::startFinalRenderPass(Technique* combineTechnique)
 
 		finalPassInfo.framebuffer = swapchain.finalframebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
-
-		
+				
 
 		for (auto& texturePairs : secondaryDeviceTextures)
 		{

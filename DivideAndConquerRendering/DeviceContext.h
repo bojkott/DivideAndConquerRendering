@@ -33,6 +33,7 @@ public:
 
 private:
 		
+	Technique* combineTechnique;
 
 	std::map<DeviceContext*, SecondaryDeviceTexturePair*> secondaryDeviceTextures;
 	vk::Framebuffer renderTextureFrameBuffer;
@@ -94,11 +95,13 @@ public:
 	vk::CommandPool getCommandPool();
 
 	void clearBuffer(float r, float g, float b, float a);
-	void startFinalRenderPass(Technique* combineTechnique);
+	void startFinalRenderPass();
 	void tempPresent();
 	void executeCommandQueue();
 
 	void initDevice();
+
+	void setCombineTechnique(Technique* combineTechnique);
 
 	void executeSingleTimeQueue(std::function< void (vk::CommandBuffer)> commands);
 	void transferRenderTexture();
