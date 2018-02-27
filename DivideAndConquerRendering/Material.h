@@ -19,20 +19,23 @@ private:
 	std::map<vk::ShaderStageFlagBits, size_t> pushConstants;
 	std::vector<vk::PushConstantRange> pushConstantsValues;
 
-
+	DeviceContext::RENDERPASS_TYPE type;
 	static std::vector<Material*> materials;
 
 public:
-	Material(std::string vertexFilename, std::string fragmentFilename);
+	Material(std::string vertexFilename, std::string fragmentFilename, DeviceContext::RENDERPASS_TYPE renderPassType);
 	~Material();
 
 	vkGroups::ShaderGroup getVertexShader();
 	vkGroups::ShaderGroup getFragmentShader();
 
+	void getShaderStages(DeviceContext* device, std::vector<vk::PipelineShaderStageCreateInfo>& stages);
+
 	vk::DescriptorPoolCreateInfo getDescriptorPoolInfo();
 	vk::PipelineLayoutCreateInfo getPipelineLayoutInfo();
 	vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo();
 	vk::PipelineVertexInputStateCreateInfo getVertexinputInfo();
+	DeviceContext::RENDERPASS_TYPE getRenderPassType();
 	template<typename T>
 	static T* getMaterial();
 

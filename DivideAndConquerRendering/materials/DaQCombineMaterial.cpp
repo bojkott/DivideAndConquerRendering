@@ -1,8 +1,8 @@
 #include "DaQCombineMaterial.h"
 
-DaQCombineMaterial::DaQCombineMaterial() : Material("DaQCombine.vert", "DaQCombine.frag")
+DaQCombineMaterial::DaQCombineMaterial() : Material("DaQCombine.vert", "DaQCombine.frag", DeviceContext::RENDERPASS_TYPE::Final)
 {
-	//addBinding(0, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);
+	addBinding(0, vk::DescriptorType::eInputAttachment, vk::ShaderStageFlagBits::eFragment);
 
 
 	//vk::VertexInputBindingDescription bindingDescription;

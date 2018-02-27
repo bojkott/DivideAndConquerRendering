@@ -18,7 +18,7 @@ Renderer::Renderer()
 	createSurface();
 	setupDeviceGroup();
 
-	daQCombineTechnique = new Technique(Material::addMaterial<DaQCombineMaterial>(), new RenderState());
+	daQCombineTechnique = new Technique(deviceGroup.getMainDevice(), Material::addMaterial<DaQCombineMaterial>(), new RenderState());
 	std::vector<uint32_t> verts;
 	verts.push_back(1);
 	verts.push_back(2);
@@ -40,7 +40,7 @@ void Renderer::render()
 
 	mainDevice->clearBuffer(1, 1, 0, 1);
 	//mainDevice->DrawGeometry
-	for (auto& slaveDevices : mainDevice->getTargetTextures())
+	for (auto& slaveDevices : mainDevice->getTexturePairs())
 	{
 		DeviceContext* device = slaveDevices.first;
 
@@ -48,12 +48,12 @@ void Renderer::render()
 		//device->DrawGeometry
 		device->transferRenderTexture();
 		device->executeCommandQueue();
-		device->getTargetTextures()[device]->transferTextureTo(*slaveDevices.second);
+		device->getTexturePair(device)->targetTexture->transferTextureTo(*slaveDevices.second->targetTexture);
 	}
 	
 	//Sync GPUs
 
-	mainDevice->startFinalRenderPass(daQCombineTechnique->getPipeline(mainDevice)); //Combine
+	mainDevice->startFinalRenderPass(daQCombineTechnique); //Combine
 	mainDevice->tempPresent(); //Final pass
 }
 

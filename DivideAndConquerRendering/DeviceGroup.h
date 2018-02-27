@@ -24,25 +24,8 @@ public:
 	DeviceContext* getMainDevice();
 	std::vector<DeviceContext*> getDevices();
 
-	void createGraphicsPipeline(vk::PipelineCache pipelineCache, const vk::GraphicsPipelineCreateInfo & createInfo, vkGroups::PipelineGroup& pipelineGroup, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-	void createDescriptorPool(const vk::DescriptorPoolCreateInfo& poolInfo, vkGroups::DescriptorPoolGroup& descriptorPoolGroup, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-
-	void createDescriptorSetLayout(const vk::DescriptorSetLayoutCreateInfo& createInfo, vkGroups::DescriptorSetLayoutGroup& createDescriptorSetLayoutGroup, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-
-	void allocateDescriptorSet(const vkGroups::DescriptorPoolGroup& descriptorPool, const vkGroups::DescriptorSetLayoutGroup& descriptorSetLayout, vkGroups::DescriptorSetGroup& descriptorSetGroup);
-
-	void createPipelineLayout(vk::PipelineLayoutCreateInfo& pipelineLayoutInfo, const vkGroups::DescriptorSetLayoutGroup& descriptorSetLayout, vkGroups::PipelineLayoutGroup& layoutGroup,
-		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
-
 	void createShaderGroup(const std::string& shaderFilename, Shader::ShaderType shaderType, vkGroups::ShaderGroup& shaderGroup);
-	void createPipelineCache(vkGroups::PipelineCacheGroup& group);
-	void createPipeline(vk::GraphicsPipelineCreateInfo& pipelineInfo,
-		vkGroups::PipelineCacheGroup pipelineCacheGroup,
-		vkGroups::ShaderGroup vertexShader,
-		vkGroups::ShaderGroup fragmentShader,
-		vkGroups::PipelineLayoutGroup pipelineLayoutGroup,
-		vkGroups::PipelineGroup& group,
-		vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
+	
 	vkGroups::BufferGroup createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 	vkGroups::BufferMemoryGroup allocateMemory(vkGroups::BufferGroup& bufferGroup, vk::MemoryPropertyFlags properies, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 

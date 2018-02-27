@@ -5,6 +5,7 @@
 #include "DeviceGroup.h"
 #include "RenderTexture.h"
 #include "VulkanHelpers.h"
+#include "Technique.h"
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): mode(DEVICE_MODE::HEADLESS), deviceGroup(group), physicalDevice(physicalDevice)
 {
 	createDevice(instance);
@@ -20,8 +21,10 @@ void DeviceContext::initDevice()
 	if (mode == DEVICE_MODE::HEADLESS) 
 	{
 		createRenderPass();
-		createRenderTexture();
 		createCommandPool();
+		createSecondaryDeviceTexture(this);
+		createSecondaryDeviceFramebuffer();
+		
 		createCommandBuffers();
 		createSemaphores();
 	}
@@ -30,37 +33,20 @@ void DeviceContext::initDevice()
 		createSwapchain();
 		createRenderPass();
 		createPresentRenderPass();
-		createFrameBuffers();
 		createCommandPool();
-		createCommandBuffers();
-		createSemaphores();
-		
+				
 		for (DeviceContext* deviceContext : deviceGroup->getDevices()) //one for each subdevice. so -1 to remove the primary device.
 		{
 			if (deviceContext == this)
 				continue;
-			Texture* targetTexture = new Texture(this,
-				getMainDevice()->swapchain.extent.width,
-				getMainDevice()->swapchain.extent.height,
-				swapchain.imageFormat,
-				vk::ImageLayout::eUndefined,
-				vk::ImageTiling::eLinear,
-				vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-			executeSingleTimeQueue(
-				[targetTexture](vk::CommandBuffer commandBuffer)
-			{
-				VulkanHelpers::cmdTransitionLayout(
-					commandBuffer,
-					targetTexture->getImage(),
-					vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
-					{}, vk::AccessFlagBits::eMemoryWrite,
-					vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
-			});
-
-			targetTextures.insert(std::make_pair(deviceContext, targetTexture));
+			createSecondaryDeviceTexture(deviceContext);
 		}
+
+		createFrameBuffers();
+		
+		createCommandBuffers();
+		createSemaphores();
 
 		
 
@@ -70,10 +56,10 @@ void DeviceContext::initDevice()
 DeviceContext::~DeviceContext()
 {
 
-	for (auto texMap : targetTextures)
-		delete texMap.second;
+	for (auto secondaryDevicePair : secondaryDeviceTextures)
+		delete secondaryDevicePair.second;
 
-	targetTextures.clear();
+	secondaryDeviceTextures.clear();
 
 	device.destroyCommandPool(commandPool);
 	for (auto framebuffer : swapchain.framebuffers) {
@@ -109,15 +95,20 @@ vk::Device * DeviceContext::getAddressOfDevice()
 	return &device;
 }
 
-vk::RenderPass & DeviceContext::getRenderpass()
+vk::RenderPass & DeviceContext::getRenderpass(RENDERPASS_TYPE type)
 {
-	return renderPass;
+	switch (type)
+	{
+	case RENDERPASS_TYPE::Final:
+		return presentRenderPass;
+		break;
+	case RENDERPASS_TYPE::Standard:
+		return renderPass;
+		break;
+	}
+	
 }
 
-std::map<DeviceContext*, Texture*> DeviceContext::getTargetTextures()
-{
-	return targetTextures;
-}
 
 vk::CommandPool DeviceContext::getCommandPool()
 {
@@ -145,7 +136,7 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
 		renderPassCommandBuffer.begin(beginInfo);
-		renderPassInfo.renderArea.extent = renderTexture->getExtends();
+		renderPassInfo.renderArea.extent = getMainDevice()->swapchain.extent;
 		renderPassInfo.framebuffer = renderTextureFrameBuffer;
 
 		renderPassCommandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
@@ -271,12 +262,13 @@ void DeviceContext::transferRenderTexture()
 		//this should not be here later :)
 		renderPassCommandBuffer.endRenderPass();
 
-		Texture* targetTexture = targetTextures[this];
+		Texture* targetTexture = secondaryDeviceTextures[this]->targetTexture;
+		RenderTexture* renderTexture = secondaryDeviceTextures[this]->renderTexture;
 
 		VulkanHelpers::cmdTransitionLayout(
 			renderPassCommandBuffer,
 			targetTexture->getImage(),
-			vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+			vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal,
 			{}, vk::AccessFlagBits::eTransferWrite,
 			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
@@ -297,6 +289,17 @@ void DeviceContext::transferRenderTexture()
 		renderPassCommandBuffer.end();
 	}
 }
+
+DeviceContext::SecondaryDeviceTexturePair * DeviceContext::getTexturePair(DeviceContext * deviceContext)
+{
+	return secondaryDeviceTextures.at(deviceContext);
+}
+
+std::map<DeviceContext*, DeviceContext::SecondaryDeviceTexturePair*> DeviceContext::getTexturePairs()
+{
+	return secondaryDeviceTextures;
+}
+
 
 uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
 {
@@ -429,22 +432,53 @@ void DeviceContext::createPresentRenderPass()
 	colorAttachment.initialLayout = vk::ImageLayout::eTransferDstOptimal;
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
+
+	vk::AttachmentDescription inputAttatchment;
+	inputAttatchment.format = swapchain.imageFormat; //maybe hardcode?
+	inputAttatchment.samples = vk::SampleCountFlagBits::e1;
+	inputAttatchment.loadOp = vk::AttachmentLoadOp::eLoad;
+	inputAttatchment.storeOp = vk::AttachmentStoreOp::eStore;
+	inputAttatchment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	inputAttatchment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	inputAttatchment.initialLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+	inputAttatchment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
+
+	vk::AttachmentDescription attatchments[] = { colorAttachment, inputAttatchment };
+
+
 	vk::AttachmentReference colorAttachmentRef;
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+	vk::AttachmentReference inputAttatchmentRef;
+	inputAttatchmentRef.attachment = 1;
+	inputAttatchmentRef.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
 
 	vk::SubpassDescription subpass;
 	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
+	subpass.inputAttachmentCount = 1;
+	subpass.pInputAttachments = &inputAttatchmentRef;
 
+
+	vk::SubpassDependency dependecy;
+	dependecy.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependecy.dstSubpass = 0;
+	dependecy.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	dependecy.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
+	dependecy.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+	dependecy.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
 	vk::RenderPassCreateInfo renderPassInfo;
-	renderPassInfo.attachmentCount = 1;
-	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.attachmentCount = 2;
+	renderPassInfo.pAttachments = attatchments;
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependecy;
 
 	presentRenderPass = device.createRenderPass(renderPassInfo);
 }
@@ -453,57 +487,75 @@ void DeviceContext::createFrameBuffers()
 {
 	int frameBufferCount = swapchain.imageViews.size();
 	swapchain.framebuffers.resize(frameBufferCount);
+	swapchain.finalframebuffers.resize(frameBufferCount);
 
 	//create an image view for the output to the swap texture.
 	for (size_t i = 0; i < frameBufferCount; i++) {
-		vk::ImageView attachments[] = {swapchain.imageViews[i]};
+		std::vector<vk::ImageView> attachments = { swapchain.imageViews[i] };
+		std::vector<vk::ImageView> finalFrameBufferattachments = { swapchain.imageViews[i] };
+		for (auto & secondaryTextures : secondaryDeviceTextures)
+			finalFrameBufferattachments.push_back(secondaryTextures.second->renderTexture->getImageView());
 
 		vk::FramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.renderPass = presentRenderPass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.attachmentCount = attachments.size();
+		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = swapchain.extent.width;
 		framebufferInfo.height = swapchain.extent.height;
 		framebufferInfo.layers = 1;
 
 		swapchain.framebuffers[i] = device.createFramebuffer(framebufferInfo);
+
+		framebufferInfo.renderPass = presentRenderPass;
+		framebufferInfo.attachmentCount = finalFrameBufferattachments.size();
+		framebufferInfo.pAttachments = finalFrameBufferattachments.data();
+
+		swapchain.finalframebuffers[i] = device.createFramebuffer(framebufferInfo);
 	}
 
 }
 
-void DeviceContext::createRenderTexture()
+void DeviceContext::createSecondaryDeviceTexture(DeviceContext * deviceContext)
 {
-
-	renderTexture = new RenderTexture(this,
+	SecondaryDeviceTexturePair* pair = new SecondaryDeviceTexturePair();
+	pair->renderTexture = new RenderTexture(this,
 		getMainDevice()->swapchain.extent.width,
 		getMainDevice()->swapchain.extent.height,
 		getMainDevice()->swapchain.imageFormat);
 
-	targetTextures.insert(
-		std::make_pair(this,
-			new Texture(this,
-		getMainDevice()->swapchain.extent.width,
-		getMainDevice()->swapchain.extent.height,
-		getMainDevice()->swapchain.imageFormat,
-		vk::ImageLayout::eUndefined,
-		vk::ImageTiling::eLinear,
-		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)));
+	pair->targetTexture = new Texture(this,
+				getMainDevice()->swapchain.extent.width,
+				getMainDevice()->swapchain.extent.height,
+				getMainDevice()->swapchain.imageFormat,
+				vk::ImageLayout::eUndefined,
+				vk::ImageTiling::eLinear,
+				vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-	vk::ImageView attachments[] = { renderTexture->getImageView() };
+	vk::ImageLayout renderTextureLayout = mode == DEVICE_MODE::HEADLESS ? vk::ImageLayout::eGeneral : vk::ImageLayout::eTransferDstOptimal;
+	executeSingleTimeQueue(
+		[pair, renderTextureLayout](vk::CommandBuffer commandBuffer)
+	{
+		
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			pair->renderTexture->getImage(),
+			vk::ImageLayout::eUndefined, renderTextureLayout,
+			{}, vk::AccessFlagBits::eMemoryWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
-	vk::FramebufferCreateInfo framebufferInfo = {};
-	framebufferInfo.renderPass = renderPass;
-	framebufferInfo.attachmentCount = 1;
-	framebufferInfo.pAttachments = attachments;
-	framebufferInfo.width = renderTexture->getExtends().width;
-	framebufferInfo.height = renderTexture->getExtends().height;
-	framebufferInfo.layers = 1;
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			pair->targetTexture->getImage(),
+			vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+			{}, vk::AccessFlagBits::eMemoryWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+	});
 
+	secondaryDeviceTextures.insert(std::make_pair(deviceContext, pair));
 
-
-	renderTextureFrameBuffer = device.createFramebuffer(framebufferInfo);
 }
+
 
 void DeviceContext::createSwapchain()
 {
@@ -529,7 +581,7 @@ void DeviceContext::createSwapchain()
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
 	createInfo.imageExtent = extent;
 	createInfo.imageArrayLayers = 1; // 1 if not VR
-	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
+	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst, vk::ImageUsageFlagBits::eInputAttachment;
 
 
 	QueueFamilyIndices indices = findQueueFamilies();
@@ -616,7 +668,7 @@ void DeviceContext::createSemaphores()
 	renderFinishedSemaphore = device.createSemaphore(semaphoreInfo);
 }
 
-void DeviceContext::startFinalRenderPass(vk::Pipeline combineTechnique)
+void DeviceContext::startFinalRenderPass(Technique* combineTechnique)
 {
 	vk::RenderPassBeginInfo finalPassInfo;
 	finalPassInfo.renderPass = presentRenderPass;
@@ -629,14 +681,15 @@ void DeviceContext::startFinalRenderPass(vk::Pipeline combineTechnique)
 		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
 
 
-		finalPassInfo.framebuffer = swapchain.framebuffers[i];
+		finalPassInfo.framebuffer = swapchain.finalframebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
 
 		
 
-		for (auto& texMap : targetTextures)
+		for (auto& texturePairs : secondaryDeviceTextures)
 		{
-			Texture* targetTexture = texMap.second;
+			Texture* targetTexture = texturePairs.second->targetTexture;
+			RenderTexture* renderTexture = texturePairs.second->renderTexture;
 
 			VulkanHelpers::cmdTransitionLayout(
 				commandBuffer,
@@ -645,30 +698,56 @@ void DeviceContext::startFinalRenderPass(vk::Pipeline combineTechnique)
 				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
 				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 
+
 			VulkanHelpers::cmdBlitSimple(
 				commandBuffer,
 				targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
-				swapchain.images[i], vk::ImageLayout::eTransferDstOptimal,
+				renderTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
 				swapchain.extent.width, swapchain.extent.height,
 				vk::Filter::eNearest);
 
 			VulkanHelpers::cmdTransitionLayout(
 				commandBuffer,
+				renderTexture->getImage(),
+				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
+
+			VulkanHelpers::cmdTransitionLayout(
+				commandBuffer,
 				targetTexture->getImage(),
 				vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral,
-				vk::AccessFlagBits::eMemoryRead, vk::AccessFlagBits::eMemoryWrite,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
 				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer);
 		}
 
-		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 
-		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, combineTechnique);
+		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
+		combineTechnique->bind(commandBuffer);
 
 		commandBuffer.draw(3, 1, 0, 0);
 
 		commandBuffer.endRenderPass();
 		commandBuffer.end();
 	}
+}
+
+void DeviceContext::createSecondaryDeviceFramebuffer()
+{
+
+	RenderTexture* renderTexture = secondaryDeviceTextures[this]->renderTexture;
+
+	vk::ImageView attachments[] = { renderTexture->getImageView() };
+
+	vk::FramebufferCreateInfo framebufferInfo = {};
+	framebufferInfo.renderPass = renderPass;
+	framebufferInfo.attachmentCount = 1;
+	framebufferInfo.pAttachments = attachments;
+	framebufferInfo.width = renderTexture->getExtends().width;
+	framebufferInfo.height = renderTexture->getExtends().height;
+	framebufferInfo.layers = 1;
+
+	renderTextureFrameBuffer = device.createFramebuffer(framebufferInfo);
 }
 
 void DeviceContext::createCommandPool()

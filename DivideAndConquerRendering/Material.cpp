@@ -3,12 +3,13 @@
 
 
 std::vector<Material*> Material::materials;
-Material::Material(std::string vertexFilename, std::string fragmentFilename)
+Material::Material(std::string vertexFilename, std::string fragmentFilename, DeviceContext::RENDERPASS_TYPE renderPassType)
 {
-	 Renderer::deviceGroup.createShaderGroup("../assets/shaders/" + vertexFilename + ".spv", Shader::ShaderType::VS, vertexShader);
-	 Renderer::deviceGroup.createShaderGroup("../assets/shaders/" + fragmentFilename + ".spv", Shader::ShaderType::PS, fragmentShader);
+	type = renderPassType;
+	Renderer::deviceGroup.createShaderGroup("../assets/shaders/" + vertexFilename + ".spv", Shader::ShaderType::VS, vertexShader);
+	Renderer::deviceGroup.createShaderGroup("../assets/shaders/" + fragmentFilename + ".spv", Shader::ShaderType::PS, fragmentShader);
 
-	 poolSizes.insert(std::make_pair(vk::DescriptorType::eUniformBuffer, 1)); //pool cant be empty :S
+	poolSizes.insert(std::make_pair(vk::DescriptorType::eUniformBuffer, 1)); //pool cant be empty :S
 }
 
 Material::~Material()
@@ -23,6 +24,13 @@ vkGroups::ShaderGroup Material::getVertexShader()
 vkGroups::ShaderGroup Material::getFragmentShader()
 {
 	return fragmentShader;
+}
+
+void Material::getShaderStages(DeviceContext * device, std::vector<vk::PipelineShaderStageCreateInfo>& stages)
+{
+	
+	stages.push_back(vertexShader.sets.at(device)->getShaderStageInfo());
+	stages.push_back(fragmentShader.sets.at(device)->getShaderStageInfo());
 }
 
 vk::DescriptorPoolCreateInfo Material::getDescriptorPoolInfo()
@@ -64,6 +72,7 @@ vk::PipelineLayoutCreateInfo Material::getPipelineLayoutInfo()
 	pipelineLayoutInfo.setLayoutCount = 1; // Optional
 	pipelineLayoutInfo.pushConstantRangeCount = pushConstantsValues.size(); 
 	pipelineLayoutInfo.pPushConstantRanges = pushConstantsValues.data();
+
 	return pipelineLayoutInfo;
 }
 
@@ -78,12 +87,12 @@ vk::DescriptorSetLayoutCreateInfo Material::getDescriptorSetLayoutInfo()
 void Material::addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags)
 {
 	vk::DescriptorSetLayoutBinding layoutBinding;
+
 	layoutBinding.binding = binding;
 	layoutBinding.descriptorCount = 1;
 	layoutBinding.descriptorType = type;
 	layoutBinding.pImmutableSamplers = nullptr;
 	layoutBinding.stageFlags = stageFlags;
-
 	descriptorSetLayoutbindings.push_back(layoutBinding);
 
 	if (poolSizes.find(type) != poolSizes.end())
@@ -114,4 +123,9 @@ vk::PipelineVertexInputStateCreateInfo Material::getVertexinputInfo()
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 	return vertexInputInfo;
+}
+
+DeviceContext::RENDERPASS_TYPE Material::getRenderPassType()
+{
+	return type;
 }

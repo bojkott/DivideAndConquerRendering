@@ -11,20 +11,23 @@ class Technique
 public:
 	int id;
 private:
-	vkGroups::PipelineGroup pipelineGroup;
-	vkGroups::PipelineCacheGroup pipelineCacheGroup;
-	vkGroups::DescriptorSetLayoutGroup descriptorSetLayoutGroup;
-	vkGroups::DescriptorPoolGroup descriptorPoolGroup;
-	vkGroups::DescriptorSetGroup descriptorSetGroup;
-	vkGroups::PipelineLayoutGroup pipelineLayoutGroup;
+
+	vk::Pipeline pipeline;
+	vk::PipelineCache pipelineCache;
+	vk::DescriptorSetLayout descriptorSetLayout;
+	vk::DescriptorPool descriptorPool;
+	std::vector<vk::DescriptorSet> descriptorSets;
+	vk::PipelineLayout pipelineLayout;
+
 
 	Material* material = nullptr;
 	RenderState* renderState = nullptr;
 
-	static int numberOfTechniques;
+
+	DeviceContext* deviceContext;
 public:
-	Technique(Material* m, RenderState* r);
+	Technique(DeviceContext* deviceContext, Material* m, RenderState* r);
 	~Technique();
 
-	vk::Pipeline getPipeline(DeviceContext* device);
+	void bind(vk::CommandBuffer& commandBuffer);
 };

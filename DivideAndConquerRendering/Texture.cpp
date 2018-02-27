@@ -4,8 +4,13 @@ Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height,
 {
 	this->deviceContext = deviceContext;
 	extends = { width, height };
+
+	vk::ImageUsageFlags shouldCreateImageView = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eInputAttachment;
+
 	createImage(deviceContext, format, layout, tiling, usage, memoryProperties);
-	createImageView(deviceContext, format);
+
+	if(usage & shouldCreateImageView)
+		createImageView(deviceContext, format);
 }
 
 void Texture::copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)

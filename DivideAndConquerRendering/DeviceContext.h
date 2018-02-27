@@ -9,25 +9,33 @@
 class RenderTexture;
 class Texture;
 class DeviceGroup;
+class Technique;
 class DeviceContext {
 public:
 	enum class DEVICE_MODE {WINDOW, HEADLESS};
+	enum class RENDERPASS_TYPE {Final, Standard};
 	struct Swapchain {
 		vk::Extent2D extent;
 		vk::Format imageFormat;
 		std::vector<vk::ImageView> imageViews;
 		std::vector<vk::Image> images;
 		std::vector<vk::Framebuffer> framebuffers;
+		std::vector<vk::Framebuffer> finalframebuffers;
 		vk::SwapchainKHR swapchain;
 		std::vector<vk::CommandBuffer> commandBuffers;
 	};
 	
+	struct SecondaryDeviceTexturePair
+	{
+		RenderTexture* renderTexture;
+		Texture* targetTexture;
+	};
+
 private:
+		
 
-	RenderTexture* renderTexture;
-	std::map<DeviceContext*, Texture*> targetTextures;
+	std::map<DeviceContext*, SecondaryDeviceTexturePair*> secondaryDeviceTextures;
 	vk::Framebuffer renderTextureFrameBuffer;
-
 
 
 	vk::CommandBuffer renderPassCommandBuffer;
@@ -80,14 +88,13 @@ public:
 	vk::Device& getDevice();
 	vk::Device* getAddressOfDevice();
 
-	vk::RenderPass& getRenderpass();
+	vk::RenderPass& getRenderpass(RENDERPASS_TYPE type);
 
 	Texture* getTargetTexture();
 	vk::CommandPool getCommandPool();
-	std::map<DeviceContext*, Texture*> getTargetTextures();
 
 	void clearBuffer(float r, float g, float b, float a);
-	void startFinalRenderPass(vk::Pipeline combineTechnique);
+	void startFinalRenderPass(Technique* combineTechnique);
 	void tempPresent();
 	void executeCommandQueue();
 
@@ -96,13 +103,17 @@ public:
 	void executeSingleTimeQueue(std::function< void (vk::CommandBuffer)> commands);
 	void transferRenderTexture();
 
+	SecondaryDeviceTexturePair* getTexturePair(DeviceContext* deviceContext);
+	std::map<DeviceContext*, SecondaryDeviceTexturePair*> getTexturePairs();
+
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
 	void createDevice(vk::Instance& instance);
 	void createRenderPass();
 	void createPresentRenderPass();
 	void createFrameBuffers();
-	void createRenderTexture();
+	void createSecondaryDeviceTexture(DeviceContext* deviceContext);
+	void createSecondaryDeviceFramebuffer();
 	void createCommandPool();
 	void createCommandBuffers();
 	void createSemaphores();
