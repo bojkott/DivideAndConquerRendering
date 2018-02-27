@@ -25,7 +25,36 @@ int TextureResource::loadFromFile(std::string filename)
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
 
-	//createBuffer(imageSize, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBufferGroup, stagingBufferMemoryGroup);
+	void* data;
+	copyDatatoGPU(stagingBufferMemory, pixels, 0, vk::MemoryMapFlagBits());
+	stbi_image_free(pixels);
+
+
+	DeviceContext& tempContext = *deviceContext;
+	deviceContext->executeSingleTimeQueue(
+		[this, imageSize, &stagingBuffer, &stagingBufferMemory, &tempContext](vk::CommandBuffer commandBuffer)
+	{
+		VulkanHelpers::createBuffer(
+			imageSize,
+			vk::BufferUsageFlagBits::eTransferSrc,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			stagingBuffer,
+			stagingBufferMemory,
+			tempContext
+		);
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			this->getImage(),
+			vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+			{}, vk::AccessFlagBits::eMemoryWrite,
+			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer);
+		/*VulkanHelpers::cmdCopyBufferToImage(
+		commandBuffer,
+		stagingBuffer,
+		)*/
+	});
+
+	
 	//Renderer::deviceGroup.copyDataToGPUs(pixels, stagingBufferMemoryGroup, imageSize, 0, vk::MemoryMapFlagBits());	//Don't know what the last parameter is supposed to be. It's 0 in the c version but can't pass 0 here. So Will just pass the empty enum.
 	//stbi_image_free(pixels);
 
@@ -47,18 +76,5 @@ void TextureResource::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usa
 
 void TextureResource::transitionImageLayout(vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout)
 {
-	deviceContext->executeSingleTimeQueue(
-		[this](vk::CommandBuffer commandBuffer)
-	{
-		VulkanHelpers::cmdTransitionLayout(
-			commandBuffer,
-			this->getImage(),
-			vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-			{}, vk::AccessFlagBits::eMemoryWrite,
-			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer);
-		/*VulkanHelpers::cmdCopyBufferToImage(
-			commandBuffer,
-			buffer,
-		)*/
-	});
+	
 }

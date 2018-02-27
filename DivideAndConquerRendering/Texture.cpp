@@ -106,3 +106,12 @@ vk::CommandBuffer Texture::beginSingleTimeCommands()
 
 	return vk::CommandBuffer();
 }
+
+void Texture::copyDatatoGPU(vk::DeviceMemory bufferMemory, stbi_uc* data, vk::DeviceSize offset, vk::MemoryMapFlags flags)
+{
+	vk::DeviceSize imageSize = extends.width * extends.height * 4;
+	void* tmpData;
+	deviceContext->getDevice().mapMemory(bufferMemory, offset, imageSize, flags, &tmpData);
+	memcpy(data, data, static_cast<size_t>(imageSize));
+	deviceContext->getDevice().unmapMemory(bufferMemory);
+}
