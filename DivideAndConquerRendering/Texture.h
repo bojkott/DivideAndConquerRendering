@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan\vulkan.hpp>
 #include "DeviceContext.h"
+#include "stb_image.h"
 
 class Texture
 {
@@ -22,4 +23,6 @@ private:
 	void createImage(DeviceContext * deviceContext, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties);
 	void createImageView(DeviceContext * deviceContext, vk::Format format);
 	vk::CommandBuffer beginSingleTimeCommands();
+protected:
+	void copyDatatoGPU(vk::DeviceMemory bufferMemory, stbi_uc* data, vk::DeviceSize offset, vk::MemoryMapFlags flasg);
 };
