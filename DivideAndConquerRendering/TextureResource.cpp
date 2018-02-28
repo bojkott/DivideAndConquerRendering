@@ -21,15 +21,8 @@ int TextureResource::loadFromFile(std::string filename)
 	if (!pixels)
 		throw std::runtime_error("Failed to load image!");
 
-	//Fix so that we use vk instead of vkGroups
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
-
-	void* data;
-	copyDatatoGPU(stagingBufferMemory, pixels, 0, vk::MemoryMapFlagBits());
-	stbi_image_free(pixels);
-
-
 	DeviceContext& tempContext = *deviceContext;
 	deviceContext->executeSingleTimeQueue(
 		[this, imageSize, &stagingBuffer, &stagingBufferMemory, &tempContext](vk::CommandBuffer commandBuffer)
@@ -42,23 +35,47 @@ int TextureResource::loadFromFile(std::string filename)
 			stagingBufferMemory,
 			tempContext
 		);
-		VulkanHelpers::cmdTransitionLayout(
-			commandBuffer,
-			this->getImage(),
-			vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-			{}, vk::AccessFlagBits::eMemoryWrite,
-			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer);
-		/*VulkanHelpers::cmdCopyBufferToImage(
-		commandBuffer,
-		stagingBuffer,
-		)*/
 	});
 
-	
-	//Renderer::deviceGroup.copyDataToGPUs(pixels, stagingBufferMemoryGroup, imageSize, 0, vk::MemoryMapFlagBits());	//Don't know what the last parameter is supposed to be. It's 0 in the c version but can't pass 0 here. So Will just pass the empty enum.
-	//stbi_image_free(pixels);
+	void* data;
+	copyDatatoGPU(stagingBufferMemory, pixels, 0, vk::MemoryMapFlagBits());
+	stbi_image_free(pixels);
 
-	
+	createImage(deviceContext, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal);
+	deviceContext->executeSingleTimeQueue(
+		[this, stagingBuffer, texWidth, texHeight](vk::CommandBuffer commandBuffer)
+	{
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			this->getImage(),						//The image		
+			vk::ImageLayout::eUndefined,			//Old image layout
+			vk::ImageLayout::eTransferDstOptimal,	//New image layout
+			{},										//Old access mask
+			vk::AccessFlagBits::eMemoryWrite,		//New access mask
+			vk::PipelineStageFlagBits::eTopOfPipe,	//Old pipeline
+			vk::PipelineStageFlagBits::eTransfer	//New pipeline
+		);
+		VulkanHelpers::cmdCopyBufferToImage(
+			commandBuffer,
+			stagingBuffer,
+			this->getImage(),
+			texWidth,
+			texHeight
+		);
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,									
+			this->getImage(),							//The image		
+			vk::ImageLayout::eTransferDstOptimal,		//Old image layout	(Hint: Look above)
+			vk::ImageLayout::eShaderReadOnlyOptimal,	//New image layout	
+			vk::AccessFlagBits::eMemoryWrite,			//Old access mask	
+			vk::AccessFlagBits::eShaderRead,			//New access mask	
+			vk::PipelineStageFlagBits::eTransfer,		//Old pipeline	
+			vk::PipelineStageFlagBits::eFragmentShader	//New pipeline
+		);
+	});
+
+	deviceContext->getDevice().destroyBuffer(stagingBuffer);
+	deviceContext->getDevice().freeMemory(stagingBufferMemory);
 
 	return 0;
 }
