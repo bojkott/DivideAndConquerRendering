@@ -8,8 +8,6 @@ Material::Material(std::string vertexFilename, std::string fragmentFilename, Dev
 	type = renderPassType;
 	Renderer::deviceGroup.createShaderGroup("../assets/shaders/" + vertexFilename + ".spv", Shader::ShaderType::VS, vertexShader);
 	Renderer::deviceGroup.createShaderGroup("../assets/shaders/" + fragmentFilename + ".spv", Shader::ShaderType::PS, fragmentShader);
-	vkGroups::ModelGroup test;
-	Renderer::deviceGroup.createModelGroup(test, "chalet.obj");
 	poolSizes.insert(std::make_pair(vk::DescriptorType::eUniformBuffer, 1)); //pool cant be empty :S
 }
 
