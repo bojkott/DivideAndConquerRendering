@@ -53,14 +53,17 @@ int TextureResource::loadFromFile(std::string filename)
 			{},										//Old access mask
 			vk::AccessFlagBits::eMemoryWrite,		//New access mask
 			vk::PipelineStageFlagBits::eTopOfPipe,	//Old pipeline
-			vk::PipelineStageFlagBits::eTransfer	//New pipeline
+			vk::PipelineStageFlagBits::eTransfer,	//New pipeline
+			vk::ImageAspectFlagBits::eColor
 		);
 		VulkanHelpers::cmdCopyBufferToImage(
 			commandBuffer,
 			stagingBuffer,
 			this->getImage(),
+			vk::ImageLayout::eTransferDstOptimal,
 			texWidth,
-			texHeight
+			texHeight,
+			vk::ImageAspectFlagBits::eColor
 		);
 		VulkanHelpers::cmdTransitionLayout(
 			commandBuffer,									
@@ -70,7 +73,8 @@ int TextureResource::loadFromFile(std::string filename)
 			vk::AccessFlagBits::eMemoryWrite,			//Old access mask	
 			vk::AccessFlagBits::eShaderRead,			//New access mask	
 			vk::PipelineStageFlagBits::eTransfer,		//Old pipeline	
-			vk::PipelineStageFlagBits::eFragmentShader	//New pipeline
+			vk::PipelineStageFlagBits::eFragmentShader,	//New pipeline
+			vk::ImageAspectFlagBits::eColor
 		);
 	});
 
