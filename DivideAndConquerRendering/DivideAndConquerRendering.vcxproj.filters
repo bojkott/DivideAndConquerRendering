@@ -19,6 +19,7 @@
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="materials\DaQCombineMaterial.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Model.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
@@ -38,6 +39,8 @@
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="materials\DaQCombineMaterial.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelHelper.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>

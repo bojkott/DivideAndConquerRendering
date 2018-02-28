@@ -1,12 +1,15 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
 #include "Texture.h"
+
 #include "materials\DaQCombineMaterial.h"
 #include "Technique.h"
 #include "Buffer.h"
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
+
+#include "Model.h"
 
 DeviceGroup Renderer::deviceGroup;
 
@@ -21,11 +24,7 @@ Renderer::Renderer()
 
 	daQCombineTechnique = new Technique(deviceGroup.getMainDevice(), Material::addMaterial<DaQCombineMaterial>(), new RenderState());
 	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
-	std::vector<uint32_t> verts;
-	verts.push_back(1);
-	verts.push_back(2);
-	verts.push_back(3);
-	vkGroups::VertexBufferGroup test;
+
 }
 
 Renderer::~Renderer()
@@ -177,7 +176,6 @@ void Renderer::setupDeviceGroup()
 		deviceGroup.addDevice(instance, *device);
 
 	deviceGroup.initDevices();
-	
 }
 
 bool Renderer::isDeviceSuitable(const vk::PhysicalDevice & device)
