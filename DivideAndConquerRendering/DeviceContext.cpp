@@ -150,7 +150,7 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 	std::vector<vk::ClearValue> clearValues(2);
 	clearValues[0].color = (std::array<float, 4>{r, g, b, a});
 	clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0.0f);
-	device.resetCommandPool(commandPool, vk::CommandPoolResetFlagBits::eReleaseResources);
+	
 
 	vk::CommandBufferBeginInfo beginInfo;
 	beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
@@ -286,55 +286,11 @@ void DeviceContext::executeSingleTimeQueue(std::function< void(vk::CommandBuffer
 
 void DeviceContext::transferRenderTexture()
 {
-	if (mode == DEVICE_MODE::HEADLESS)
-	{
-	
-		//this should not be here later :)
-		renderPassCommandBuffer.endRenderPass();
+	renderPassCommandBuffer.endRenderPass();
 
-		Texture* targetTexture = secondaryDeviceTextures[this]->targetTexture;
-		Texture* renderDepthTexture = secondaryDeviceTextures[this]->renderDepthTexture;
-		RenderTexture* renderTexture = secondaryDeviceTextures[this]->renderTexture;
-		Buffer* targetDepthBuffer = secondaryDeviceTextures[this]->targetDepthBuffer;
+	renderPassCommandBuffer.executeCommands(1, &transferToCpuCommandBuffer);
 
-		VulkanHelpers::cmdTransitionLayout(
-			renderPassCommandBuffer,
-			targetTexture->getImage(),
-			vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal,
-			{}, vk::AccessFlagBits::eTransferWrite,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
-		
-		VulkanHelpers::cmdCopyImageSimple(renderPassCommandBuffer,
-			renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
-			targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
-			renderTexture->getExtends().width, renderTexture->getExtends().height);
-
-
-		VulkanHelpers::cmdTransitionLayout(
-			renderPassCommandBuffer,
-			targetTexture->getImage(),
-			vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral,
-			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
-			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
-
-		
-		VulkanHelpers::cmdCopyImageToBuffer(
-			renderPassCommandBuffer,
-			renderDepthTexture->getImage(), targetDepthBuffer->getBuffer(),
-			vk::ImageLayout::eTransferSrcOptimal,
-			renderDepthTexture->getExtends().width, renderDepthTexture->getExtends().height,
-			vk::ImageAspectFlagBits::eDepth);
-
-		VulkanHelpers::cmdTransitionLayout(
-			renderPassCommandBuffer,
-			renderDepthTexture->getImage(),
-			vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eDepthStencilAttachmentOptimal,
-			vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
-			vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
-			vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::ImageAspectFlagBits::eDepth);
-
-		renderPassCommandBuffer.end();
-	}
+	renderPassCommandBuffer.end();
 }
 
 DeviceContext::SecondaryDeviceTexturePair * DeviceContext::getTexturePair(DeviceContext * deviceContext)
@@ -785,18 +741,143 @@ void DeviceContext::createCommandBuffers()
 {
 	vk::CommandBufferAllocateInfo allocInfo;
 	allocInfo.commandPool = commandPool;
-	allocInfo.level = vk::CommandBufferLevel::ePrimary;
+	
+	vk::CommandBufferInheritanceInfo inheritanceInfo;
+	inheritanceInfo.framebuffer = nullptr;
+	inheritanceInfo.occlusionQueryEnable = VK_FALSE;
+
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
+		allocInfo.level = vk::CommandBufferLevel::ePrimary;
 		allocInfo.commandBufferCount = 1;
 		renderPassCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+
+		allocInfo.level = vk::CommandBufferLevel::eSecondary;
+		allocInfo.commandBufferCount = 1;
+		transferToCpuCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+
+		vk::CommandBufferBeginInfo beginInfo;
+		beginInfo.pInheritanceInfo = &inheritanceInfo;
+		beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+		transferToCpuCommandBuffer.begin(beginInfo);
+
+		Texture* targetTexture = secondaryDeviceTextures[this]->targetTexture;
+		Texture* renderDepthTexture = secondaryDeviceTextures[this]->renderDepthTexture;
+		RenderTexture* renderTexture = secondaryDeviceTextures[this]->renderTexture;
+		Buffer* targetDepthBuffer = secondaryDeviceTextures[this]->targetDepthBuffer;
+
+
+		//render
+		VulkanHelpers::cmdTransitionLayout(
+			transferToCpuCommandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferDstOptimal,
+			{}, vk::AccessFlagBits::eTransferWrite,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
+
+		VulkanHelpers::cmdCopyImageSimple(transferToCpuCommandBuffer,
+			renderTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
+			targetTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
+			renderTexture->getExtends().width, renderTexture->getExtends().height);
+
+
+		VulkanHelpers::cmdTransitionLayout(
+			transferToCpuCommandBuffer,
+			targetTexture->getImage(),
+			vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eGeneral,
+			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
+			vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
+
+		//depth buffer
+
+		VulkanHelpers::cmdCopyImageToBuffer(
+			transferToCpuCommandBuffer,
+			renderDepthTexture->getImage(), targetDepthBuffer->getBuffer(),
+			vk::ImageLayout::eTransferSrcOptimal,
+			renderDepthTexture->getExtends().width, renderDepthTexture->getExtends().height,
+			vk::ImageAspectFlagBits::eDepth);
+
+		VulkanHelpers::cmdTransitionLayout(
+			transferToCpuCommandBuffer,
+			renderDepthTexture->getImage(),
+			vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eDepthStencilAttachmentOptimal,
+			vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+			vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+			vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::ImageAspectFlagBits::eDepth);
+
+		transferToCpuCommandBuffer.end();
 	}
 	else
 	{
 		swapchain.commandBuffers.resize(swapchain.framebuffers.size());
 		allocInfo.commandBufferCount = (uint32_t)swapchain.commandBuffers.size();
-
+		allocInfo.level = vk::CommandBufferLevel::ePrimary;
 		swapchain.commandBuffers = device.allocateCommandBuffers(allocInfo);
+
+		allocInfo.commandBufferCount = 1;
+		allocInfo.level = vk::CommandBufferLevel::eSecondary;
+
+		combineDaQCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
+
+
+
+		vk::CommandBufferBeginInfo beginInfo;
+		beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+		beginInfo.pInheritanceInfo = &inheritanceInfo;
+		combineDaQCommandBuffer.begin(beginInfo);
+
+		for (auto& texturePairs : secondaryDeviceTextures)
+		{
+			Texture* targetTexture = texturePairs.second->targetTexture;
+			RenderTexture* renderTexture = texturePairs.second->renderTexture;
+			Texture* renderDepthTexture = texturePairs.second->renderDepthTexture;
+			Buffer* targetDepthBuffer = texturePairs.second->targetDepthBuffer;
+			//Render
+			VulkanHelpers::cmdTransitionLayout(
+				combineDaQCommandBuffer,
+				targetTexture->getImage(),
+				vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
+
+
+			VulkanHelpers::cmdBlitSimple(
+				combineDaQCommandBuffer,
+				targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
+				renderTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
+				swapchain.extent.width, swapchain.extent.height,
+				vk::Filter::eNearest);
+
+			VulkanHelpers::cmdTransitionLayout(
+				combineDaQCommandBuffer,
+				renderTexture->getImage(),
+				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
+
+			VulkanHelpers::cmdTransitionLayout(
+				combineDaQCommandBuffer,
+				targetTexture->getImage(),
+				vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
+
+			//buffer
+			VulkanHelpers::cmdCopyBufferToImage(
+				combineDaQCommandBuffer,
+				targetDepthBuffer->getBuffer(),
+				renderDepthTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
+				swapchain.extent.width, swapchain.extent.height, vk::ImageAspectFlagBits::eDepth);
+
+			VulkanHelpers::cmdTransitionLayout(
+				combineDaQCommandBuffer,
+				renderDepthTexture->getImage(),
+				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eDepthStencilReadOnlyOptimal,
+				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
+				vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::ImageAspectFlagBits::eDepth);
+		}
+		combineDaQCommandBuffer.end();
+
 	}
 	
 }
@@ -828,61 +909,7 @@ void DeviceContext::startFinalRenderPass()
 		finalPassInfo.framebuffer = swapchain.finalframebuffers[i];
 		finalPassInfo.renderArea.extent = swapchain.extent;
 				
-
-		for (auto& texturePairs : secondaryDeviceTextures)
-		{
-			Texture* targetTexture = texturePairs.second->targetTexture;
-			RenderTexture* renderTexture = texturePairs.second->renderTexture;
-			Texture* renderDepthTexture = texturePairs.second->renderDepthTexture;
-			Buffer* targetDepthBuffer = texturePairs.second->targetDepthBuffer;
-			//Render
-			VulkanHelpers::cmdTransitionLayout(
-				commandBuffer,
-				targetTexture->getImage(),
-				vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
-				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
-				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
-
-
-			VulkanHelpers::cmdBlitSimple(
-				commandBuffer,
-				targetTexture->getImage(), vk::ImageLayout::eTransferSrcOptimal,
-				renderTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
-				swapchain.extent.width, swapchain.extent.height,
-				vk::Filter::eNearest);
-
-			VulkanHelpers::cmdTransitionLayout(
-				commandBuffer,
-				renderTexture->getImage(),
-				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
-				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
-
-			VulkanHelpers::cmdTransitionLayout(
-				commandBuffer,
-				targetTexture->getImage(),
-				vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eGeneral,
-				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
-				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
-
-			
-
-
-			//buffer
-			VulkanHelpers::cmdCopyBufferToImage(
-				commandBuffer,
-				targetDepthBuffer->getBuffer(),
-				renderDepthTexture->getImage(), vk::ImageLayout::eTransferDstOptimal,
-				swapchain.extent.width, swapchain.extent.height, vk::ImageAspectFlagBits::eDepth);
-
-			VulkanHelpers::cmdTransitionLayout(
-				commandBuffer,
-				renderDepthTexture->getImage(),
-				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eDepthStencilReadOnlyOptimal,
-				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
-				vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::ImageAspectFlagBits::eDepth);
-		}
-
+		commandBuffer.executeCommands(1, &combineDaQCommandBuffer);
 
 		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 		combineTechnique->bind(commandBuffer);
@@ -920,7 +947,7 @@ void DeviceContext::createCommandPool()
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
-	poolInfo.flags = 0; // Optional
+	poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
 
 	commandPool = device.createCommandPool(poolInfo);
 }

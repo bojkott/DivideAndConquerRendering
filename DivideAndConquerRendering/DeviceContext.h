@@ -63,6 +63,9 @@ private:
 
 	vk::Semaphore imageAvailableSemaphore;
 	vk::Semaphore renderFinishedSemaphore;
+
+	vk::CommandBuffer transferToCpuCommandBuffer;
+	vk::CommandBuffer combineDaQCommandBuffer;
 	
 
 	struct QueueFamilyIndices
