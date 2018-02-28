@@ -20,7 +20,6 @@ private:
 	std::vector<vk::PushConstantRange> pushConstantsValues;
 
 	DeviceContext::RENDERPASS_TYPE type;
-	static std::vector<Material*> materials;
 
 public:
 	Material(std::string vertexFilename, std::string fragmentFilename, DeviceContext::RENDERPASS_TYPE renderPassType);
@@ -36,11 +35,6 @@ public:
 	vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo();
 	vk::PipelineVertexInputStateCreateInfo getVertexinputInfo();
 	DeviceContext::RENDERPASS_TYPE getRenderPassType();
-	template<typename T>
-	static T* getMaterial();
-
-	template<typename T>
-	static T* addMaterial();
 
 protected:
 	void addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags);
@@ -49,25 +43,3 @@ protected:
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions;
 	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
 };
-
-template<typename T>
-static inline T * Material::getMaterial()
-{
-	for (Material* material : materials)
-	{
-		T* instance = dynamic_cast<T*>(material);
-		if (instance != nullptr)
-			return instance;
-		else
-			throw std::runtime_error("failed to find material");
-
-	}
-}
-
-template<typename T>
-static inline T * Material::addMaterial()
-{
-	T* mat = new T();
-	materials.push_back(mat);
-	return mat;
-}

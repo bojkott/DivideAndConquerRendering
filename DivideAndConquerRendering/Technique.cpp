@@ -2,7 +2,7 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
 
-
+std::map<Material*, vkGroups::TechniqueGroup> Technique::loadedTechniques;
 Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r)
 {
 
@@ -55,6 +55,31 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
+}
+
+Technique * Technique::createOrGetTechnique(DeviceContext * deviceContext, Material * m, RenderState* r)
+{
+	if (loadedTechniques.find(m) != loadedTechniques.end())
+	{
+		vkGroups::TechniqueGroup& techGroup = loadedTechniques.at(m);
+		if (techGroup.sets.find(deviceContext) != techGroup.sets.end())
+			return techGroup.sets.at(deviceContext);
+		else
+		{
+			Technique* tech = new Technique(deviceContext, m, r);
+			techGroup.sets.insert(std::make_pair(deviceContext, tech));
+			return tech;
+		}
+			
+	}
+	else
+	{
+		loadedTechniques[m];
+		vkGroups::TechniqueGroup& techGroup = loadedTechniques.at(m);
+		Technique* tech = new Technique(deviceContext, m, r);
+		techGroup.sets.insert(std::make_pair(deviceContext, tech));
+		return tech;
+	}
 }
 
 Technique::~Technique()

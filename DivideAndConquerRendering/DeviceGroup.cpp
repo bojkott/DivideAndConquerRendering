@@ -53,38 +53,3 @@ void DeviceGroup::createShaderGroup(const std::string & shaderFilename, Shader::
 	}
 }
 
-
-vkGroups::BufferGroup DeviceGroup::createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
-{
-	vkGroups::BufferGroup group;
-	for (DeviceContext* device : devices)
-	{
-		group.sets.insert(std::make_pair(device, device->getDevice().createBuffer(bufferInfo)));
-	}
-	return group;
-}
-
-vkGroups::BufferMemoryGroup DeviceGroup::allocateMemory(vkGroups::BufferGroup & bufferGroup, vk::MemoryPropertyFlags properies, vk::Optional<const vk::AllocationCallbacks> allocator)
-{
-	vkGroups::BufferMemoryGroup group;
-	for (DeviceContext* device : devices)
-	{
-		vk::MemoryRequirements memRequirements = device->getDevice().getBufferMemoryRequirements(bufferGroup.sets[device]);
-		vk::MemoryAllocateInfo allocInfo;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = device->findMemoryType(memRequirements.memoryTypeBits, properies);
-
-		group.sets.insert(std::make_pair(device, device->getDevice().allocateMemory(allocInfo)));
-	}
-	return group;
-}
-
-
-void DeviceGroup::bindBufferMemory(vkGroups::BufferGroup & bufferGroup, vkGroups::BufferMemoryGroup & bufferMemoryGroup, vk::DeviceSize memoryOffest)
-{
-	for (DeviceContext* device : devices)
-	{
-		device->getDevice().bindBufferMemory(bufferGroup.sets[device], bufferMemoryGroup.sets[device], memoryOffest);
-	}
-}
-

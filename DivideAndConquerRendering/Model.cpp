@@ -5,7 +5,7 @@ Model::Model(DeviceContext * device, std::vector<ModelHelper::MeshInfo> meshesIn
 {
 	for (auto & meshInfo : meshesInfo)
 	{
-		Mesh* mesh = new Mesh(device, meshInfo);
+		Mesh* mesh = new Mesh(device, this, meshInfo);
 		meshes.push_back(mesh);
 	}
 }

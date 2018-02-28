@@ -9,6 +9,7 @@
 class Buffer;
 class RenderTexture;
 class Texture;
+class Mesh;
 class DeviceGroup;
 class Technique;
 class DeviceContext {
@@ -86,6 +87,8 @@ private:
 	};
 
 	
+	std::map<Technique*, Mesh*> renderQueue;
+
 public:
 	DeviceContext(DeviceGroup* group, vk::Instance& instance, vk::PhysicalDevice physicalDevice);
 	DeviceContext(DeviceGroup* group, vk::Instance& instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR& surface);

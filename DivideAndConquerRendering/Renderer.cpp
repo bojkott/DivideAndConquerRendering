@@ -22,7 +22,7 @@ Renderer::Renderer()
 	createSurface();
 	setupDeviceGroup();
 
-	daQCombineTechnique = new Technique(deviceGroup.getMainDevice(), Material::addMaterial<DaQCombineMaterial>(), new RenderState());
+	daQCombineTechnique = Technique::createOrGetTechnique(deviceGroup.getMainDevice(), new DaQCombineMaterial(), new RenderState());
 	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
 
 }

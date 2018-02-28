@@ -6,6 +6,7 @@
 class Shader;
 class DeviceContext;
 class Model;
+class Technique;
 namespace vkGroups {
 
 	struct ShaderGroup {
@@ -27,7 +28,13 @@ namespace vkGroups {
 
 	struct ModelGroup
 	{
-		std::map<DeviceContext*, Model> sets;
+		std::map<DeviceContext*, Model*> sets;
 		~ModelGroup();
+	};
+
+	struct TechniqueGroup
+	{
+		std::map < DeviceContext*, Technique*> sets;
+		~TechniqueGroup();
 	};
 }

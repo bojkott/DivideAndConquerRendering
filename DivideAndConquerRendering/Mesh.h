@@ -5,16 +5,17 @@
 class DeviceContext;
 class VertexBuffer;
 class IndexBuffer;
-class Material;
+class Technique;
+class Model;
 class Mesh
 {
 private: 
 	VertexBuffer* vertexBuffer;
 	IndexBuffer* indexBuffer;
-	Material* material;
-	
+	Technique* technique;
+	Model* model;
 public:
-	Mesh(DeviceContext* context, ModelHelper::MeshInfo& meshInfo);
+	Mesh(DeviceContext* context, Model* model, ModelHelper::MeshInfo& meshInfo);
 	Mesh() {};
 private:
 };

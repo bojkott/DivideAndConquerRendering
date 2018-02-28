@@ -2,7 +2,6 @@
 #include "Renderer.h"
 
 
-std::vector<Material*> Material::materials;
 Material::Material(std::string vertexFilename, std::string fragmentFilename, DeviceContext::RENDERPASS_TYPE renderPassType)
 {
 	type = renderPassType;

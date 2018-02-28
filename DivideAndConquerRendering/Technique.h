@@ -8,8 +8,6 @@
 
 class Technique
 {
-public:
-	int id;
 private:
 
 	vk::Pipeline pipeline;
@@ -24,9 +22,12 @@ private:
 	RenderState* renderState = nullptr;
 
 
-	DeviceContext* deviceContext;
+	static std::map<Material*, vkGroups::TechniqueGroup> loadedTechniques;
+
 public:
 	Technique(DeviceContext* deviceContext, Material* m, RenderState* r);
+
+	static Technique* createOrGetTechnique(DeviceContext* deviceContext, Material* m, RenderState* r);
 	~Technique();
 
 	void bind(vk::CommandBuffer& commandBuffer);

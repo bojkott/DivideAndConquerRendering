@@ -30,6 +30,16 @@ namespace vkGroups {
 
 	ModelGroup::~ModelGroup()
 	{
-
+		for (auto const& set : sets)
+		{
+			delete set.second;
+		}
+	}
+	TechniqueGroup::~TechniqueGroup()
+	{
+		for (auto const& set : sets)
+		{
+			delete set.second;
+		}
 	}
 }
