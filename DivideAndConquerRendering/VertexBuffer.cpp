@@ -1,9 +1,9 @@
 #include "VertexBuffer.h"
 #include "VulkanHelpers.h"
 
-VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context)
+VertexBuffer::VertexBuffer(std::vector<Vertex>& verts, DeviceContext * context)
 {
-	vk::DeviceSize bufferSize = sizeof(verts[0] * verts.size());
+	vk::DeviceSize bufferSize = sizeof(verts[0].pos.r * verts.size());
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
 	VulkanHelpers::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,

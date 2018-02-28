@@ -1,6 +1,6 @@
 #include "IndexBuffer.h"
 
-IndexBuffer::IndexBuffer(std::vector<uint32_t> indices, DeviceContext* context)
+IndexBuffer::IndexBuffer(std::vector<uint32_t>& indices, DeviceContext* context)
 {
 	vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -55,7 +55,7 @@ void IndexBuffer::BindBuffer(DeviceContext* context) const
 		[this](vk::CommandBuffer commandBuffer)
 	{
 		vk::DeviceSize offsets[] = { 0 };
-		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
+		commandBuffer.bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint32);
 	});
 }
 

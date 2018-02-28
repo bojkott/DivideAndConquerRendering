@@ -15,7 +15,8 @@ private:
 	vk::Device* device;
 
 public:
-	IndexBuffer(std::vector<uint32_t> indices, DeviceContext* context);
+	IndexBuffer(std::vector<uint32_t>& indices, DeviceContext* context);
+	IndexBuffer() {}; // instead of writing init functions
 	void BindBuffer(DeviceContext * context) const;
 	uint32_t getNrOfIndices() const;
 

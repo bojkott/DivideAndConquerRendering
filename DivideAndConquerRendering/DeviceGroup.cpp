@@ -1,5 +1,7 @@
 #include "DeviceGroup.h"
 #include "DeviceContext.h"
+#include "ModelHelper.h"
+
 DeviceGroup::DeviceGroup()
 {
 }
@@ -52,6 +54,18 @@ void DeviceGroup::createShaderGroup(const std::string & shaderFilename, Shader::
 	}
 }
 
+void DeviceGroup::createModelGroup(vkGroups::ModelGroup& modelGroup, const std::string & modelName, const std::string & textureName)
+{
+	std::vector<Vertex> vertices;
+	std::vector<uint32_t> indices;
+	ModelHelper::loadModelFromFile(modelName, textureName, vertices, indices);
+
+	for (DeviceContext* const device : devices)
+	{
+		modelGroup.sets[device] = Model(device, vertices, indices);
+	}
+}
+
 
 vkGroups::BufferGroup DeviceGroup::createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
 {
@@ -78,14 +92,6 @@ vkGroups::BufferMemoryGroup DeviceGroup::allocateMemory(vkGroups::BufferGroup & 
 	return group;
 }
 
-
-void DeviceGroup::createVertexBuffer(vkGroups::VertexBufferGroup& group, std::vector<uint32_t>& verts)
-{
-	for (DeviceContext* device : devices)
-	{
-		group.sets[device] = VertexBuffer(verts, device);
-	}
-}
 
 void DeviceGroup::bindBufferMemory(vkGroups::BufferGroup & bufferGroup, vkGroups::BufferMemoryGroup & bufferMemoryGroup, vk::DeviceSize memoryOffest)
 {

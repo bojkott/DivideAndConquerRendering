@@ -4,6 +4,7 @@
 #include <vulkan\vulkan.hpp>
 #include "VkGroups.h"
 #include "Shader.h"
+#include "Model.h"
 #include "stb_image.h"
 
 
@@ -25,7 +26,9 @@ public:
 	std::vector<DeviceContext*> getDevices();
 
 	void createShaderGroup(const std::string& shaderFilename, Shader::ShaderType shaderType, vkGroups::ShaderGroup& shaderGroup);
-	
+	void createModelGroup(vkGroups::ModelGroup& modelGroup, const std::string& modelName, const std::string& textureName = "");
+
+
 	vkGroups::BufferGroup createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 	vkGroups::BufferMemoryGroup allocateMemory(vkGroups::BufferGroup& bufferGroup, vk::MemoryPropertyFlags properies, vk::Optional<const vk::AllocationCallbacks> allocator = nullptr);
 
@@ -33,5 +36,4 @@ public:
 	void copyDataToGPUs(stbi_uc * bufferData, vkGroups::BufferMemoryGroup bufferMemoryGroup, vk::DeviceSize imageSize, vk::DeviceSize offset, vk::MemoryMapFlags flasg);
 
 	
-	void createVertexBuffer(vkGroups::VertexBufferGroup&  group, std::vector<uint32_t>& verts);
 };

@@ -1,6 +1,8 @@
 #include "vkGroups.h"
 #include "DeviceContext.h"
 #include "Shader.h"
+#include "Model.h"
+
 namespace vkGroups {
 
 	ShaderGroup::~ShaderGroup()
@@ -11,13 +13,6 @@ namespace vkGroups {
 		}
 	}
 
-	VertexBufferGroup::~VertexBufferGroup()
-	{
-		for (auto& set : sets)
-		{
-			set.second.Destroy();
-		}
-	}
 	BufferGroup::~BufferGroup()
 	{
 		for (auto const& set : sets)
@@ -31,5 +26,10 @@ namespace vkGroups {
 		{
 			set.first->getDevice().freeMemory(set.second);
 		}
+	}
+
+	ModelGroup::~ModelGroup()
+	{
+
 	}
 }
