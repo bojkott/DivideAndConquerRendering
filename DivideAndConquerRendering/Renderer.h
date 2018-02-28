@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan.hpp>
 #include <SDL_vulkan.h>
-#include "Common.h"
 #include "Window.h"
 #include "DeviceGroup.h"
 

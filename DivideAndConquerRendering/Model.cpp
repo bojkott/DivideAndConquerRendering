@@ -1,9 +1,11 @@
 #include "Model.h"
-#include <glm\glm.hpp>
-
-Model::Model(DeviceContext* context, std::vector<Vertex>& vertices, std::vector<uint32_t> indices)
+#include "Mesh.h"
+#include "ModelHelper.h"
+Model::Model(DeviceContext * device, std::vector<ModelHelper::MeshInfo> meshesInfo)
 {
-	// Data has been loaded, time to create buffers
-	vertexBuffer = VertexBuffer(vertices, context);
-	indexBuffer = IndexBuffer(indices, context);
+	for (auto & meshInfo : meshesInfo)
+	{
+		Mesh* mesh = new Mesh(device, meshInfo);
+		meshes.push_back(mesh);
+	}
 }

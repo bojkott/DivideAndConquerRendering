@@ -1,7 +1,7 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
 #include "Texture.h"
-
+#include <iostream>
 #include "materials\DaQCombineMaterial.h"
 #include "Technique.h"
 #include "Buffer.h"

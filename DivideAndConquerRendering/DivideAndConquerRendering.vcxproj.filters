@@ -11,18 +11,18 @@
     <ClCompile Include="vkGroups.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Material.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="VulkanHelpers.cpp" />
-    <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="materials\DaQCombineMaterial.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="RenderTexture.cpp" />
+    <ClCompile Include="ModelHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="Technique.h" />
@@ -31,17 +31,16 @@
     <ClInclude Include="RenderState.h" />
     <ClInclude Include="vkGroups.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="VulkanHelpers.h" />
-    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="materials\DaQCombineMaterial.h" />
-    <ClInclude Include="Model.h" />
     <ClInclude Include="ModelHelper.h" />
     <ClInclude Include="Buffer.h" />
-    <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="RenderTexture.h" />
   </ItemGroup>
 </Project>

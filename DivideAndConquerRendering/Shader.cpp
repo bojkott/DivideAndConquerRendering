@@ -1,7 +1,7 @@
 #include "Shader.h"
 #include "Window.h"
 #include "Renderer.h"
-
+#include "DeviceContext.h"
 Shader::Shader(const std::string & shaderFilename, ShaderType shaderType, DeviceContext * deviceContext): shaderType(shaderType), deviceContext(deviceContext)
 {
 	createShaderModule(shaderFilename);

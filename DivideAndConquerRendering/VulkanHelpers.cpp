@@ -60,25 +60,6 @@ void VulkanHelpers::cmdBlitSimple(vk::CommandBuffer commandBuffer, vk::Image src
 	commandBuffer.blitImage(srcImage, srcImageLayout, dstImage, dstImageLayout, imageBlitRegion, filter);
 }
 
-void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer & buffer, vk::DeviceMemory & bufferMemory, DeviceContext& const context)
-{
-	vk::BufferCreateInfo bufferInfo = {};
-	bufferInfo.size = size;
-	bufferInfo.usage = usage;
-	bufferInfo.sharingMode = vk::SharingMode::eExclusive;
-	buffer = context.getDevice().createBuffer(bufferInfo, nullptr);
-	
-	vk::MemoryRequirements memRequirements;
-	memRequirements = context.getDevice().getBufferMemoryRequirements(buffer);
-
-	vk::MemoryAllocateInfo allocInfo = {};
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = context.findMemoryType(memRequirements.memoryTypeBits, properties);
-
-
-	bufferMemory = context.getDevice().allocateMemory(allocInfo);
-	context.getDevice().bindBufferMemory(buffer, bufferMemory, 0);
-}
 
 void VulkanHelpers::cmdCopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer srcBuffer, vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height, vk::ImageAspectFlagBits aspectMask)
 {

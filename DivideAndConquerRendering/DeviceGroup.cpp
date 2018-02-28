@@ -1,6 +1,5 @@
 #include "DeviceGroup.h"
 #include "DeviceContext.h"
-#include "ModelHelper.h"
 
 DeviceGroup::DeviceGroup()
 {
@@ -54,18 +53,6 @@ void DeviceGroup::createShaderGroup(const std::string & shaderFilename, Shader::
 	}
 }
 
-void DeviceGroup::createModelGroup(vkGroups::ModelGroup& modelGroup, const std::string & modelName, const std::string & textureName)
-{
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
-	ModelHelper::loadModelFromFile(modelName, textureName, vertices, indices);
-
-	for (DeviceContext* const device : devices)
-	{
-		modelGroup.sets[device] = Model(device, vertices, indices);
-	}
-}
-
 
 vkGroups::BufferGroup DeviceGroup::createBuffer(vk::BufferCreateInfo bufferInfo, vk::Optional<const vk::AllocationCallbacks> allocator)
 {
@@ -101,13 +88,3 @@ void DeviceGroup::bindBufferMemory(vkGroups::BufferGroup & bufferGroup, vkGroups
 	}
 }
 
-void DeviceGroup::copyDataToGPUs(stbi_uc * bufferData, vkGroups::BufferMemoryGroup bufferMemoryGroup, vk::DeviceSize imageSize, vk::DeviceSize offset, vk::MemoryMapFlags flasg)
-{
-	for (DeviceContext* device : devices)
-	{
-		void* data;
-		device->getDevice().mapMemory(bufferMemoryGroup.sets[device], offset, imageSize, flasg, &data);
-		memcpy(data, bufferData, static_cast<size_t>(imageSize));
-		device->getDevice().unmapMemory(bufferMemoryGroup.sets[device]);
-	}
-}

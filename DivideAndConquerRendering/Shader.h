@@ -1,8 +1,7 @@
 #pragma once
-#include "Common.h"
 #include <fstream>
 #include <vulkan/vulkan.hpp>
-
+class DeviceContext;
 class Shader
 {
 public:

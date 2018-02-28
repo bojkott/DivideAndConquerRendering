@@ -7,6 +7,12 @@ Buffer::Buffer(DeviceContext * deviceContext, size_t bufferSize, vk::BufferUsage
 	createBuffer(bufferSize, usage, sharingMode, properties);
 }
 
+Buffer::~Buffer()
+{
+	deviceContext->getDevice().freeMemory(bufferMemory);
+	deviceContext->getDevice().destroyBuffer(buffer);
+}
+
 vk::Buffer & Buffer::getBuffer()
 {
 	return buffer;
@@ -22,6 +28,13 @@ void Buffer::transferBufferTo(Buffer & destination)
 
 	this->deviceContext->getDevice().unmapMemory(this->bufferMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.bufferMemory);
+}
+
+void Buffer::setData(void * data)
+{
+	void* bufferData = this->deviceContext->getDevice().mapMemory(this->bufferMemory, 0, bufferSize);
+	memcpy(bufferData, data, bufferSize);
+	this->deviceContext->getDevice().unmapMemory(this->bufferMemory);
 }
 
 void Buffer::createBuffer(size_t bufferSize, vk::BufferUsageFlags usage, vk::SharingMode sharingMode, vk::MemoryPropertyFlags properties)

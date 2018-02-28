@@ -2,7 +2,7 @@
 #include <vulkan\vulkan.hpp>
 #include "vkGroups.h"
 #include "DeviceGroup.h"
-
+#include "DeviceContext.h"
 class Shader;
 
 class Material
@@ -29,7 +29,7 @@ public:
 	vkGroups::ShaderGroup getVertexShader();
 	vkGroups::ShaderGroup getFragmentShader();
 
-	void getShaderStages(DeviceContext* device, std::vector<vk::PipelineShaderStageCreateInfo>& stages);
+	void getShaderStages(DeviceContext* devicem, std::vector<vk::PipelineShaderStageCreateInfo>& stages);
 
 	vk::DescriptorPoolCreateInfo getDescriptorPoolInfo();
 	vk::PipelineLayoutCreateInfo getPipelineLayoutInfo();

@@ -1,5 +1,11 @@
 #include "Texture.h"
 #include <fstream>
+#include "Buffer.h"
+#include "VulkanHelpers.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties, vk::ImageAspectFlags aspectFlag)
 {
 	this->deviceContext = deviceContext;
@@ -19,9 +25,13 @@ Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height,
 {
 }
 
-void Texture::copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
+Texture::~Texture()
 {
-	//vk::CommandBuffer commandBuffer = 
+	if(imageView)
+		deviceContext->getDevice().destroyImageView(imageView);
+
+	deviceContext->getDevice().freeMemory(imageMemory);
+	deviceContext->getDevice().destroyImage(image);
 }
 
 vk::ImageView & Texture::getImageView()
@@ -50,6 +60,72 @@ void Texture::transferTextureTo(Texture & destination)
 
 	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);
+}
+
+Texture* Texture::loadFromFile(DeviceContext * deviceContext, std::string filename)
+{
+	int texWidth, texHeight, texChannels;
+	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	vk::DeviceSize imageSize = texWidth * texHeight * 4;
+
+	if (!pixels)
+		throw std::runtime_error("Failed to load image!");
+
+	Texture* texture = new Texture(
+		deviceContext, texWidth, texHeight, vk::Format::eB8G8R8A8Unorm,
+		vk::ImageLayout::eUndefined,
+		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+	Buffer stagingBuffer = Buffer(
+		deviceContext,
+		imageSize,
+		vk::BufferUsageFlagBits::eTransferSrc,
+		vk::SharingMode::eExclusive,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
+	);
+
+	stagingBuffer.setData(pixels);
+
+	stbi_image_free(pixels);
+
+	deviceContext->executeSingleTimeQueue(
+		[texture, &stagingBuffer](vk::CommandBuffer commandBuffer)
+	{
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			texture->getImage(),						//The image		
+			vk::ImageLayout::eUndefined,			//Old image layout
+			vk::ImageLayout::eTransferDstOptimal,	//New image layout
+			{},										//Old access mask
+			vk::AccessFlagBits::eMemoryWrite,		//New access mask
+			vk::PipelineStageFlagBits::eTopOfPipe,	//Old pipeline
+			vk::PipelineStageFlagBits::eTransfer,	//New pipeline
+			vk::ImageAspectFlagBits::eColor
+		);
+		VulkanHelpers::cmdCopyBufferToImage(
+			commandBuffer,
+			stagingBuffer.getBuffer(),
+			texture->getImage(),
+			vk::ImageLayout::eTransferDstOptimal,
+			texture->getExtends().width,
+			texture->getExtends().height,
+			vk::ImageAspectFlagBits::eColor);
+
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			texture->getImage(),						//The image		
+			vk::ImageLayout::eTransferDstOptimal,		//Old image layout	(Hint: Look above)
+			vk::ImageLayout::eShaderReadOnlyOptimal,	//New image layout	
+			vk::AccessFlagBits::eMemoryWrite,			//Old access mask	
+			vk::AccessFlagBits::eShaderRead,			//New access mask	
+			vk::PipelineStageFlagBits::eTransfer,		//Old pipeline	
+			vk::PipelineStageFlagBits::eFragmentShader,	//New pipeline
+			vk::ImageAspectFlagBits::eColor
+		);
+	});
+
+	return texture;
 }
 
 
@@ -103,31 +179,4 @@ void Texture::createImageView(DeviceContext * deviceContext, vk::Format format, 
 vk::Format& Texture::getFormat()
 {
 	return format;
-}
-
-vk::CommandBuffer Texture::beginSingleTimeCommands()
-{
-	vk::CommandBufferAllocateInfo allocInfo;
-	allocInfo.level = vk::CommandBufferLevel::ePrimary;
-	allocInfo.commandPool = deviceContext->getCommandPool();
-	allocInfo.commandBufferCount = 1;
-
-	vk::CommandBuffer commandBuffer;
-	deviceContext->getDevice().allocateCommandBuffers(&allocInfo, &commandBuffer);
-
-	vk::CommandBufferBeginInfo beginInfo;
-	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-
-	
-
-	return vk::CommandBuffer();
-}
-
-void Texture::copyDatatoGPU(vk::DeviceMemory bufferMemory, stbi_uc* data, vk::DeviceSize offset, vk::MemoryMapFlags flags)
-{
-	vk::DeviceSize imageSize = extends.width * extends.height * 4;
-	void* tmpData;
-	deviceContext->getDevice().mapMemory(bufferMemory, offset, imageSize, flags, &tmpData);
-	memcpy(data, data, static_cast<size_t>(imageSize));
-	deviceContext->getDevice().unmapMemory(bufferMemory);
 }

@@ -14,8 +14,6 @@ public:
 	static void cmdBlitSimple(vk::CommandBuffer commandBuffer, vk::Image srcImage, vk::ImageLayout srcImageLayout,
 		vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height, vk::Filter filter);
 
-	static void createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties,
-		vk::Buffer& buffer, vk::DeviceMemory& bufferMemory, DeviceContext& const context);
 
 	static void cmdCopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer srcBuffer, vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height, vk::ImageAspectFlagBits aspectMask);
 	static void cmdCopyImageToBuffer(vk::CommandBuffer commandBuffer, vk::Image srcImage, vk::Buffer dstBuffer, vk::ImageLayout srcImageLayout, uint32_t width, uint32_t height, vk::ImageAspectFlagBits aspectMask);
