@@ -36,6 +36,8 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context
 		});
 
 
+		// Everything worked, saving device 
+		device = context->getAddressOfDevice();
 		device->destroyBuffer(stagingBuffer);
 		device->freeMemory(stagingBufferMemory);
 
@@ -43,13 +45,11 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context
 	else
 	{
 		// Free all resources preallocated on card if we throw
-		context->getDevice().destroyBuffer(vertexBuffer, nullptr);
-		context->getDevice().freeMemory(vertexBufferMemory, nullptr);
+		context->getDevice().destroyBuffer(stagingBuffer, nullptr);
+		context->getDevice().freeMemory(stagingBufferMemory, nullptr);
 		throw std::runtime_error("Inital data for vertexbuffer creation was nil");
 	}
 
-	// Everything worked, saving device 
-	device = context->getAddressOfDevice();
 }
 
 void VertexBuffer::Destroy()

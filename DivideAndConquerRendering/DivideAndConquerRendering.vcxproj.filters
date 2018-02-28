@@ -37,5 +37,6 @@
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="materials\DaQCombineMaterial.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
 </Project>
