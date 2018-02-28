@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 
+class Buffer;
 class RenderTexture;
 class Texture;
 class DeviceGroup;
@@ -23,12 +24,15 @@ public:
 		std::vector<vk::Framebuffer> finalframebuffers;
 		vk::SwapchainKHR swapchain;
 		std::vector<vk::CommandBuffer> commandBuffers;
+		Texture* depthImage;
 	};
 	
 	struct SecondaryDeviceTexturePair
 	{
 		RenderTexture* renderTexture;
+		Texture* renderDepthTexture;
 		Texture* targetTexture;
+		Buffer* targetDepthBuffer;
 	};
 
 private:

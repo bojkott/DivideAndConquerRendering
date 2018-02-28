@@ -22,7 +22,7 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 	pipelineInfo.pRasterizationState = r->getRasterizer();
 	pipelineInfo.pMultisampleState = r->getMultisampling();
 	pipelineInfo.pDynamicState = nullptr;
-	pipelineInfo.pDepthStencilState = nullptr;
+	pipelineInfo.pDepthStencilState = r->getDepthStencil();
 	pipelineInfo.pColorBlendState = r->getColorBlending();
 	pipelineInfo.subpass = 0;
 	pipelineInfo.renderPass = deviceContext->getRenderpass(m->getRenderPassType());

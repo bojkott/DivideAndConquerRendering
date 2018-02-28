@@ -1,16 +1,22 @@
 #include "Texture.h"
 #include <fstream>
-Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties)
+Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties, vk::ImageAspectFlags aspectFlag)
 {
 	this->deviceContext = deviceContext;
 	extends = { width, height };
+	this->format = format;
 
 	vk::ImageUsageFlags shouldCreateImageView = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eStorage | vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eInputAttachment;
 
 	createImage(deviceContext, format, layout, tiling, usage, memoryProperties);
 
 	if(usage & shouldCreateImageView)
-		createImageView(deviceContext, format);
+		createImageView(deviceContext, format, aspectFlag);
+}
+
+Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties) :
+	Texture(deviceContext, width, height, format, layout, tiling, usage, memoryProperties, vk::ImageAspectFlagBits::eColor)
+{
 }
 
 void Texture::copyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
@@ -78,13 +84,13 @@ void Texture::createImage(DeviceContext * deviceContext, vk::Format format, vk::
 	deviceContext->getDevice().bindImageMemory(image, imageMemory, 0);
 }
 
-void Texture::createImageView(DeviceContext * deviceContext, vk::Format format)
+void Texture::createImageView(DeviceContext * deviceContext, vk::Format format, vk::ImageAspectFlags aspectFlag)
 {
 	vk::ImageViewCreateInfo viewInfo = {};
 	viewInfo.image = image;
 	viewInfo.viewType = vk::ImageViewType::e2D;
 	viewInfo.format = format;
-	viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+	viewInfo.subresourceRange.aspectMask = aspectFlag;
 	viewInfo.subresourceRange.baseMipLevel = 0;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -92,6 +98,11 @@ void Texture::createImageView(DeviceContext * deviceContext, vk::Format format)
 
 
 	imageView = deviceContext->getDevice().createImageView(viewInfo);
+}
+
+vk::Format& Texture::getFormat()
+{
+	return format;
 }
 
 vk::CommandBuffer Texture::beginSingleTimeCommands()

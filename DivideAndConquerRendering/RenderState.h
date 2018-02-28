@@ -12,7 +12,7 @@ private:
 	vk::PipelineMultisampleStateCreateInfo multisampling;
 	vk::PipelineColorBlendAttachmentState colorBlendAttachment;
 	vk::PipelineColorBlendStateCreateInfo colorBlending;
-
+	vk::PipelineDepthStencilStateCreateInfo depthStencil;
 public:
 	RenderState();
 
@@ -23,6 +23,7 @@ public:
 	vk::PipelineRasterizationStateCreateInfo* getRasterizer();
 	vk::PipelineMultisampleStateCreateInfo* getMultisampling();
 	vk::PipelineColorBlendStateCreateInfo* getColorBlending();
+	vk::PipelineDepthStencilStateCreateInfo* getDepthStencil();
 private:
 
 

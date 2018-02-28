@@ -18,6 +18,7 @@
     <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="materials\DaQCombineMaterial.cpp" />
+    <ClCompile Include="Buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
@@ -37,5 +38,6 @@
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="materials\DaQCombineMaterial.h" />
+    <ClInclude Include="Buffer.h" />
   </ItemGroup>
 </Project>

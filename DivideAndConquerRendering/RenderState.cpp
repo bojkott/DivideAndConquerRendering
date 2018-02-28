@@ -62,6 +62,18 @@ RenderState::RenderState()
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+
+	//depth stencil
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = vk::CompareOp::eLess;
+	depthStencil.depthBoundsTestEnable = VK_FALSE;
+	depthStencil.minDepthBounds = 0.0f; // Optional
+	depthStencil.maxDepthBounds = 1.0f; // Optional
+	depthStencil.stencilTestEnable = VK_FALSE;
+	depthStencil.front = {}; // Optional
+	depthStencil.back = {}; // Optional
+
 }
 
 void RenderState::setWireFrame(bool wireFrame)
@@ -87,4 +99,9 @@ vk::PipelineMultisampleStateCreateInfo * RenderState::getMultisampling()
 vk::PipelineColorBlendStateCreateInfo * RenderState::getColorBlending()
 {
 	return &colorBlending;
+}
+
+vk::PipelineDepthStencilStateCreateInfo * RenderState::getDepthStencil()
+{
+	return &depthStencil;
 }

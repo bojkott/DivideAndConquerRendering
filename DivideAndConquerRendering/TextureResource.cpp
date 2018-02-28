@@ -47,7 +47,7 @@ int TextureResource::loadFromFile(std::string filename)
 			this->getImage(),
 			vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
 			{}, vk::AccessFlagBits::eMemoryWrite,
-			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer);
+			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
 		/*VulkanHelpers::cmdCopyBufferToImage(
 		commandBuffer,
 		stagingBuffer,

@@ -3,6 +3,7 @@
 #include "Texture.h"
 #include "materials\DaQCombineMaterial.h"
 #include "Technique.h"
+#include "Buffer.h"
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
@@ -50,6 +51,7 @@ void Renderer::render()
 		device->transferRenderTexture();
 		device->executeCommandQueue();
 		device->getTexturePair(device)->targetTexture->transferTextureTo(*slaveDevices.second->targetTexture);
+		device->getTexturePair(device)->targetDepthBuffer->transferBufferTo(*slaveDevices.second->targetDepthBuffer);
 	}
 	
 	//Sync GPUs

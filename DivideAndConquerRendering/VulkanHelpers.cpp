@@ -1,6 +1,6 @@
 #include "VulkanHelpers.h"
 
-void VulkanHelpers::cmdTransitionLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags oldAccessMask, vk::AccessFlags newAccessMask, vk::PipelineStageFlags oldStage, vk::PipelineStageFlags newStage)
+void VulkanHelpers::cmdTransitionLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags oldAccessMask, vk::AccessFlags newAccessMask, vk::PipelineStageFlags oldStage, vk::PipelineStageFlags newStage, vk::ImageAspectFlagBits aspectMask)
 {
 	vk::ImageMemoryBarrier barrier;
 	barrier.oldLayout = oldLayout;
@@ -8,13 +8,14 @@ void VulkanHelpers::cmdTransitionLayout(vk::CommandBuffer commandBuffer, vk::Ima
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.image = image;
-	barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
 	barrier.subresourceRange.baseArrayLayer = 0;
 	barrier.subresourceRange.layerCount = 1;
 	barrier.srcAccessMask = oldAccessMask;
 	barrier.dstAccessMask = newAccessMask;
+
+	barrier.subresourceRange.aspectMask = aspectMask;
 
 	commandBuffer.pipelineBarrier(oldStage, newStage, {}, {}, {}, barrier);
 }
@@ -79,13 +80,13 @@ void VulkanHelpers::createBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage
 	context.getDevice().bindBufferMemory(buffer, bufferMemory, 0);
 }
 
-void VulkanHelpers::cmdCopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer srcBuffer, vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height)
+void VulkanHelpers::cmdCopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer srcBuffer, vk::Image dstImage, vk::ImageLayout dstImageLayout, uint32_t width, uint32_t height, vk::ImageAspectFlagBits aspectMask)
 {
 	vk::BufferImageCopy region;
 	region.bufferOffset = 0;
 	region.bufferRowLength = 0;
 	region.bufferImageHeight = 0;
-	region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+	region.imageSubresource.aspectMask = aspectMask;
 	region.imageSubresource.mipLevel = 0;
 	region.imageSubresource.baseArrayLayer = 0;
 	region.imageSubresource.layerCount = 1;
@@ -99,6 +100,27 @@ void VulkanHelpers::cmdCopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Bu
 	
 	commandBuffer.copyBufferToImage(srcBuffer, dstImage, vk::ImageLayout::eTransferDstOptimal, 1, &region);
 
+}
+
+void VulkanHelpers::cmdCopyImageToBuffer(vk::CommandBuffer commandBuffer, vk::Image srcImage, vk::Buffer dstBuffer, vk::ImageLayout srcImageLayout, uint32_t width, uint32_t height, vk::ImageAspectFlagBits aspectMask)
+{
+	vk::BufferImageCopy region;
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+	region.imageSubresource.aspectMask = aspectMask;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = {
+		width,
+		height,
+		1
+	};
+
+	commandBuffer.copyImageToBuffer(srcImage, srcImageLayout, dstBuffer, 1, &region);
 }
 
 void VulkanHelpers::cmdCopyBuffer(vk::CommandBuffer& commandBuffer, const vk::Buffer& srcBuffer, vk::Buffer& dstBuffer, vk::DeviceSize size)
