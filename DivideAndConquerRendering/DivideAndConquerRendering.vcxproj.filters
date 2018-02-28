@@ -39,5 +39,6 @@
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="materials\DaQCombineMaterial.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
 </Project>

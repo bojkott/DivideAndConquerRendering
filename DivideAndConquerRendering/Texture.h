@@ -24,11 +24,10 @@ public:
 	vk::Format& getFormat();
 	void transferTextureTo(Texture& destination);
 
-private:
+protected:
 	void createImage(DeviceContext * deviceContext, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties);
 	void createImageView(DeviceContext * deviceContext, vk::Format format, vk::ImageAspectFlags aspectFlag);
 	
 	vk::CommandBuffer beginSingleTimeCommands();
-protected:
 	void copyDatatoGPU(vk::DeviceMemory bufferMemory, stbi_uc* data, vk::DeviceSize offset, vk::MemoryMapFlags flasg);
 };

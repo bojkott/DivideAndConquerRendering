@@ -146,6 +146,7 @@
     <ClInclude Include="materials\DaQCombineMaterial.h" />
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="IndexBuffer.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Renderer.h" />

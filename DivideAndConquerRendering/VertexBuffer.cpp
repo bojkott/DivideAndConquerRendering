@@ -3,27 +3,7 @@
 
 VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context)
 {
-	//vk::BufferCreateInfo bufferInfo = {};
 	vk::DeviceSize bufferSize = sizeof(verts[0] * verts.size());
-
-	//bufferInfo.size = bufferSize;
-	//bufferInfo.usage = vk::BufferUsageFlagBits::eVertexBuffer;
-	//bufferInfo.sharingMode = vk::SharingMode::eExclusive;
-
-	//vertexBuffer = context->getDevice().createBuffer(bufferInfo, nullptr);
-
-	//// Find out what we need
-	//vk::MemoryRequirements memRequirements;
-	//context->getDevice().getBufferMemoryRequirements(vertexBuffer, &memRequirements);
-
-	//// Find out what we got
-
-	//vk::MemoryAllocateInfo allocInfo = {};
-	//allocInfo.memoryTypeIndex = context->findMemoryType(memRequirements.memoryTypeBits,
-	//	vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-	//allocInfo.allocationSize = memRequirements.size;
-	//
-
 	vk::Buffer stagingBuffer;
 	vk::DeviceMemory stagingBufferMemory;
 	VulkanHelpers::createBuffer(bufferSize, vk::BufferUsageFlagBits::eTransferSrc,
@@ -32,14 +12,11 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context
 	
 
 
-	//vertexBufferMemory = context->getDevice().allocateMemory(allocInfo);
-
-	//context->getDevice().bindBufferMemory(stagingBuffer, stagingBufferMemory, 0);
-
 	// Map to cpu 
 	void* data;
 	if (verts.size() != 0)
 	{
+		nrOfVerts = verts.size();
 		data = context->getDevice().mapMemory(stagingBufferMemory, 0, bufferSize);
 		memcpy(data, verts.data(), (size_t)bufferSize);
 		context->getDevice().unmapMemory(stagingBufferMemory);
@@ -51,6 +28,7 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context
 			vertexBuffer, vertexBufferMemory, *context);
 
 
+		// Move data from staging to actual buffer
 		context->executeSingleTimeQueue(
 			[this, bufferSize, stagingBuffer](vk::CommandBuffer commandBuffer)
 		{
@@ -58,17 +36,20 @@ VertexBuffer::VertexBuffer(std::vector<uint32_t>& verts, DeviceContext * context
 		});
 
 
+		// Everything worked, saving device 
+		device = context->getAddressOfDevice();
 		device->destroyBuffer(stagingBuffer);
 		device->freeMemory(stagingBufferMemory);
 
 	}
 	else
 	{
+		// Free all resources preallocated on card if we throw
+		context->getDevice().destroyBuffer(stagingBuffer, nullptr);
+		context->getDevice().freeMemory(stagingBufferMemory, nullptr);
 		throw std::runtime_error("Inital data for vertexbuffer creation was nil");
 	}
 
-	// Everything worked, saving device 
-	device = context->getAddressOfDevice();
 }
 
 void VertexBuffer::Destroy()
@@ -82,8 +63,28 @@ vk::Buffer& VertexBuffer::getVertexBuffer()
 	return vertexBuffer;
 }
 
-vk::DeviceMemory& VertexBuffer::getVertexBufferMemory() 
+vk::DeviceMemory& VertexBuffer::getVertexBufferMemory()
 {
 	return vertexBufferMemory;
+}
+
+void VertexBuffer::BindBuffer(DeviceContext* context) const
+{
+	context->executeSingleTimeQueue(
+		[this](vk::CommandBuffer commandBuffer)
+	{
+		vk::DeviceSize offsets[] = { 0 };
+		commandBuffer.bindVertexBuffers(0, 1, &vertexBuffer, offsets);
+	});
+}
+
+void VertexBuffer::unBindBuffer(DeviceContext* context) const
+{
+	// TODO: HOW DO I DO IT?
+}
+
+inline uint32_t VertexBuffer::getNrOfVerts() const
+{
+	return nrOfVerts;
 }
 
