@@ -1,5 +1,9 @@
 #pragma once
 #include <vulkan\vulkan.hpp>
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 class DeviceContext;
 class Buffer {
 protected:
@@ -9,6 +13,7 @@ protected:
 	size_t bufferSize;
 public:
 	Buffer(DeviceContext* deviceContext, size_t bufferSize, vk::BufferUsageFlags usage, vk::SharingMode sharingMode, vk::MemoryPropertyFlags properties);
+	Buffer() {};
 	~Buffer();
 	vk::Buffer& getBuffer();
 	

@@ -121,6 +121,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="DeviceGroup.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
@@ -144,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="DeviceGroup.h" />
     <ClInclude Include="materials\DaQCombineMaterial.h" />
     <ClInclude Include="materials\ForwardMaterial.h" />

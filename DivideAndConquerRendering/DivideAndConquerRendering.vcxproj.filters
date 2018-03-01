@@ -22,6 +22,7 @@
     <ClCompile Include="RenderTexture.cpp" />
     <ClCompile Include="ModelHelper.cpp" />
     <ClCompile Include="materials\ForwardMaterial.cpp" />
+    <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
@@ -44,5 +45,6 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="RenderTexture.h" />
     <ClInclude Include="materials\ForwardMaterial.h" />
+    <ClInclude Include="Camera.h" />
   </ItemGroup>
 </Project>
