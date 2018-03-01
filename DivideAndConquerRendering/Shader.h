@@ -17,8 +17,7 @@ public:
 	~Shader();
 	vk::PipelineShaderStageCreateInfo getShaderStageInfo();
 
-private:
-	
+private:	
 	std::vector<char> readFile(const std::string& filename);
 	void createShaderModule(const std::string & filename);
 
