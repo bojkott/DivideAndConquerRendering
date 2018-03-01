@@ -9,6 +9,7 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 	material = m;
 	renderState = r;
 
+	vk::PipelineVertexInputStateCreateInfo vertexInputInfo = m->getVertexinputInfo();
 
 	//input assembly
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
@@ -16,7 +17,7 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
-	pipelineInfo.pVertexInputState = &m->getVertexinputInfo();	//Specific for device? Don't think so. Should be same for the same shaders. So will only differ when we change technique.
+	pipelineInfo.pVertexInputState = &vertexInputInfo;	//Specific for device? Don't think so. Should be same for the same shaders. So will only differ when we change technique.
 	pipelineInfo.pInputAssemblyState = &inputAssembly;
 	pipelineInfo.pViewportState = r->getViewportState();
 	pipelineInfo.pRasterizationState = r->getRasterizer();

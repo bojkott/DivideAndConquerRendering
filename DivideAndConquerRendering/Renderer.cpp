@@ -5,6 +5,7 @@
 #include "materials\DaQCombineMaterial.h"
 #include "Technique.h"
 #include "Buffer.h"
+#include <thread>
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
@@ -25,6 +26,11 @@ Renderer::Renderer()
 	daQCombineTechnique = Technique::createOrGetTechnique(deviceGroup.getMainDevice(), new DaQCombineMaterial(), new RenderState());
 	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
 
+}
+
+double Renderer::getTransferTime()
+{
+	return transferTime;
 }
 
 Renderer::~Renderer()
@@ -49,9 +55,29 @@ void Renderer::render()
 		//device->DrawGeometry
 		device->transferRenderTexture();
 		device->executeCommandQueue();
-		device->getTexturePair(device)->targetTexture->transferTextureTo(*slaveDevices.second->targetTexture);
-		device->getTexturePair(device)->targetDepthBuffer->transferBufferTo(*slaveDevices.second->targetDepthBuffer);
+		
 	}
+
+	std::vector<std::thread> transferWorkers;
+	Uint32 transferStart = SDL_GetPerformanceCounter(); 
+	for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
+	{
+		transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
+		{
+			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
+		}));
+
+		transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
+		{
+			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
+		}));
+	}
+
+	for (auto& worker : transferWorkers)
+		worker.join();
+
+	Uint32 transferEnd = SDL_GetPerformanceCounter();
+	transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
 	
 	//Sync GPUs
 

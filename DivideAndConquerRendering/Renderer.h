@@ -27,8 +27,11 @@ private:
 	
 	Technique* daQCombineTechnique;
 
+	double transferTime = 0.0f;
+
 public:
 	Renderer();
+	double getTransferTime();
 	~Renderer();
 	
 	void render();

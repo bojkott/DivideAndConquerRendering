@@ -914,7 +914,7 @@ void DeviceContext::startFinalRenderPass()
 		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 		combineTechnique->bind(commandBuffer);
 
-		commandBuffer.draw(3, 1, 0, 0);
+		commandBuffer.draw(6, 1, 0, 0);
 
 		commandBuffer.endRenderPass();
 		commandBuffer.end();

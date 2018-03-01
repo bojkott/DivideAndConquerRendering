@@ -2,7 +2,7 @@
 #include <fstream>
 #include "Buffer.h"
 #include "VulkanHelpers.h"
-
+#include <thread>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -51,12 +51,27 @@ vk::Extent2D & Texture::getExtends()
 
 void Texture::transferTextureTo(Texture & destination)
 {
+
 	size_t size = extends.width * extends.height * 4;
-	void* dataA = this->deviceContext->getDevice().mapMemory(this->imageMemory, 0, size);
 
-	void* dataB = destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
+	float* dataA = (float*)this->deviceContext->getDevice().mapMemory(this->imageMemory, 0, size);
 
-	memcpy(dataB, dataA, size);
+	float* dataB = (float*)destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
+	
+	std::vector<std::thread> workers;
+
+	size_t nrOfChunks = 4;
+	
+	for (int i = 0; i < nrOfChunks; i++)
+	{
+		size_t offset = i * ((extends.width * extends.height)/nrOfChunks);
+		float* subDataA = &dataA[offset];
+		float* subDataB = &dataB[offset];
+		workers.push_back(std::thread(memcpy, subDataB, subDataA, (size)/nrOfChunks));
+	}
+	for (auto & worker : workers)
+		worker.join();
+
 
 	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);
