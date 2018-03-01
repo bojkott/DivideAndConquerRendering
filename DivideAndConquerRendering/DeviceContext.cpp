@@ -578,7 +578,7 @@ void DeviceContext::createSecondaryDeviceTexture(DeviceContext * deviceContext)
 		vk::ImageLayout::eUndefined,
 		vk::ImageTiling::eLinear,
 		vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eTransferSrc,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostCached);
 
 	pair->renderDepthTexture = new Texture(this,
 		getMainDevice()->swapchain.extent.width,
@@ -596,7 +596,7 @@ void DeviceContext::createSecondaryDeviceTexture(DeviceContext * deviceContext)
 		getMainDevice()->swapchain.extent.width * getMainDevice()->swapchain.extent.height * 4,
 		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc,
 		vk::SharingMode::eExclusive,
-		vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible);
+		vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached);
 
 
 

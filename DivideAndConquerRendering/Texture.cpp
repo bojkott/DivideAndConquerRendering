@@ -57,21 +57,8 @@ void Texture::transferTextureTo(Texture & destination)
 	float* dataA = (float*)this->deviceContext->getDevice().mapMemory(this->imageMemory, 0, size);
 
 	float* dataB = (float*)destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
-	
-	std::vector<std::thread> workers;
 
-	size_t nrOfChunks = 4;
-	
-	for (int i = 0; i < nrOfChunks; i++)
-	{
-		size_t offset = i * ((extends.width * extends.height)/nrOfChunks);
-		float* subDataA = &dataA[offset];
-		float* subDataB = &dataB[offset];
-		workers.push_back(std::thread(memcpy, subDataB, subDataA, (size)/nrOfChunks));
-	}
-	for (auto & worker : workers)
-		worker.join();
-
+	memcpy(dataB, dataA, size);
 
 	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);

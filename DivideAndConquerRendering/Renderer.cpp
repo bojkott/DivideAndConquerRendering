@@ -58,23 +58,12 @@ void Renderer::render()
 		
 	}
 
-	std::vector<std::thread> transferWorkers;
 	Uint32 transferStart = SDL_GetPerformanceCounter(); 
 	for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
 	{
-		transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
-		{
-			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
-		}));
-
-		transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
-		{
-			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
-		}));
+		slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
+		slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
 	}
-
-	for (auto& worker : transferWorkers)
-		worker.join();
 
 	Uint32 transferEnd = SDL_GetPerformanceCounter();
 	transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());

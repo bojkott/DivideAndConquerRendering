@@ -49,7 +49,7 @@ void run() {
 		//renderScene();
 		renderer->render();
 		updateDelta();
-		sprintf_s(titleBuff, "Vulkan - frametime: %3.0lf, transfertime: %3.0lf", lastDelta, renderer->getTransferTime());
+		sprintf_s(titleBuff, "Vulkan - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());
 		SDL_SetWindowTitle(window->window, titleBuff);
 	}
 }
@@ -58,7 +58,7 @@ void run() {
 int main()
 {
 	try {
-		window = new Window(1680, 1050);
+		window = new Window(1280, 720);
 		renderer = new Renderer();
 		run();
 	}
