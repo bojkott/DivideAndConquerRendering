@@ -4,45 +4,17 @@
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Window.cpp" />
-    <ClCompile Include="Technique.cpp" />
     <ClCompile Include="DeviceGroup.cpp" />
-    <ClCompile Include="RenderState.cpp" />
-    <ClCompile Include="vkGroups.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="Material.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="VertexBuffer.cpp" />
     <ClCompile Include="VulkanHelpers.cpp" />
-    <ClCompile Include="IndexBuffer.cpp" />
-    <ClCompile Include="materials\DaQCombineMaterial.cpp" />
     <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
-    <ClCompile Include="ModelHelper.cpp" />
-    <ClCompile Include="materials\ForwardMaterial.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DeviceContext.h" />
-    <ClInclude Include="Technique.h" />
-    <ClInclude Include="Window.h" />
     <ClInclude Include="DeviceGroup.h" />
-    <ClInclude Include="RenderState.h" />
-    <ClInclude Include="vkGroups.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="Material.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="VertexBuffer.h" />
     <ClInclude Include="VulkanHelpers.h" />
-    <ClInclude Include="IndexBuffer.h" />
-    <ClInclude Include="materials\DaQCombineMaterial.h" />
-    <ClInclude Include="ModelHelper.h" />
     <ClInclude Include="Buffer.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="RenderTexture.h" />
-    <ClInclude Include="materials\ForwardMaterial.h" />
   </ItemGroup>
 </Project>

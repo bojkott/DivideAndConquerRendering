@@ -2,9 +2,9 @@
 
 #include <vulkan/vulkan.hpp>
 #include <SDL_vulkan.h>
-#include "Window.h"
 #include "DeviceGroup.h"
-
+#include <chrono>
+class Texture;
 class Technique;
 class Renderer
 {
@@ -20,12 +20,13 @@ private:
 
 	#define FAILED(x) x != vk::Result::eSuccess
 
-	
-	vk::SurfaceKHR surface;
+	typedef std::chrono::high_resolution_clock Clock;
+	Texture* texture1;
+	Texture* texture2;
+
 	vk::Instance instance;
 	vk::DebugReportCallbackEXT callback;
 	
-	Technique* daQCombineTechnique;
 
 	double transferTime = 0.0f;
 
@@ -40,7 +41,6 @@ private:
 	bool checkValidationLayerSupport();
 	void createInstance();
 	void setupDebugCallBack();
-	void createSurface();
 	void setupDeviceGroup();
 	bool isDeviceSuitable(const vk::PhysicalDevice& device);
 	void arrangeGroup(std::vector<vk::PhysicalDevice>& devices);

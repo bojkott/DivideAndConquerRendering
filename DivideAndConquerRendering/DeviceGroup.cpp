@@ -17,16 +17,7 @@ void DeviceGroup::addDevice(vk::Instance & instance, vk::PhysicalDevice physical
 	devices.push_back(new DeviceContext(this, instance, physicalDevice));
 }
 
-void DeviceGroup::addDevice(vk::Instance & instance, vk::PhysicalDevice physicalDevice, vk::SurfaceKHR & surface)
-{
-	devices.push_back(new DeviceContext(this, instance, physicalDevice, surface));
-}
 
-void DeviceGroup::initDevices()
-{
-	for (DeviceContext* device : devices)
-		device->initDevice();
-}
 
 unsigned int DeviceGroup::getGroupSize()
 {
@@ -43,13 +34,4 @@ std::vector<DeviceContext*> DeviceGroup::getDevices()
 	return devices;
 }
 
-
-
-void DeviceGroup::createShaderGroup(const std::string & shaderFilename, Shader::ShaderType shaderType, vkGroups::ShaderGroup& shaderGroup)
-{
-	for (DeviceContext* const device : devices)
-	{
-		shaderGroup.sets.insert(std::make_pair(device, new Shader(shaderFilename, shaderType, device)));
-	}
-}
 

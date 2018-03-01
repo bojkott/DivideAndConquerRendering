@@ -18,6 +18,8 @@ Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height,
 
 	if(usage & shouldCreateImageView)
 		createImageView(deviceContext, format, aspectFlag);
+
+	memoryTest = malloc(width*height * 4);
 }
 
 Texture::Texture(DeviceContext * deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties) :
@@ -55,23 +57,28 @@ void Texture::transferTextureTo(Texture & destination)
 	size_t size = extends.width * extends.height * 4;
 
 	float* dataA = (float*)this->deviceContext->getDevice().mapMemory(this->imageMemory, 0, size);
-
+	
 	float* dataB = (float*)destination.deviceContext->getDevice().mapMemory(destination.imageMemory, 0, size);
-	
-	std::vector<std::thread> workers;
+	//
+	//std::vector<std::thread> workers;
 
-	size_t nrOfChunks = 4;
-	
-	for (int i = 0; i < nrOfChunks; i++)
-	{
-		size_t offset = i * ((extends.width * extends.height)/nrOfChunks);
-		float* subDataA = &dataA[offset];
-		float* subDataB = &dataB[offset];
-		workers.push_back(std::thread(memcpy, subDataB, subDataA, (size)/nrOfChunks));
-	}
-	for (auto & worker : workers)
-		worker.join();
+	//size_t nrOfChunks = 4;
+	//
+	//for (int i = 0; i < nrOfChunks; i++)
+	//{
+	//	size_t offset = i * ((extends.width * extends.height)/nrOfChunks);
+	//	float* subDataA = &dataA[offset];
+	//	float* subDataB = &dataB[offset];
+	//	workers.push_back(std::thread(memcpy, subDataB, subDataA, (size)/nrOfChunks));
+	//}
+	//for (auto & worker : workers)
+	//	worker.join();
 
+
+	memcpy(dataB, dataA, size);
+
+
+	//memcpy(destination.memoryTest, memoryTest, size);
 
 	this->deviceContext->getDevice().unmapMemory(this->imageMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.imageMemory);

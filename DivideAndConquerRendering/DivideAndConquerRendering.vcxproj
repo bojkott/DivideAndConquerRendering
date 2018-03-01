@@ -92,6 +92,9 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -109,60 +112,34 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="DeviceGroup.cpp" />
-    <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="materials\DaQCombineMaterial.cpp" />
-    <ClCompile Include="materials\ForwardMaterial.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelHelper.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RenderState.cpp" />
-    <ClCompile Include="RenderTexture.cpp" />
-    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="VertexBuffer.cpp" />
-    <ClCompile Include="vkGroups.cpp" />
     <ClCompile Include="VulkanHelpers.cpp" />
-    <ClCompile Include="Window.cpp" />
-    <ClCompile Include="Technique.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="DeviceGroup.h" />
-    <ClInclude Include="materials\DaQCombineMaterial.h" />
-    <ClInclude Include="materials\ForwardMaterial.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="ModelHelper.h" />
-    <ClInclude Include="RenderTexture.h" />
-    <ClInclude Include="IndexBuffer.h" />
-    <ClInclude Include="VertexBuffer.h" />
-    <ClInclude Include="Material.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="DeviceContext.h" />
-    <ClInclude Include="RenderState.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="Technique.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="vkGroups.h" />
     <ClInclude Include="VulkanHelpers.h" />
-    <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

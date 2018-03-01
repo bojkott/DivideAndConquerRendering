@@ -11,6 +11,7 @@ protected:
 	vk::DeviceMemory imageMemory;
 	DeviceContext* deviceContext;
 	vk::Format format;
+	void * memoryTest;
 public:
 	Texture(DeviceContext* deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties, vk::ImageAspectFlags aspectFlag);
 

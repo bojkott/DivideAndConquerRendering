@@ -2,15 +2,14 @@
 #include "DeviceContext.h"
 #include "Texture.h"
 #include <iostream>
-#include "materials\DaQCombineMaterial.h"
-#include "Technique.h"
 #include "Buffer.h"
 #include <thread>
+#include "VulkanHelpers.h"
+
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
 
-#include "Model.h"
 
 DeviceGroup Renderer::deviceGroup;
 
@@ -20,11 +19,56 @@ Renderer::Renderer()
 #ifdef _DEBUG
 	setupDebugCallBack();
 #endif
-	createSurface();
 	setupDeviceGroup();
+	DeviceContext* mainDevice = deviceGroup.getDevices()[0];
+	DeviceContext* slaveDevice = deviceGroup.getDevices()[1];
+	texture1 = new Texture(
+		mainDevice,
+		10000,
+		10000,
+		vk::Format::eB8G8R8A8Unorm,
+		vk::ImageLayout::eUndefined,
+		vk::ImageTiling::eLinear,
+		vk::ImageUsageFlagBits::eTransferSrc,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached 
+	);
 
-	daQCombineTechnique = Technique::createOrGetTechnique(deviceGroup.getMainDevice(), new DaQCombineMaterial(), new RenderState());
-	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
+	texture2 = new Texture(
+		mainDevice,
+		10000,
+		10000,
+		vk::Format::eB8G8R8A8Unorm,
+		vk::ImageLayout::eUndefined,
+		vk::ImageTiling::eLinear,
+		vk::ImageUsageFlagBits::eTransferDst,
+		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached
+	);
+
+	mainDevice->executeSingleTimeQueue(
+		[this](vk::CommandBuffer commandBuffer)
+	{
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			texture1->getImage(),
+			vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+			{}, vk::AccessFlagBits::eHostRead,
+			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eHost,
+			vk::ImageAspectFlagBits::eColor);
+	}
+	);
+
+	mainDevice->executeSingleTimeQueue(
+		[this](vk::CommandBuffer commandBuffer) 
+		{
+		VulkanHelpers::cmdTransitionLayout(
+			commandBuffer,
+			texture2->getImage(),
+			vk::ImageLayout::eUndefined, vk::ImageLayout::eGeneral,
+			{}, vk::AccessFlagBits::eHostWrite,
+			vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eHost,
+			vk::ImageAspectFlagBits::eColor);
+		}
+	);
 
 }
 
@@ -36,7 +80,6 @@ double Renderer::getTransferTime()
 Renderer::~Renderer()
 {
 	deviceGroup.~DeviceGroup();
-	instance.destroySurfaceKHR(surface, nullptr);
 	DestroyDebugReportCallbackEXT(instance, callback, nullptr);
 	instance.destroy();
 }
@@ -45,44 +88,31 @@ void Renderer::render()
 {
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
-	mainDevice->clearBuffer(1, 1, 0, 1);
-	//mainDevice->DrawGeometry
-	for (auto& slaveDevices : mainDevice->getTexturePairs())
-	{
-		DeviceContext* device = slaveDevices.first;
+	auto start = Clock::now();
+	texture1->transferTextureTo(*texture2);
+	transferTime = std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now() - start).count();
 
-		device->clearBuffer(0, 0, 1, 1);
-		//device->DrawGeometry
-		device->transferRenderTexture();
-		device->executeCommandQueue();
-		
-	}
+	//std::vector<std::thread> transferWorkers;
+	//Uint32 transferStart = SDL_GetPerformanceCounter(); 
+	//for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
+	//{
+	//	transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
+	//	{
+	//		slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
+	//	}));
 
-	std::vector<std::thread> transferWorkers;
-	Uint32 transferStart = SDL_GetPerformanceCounter(); 
-	for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
-	{
-		transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
-		{
-			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
-		}));
+	//	transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
+	//	{
+	//		slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
+	//	}));
+	//}
 
-		transferWorkers.push_back(std::thread([slaveDeviceTarget, mainDevice]()
-		{
-			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
-		}));
-	}
+	//for (auto& worker : transferWorkers)
+	//	worker.join();
 
-	for (auto& worker : transferWorkers)
-		worker.join();
-
-	Uint32 transferEnd = SDL_GetPerformanceCounter();
-	transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
+	//Uint32 transferEnd = SDL_GetPerformanceCounter();
+	//transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
 	
-	//Sync GPUs
-
-	mainDevice->startFinalRenderPass(); //Combine
-	mainDevice->tempPresent(); //Final pass
 }
 
 bool Renderer::checkValidationLayerSupport()
@@ -162,15 +192,6 @@ void Renderer::setupDebugCallBack()
 	}
 	
 }
-
-void Renderer::createSurface()
-{
-	if (SDL_Vulkan_CreateSurface(Window::window, instance, (VkSurfaceKHR*)&surface) != SDL_TRUE)
-	{ 
-		throw std::runtime_error("Failed to create surface");
-	}
-}
-
 void Renderer::setupDeviceGroup()
 {
 
@@ -197,11 +218,9 @@ void Renderer::setupDeviceGroup()
 
 
 
-	deviceGroup.addDevice(instance, physicalDevices[0], surface);
+	deviceGroup.addDevice(instance, physicalDevices[0]);
 	for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
 		deviceGroup.addDevice(instance, *device);
-
-	deviceGroup.initDevices();
 }
 
 bool Renderer::isDeviceSuitable(const vk::PhysicalDevice & device)
@@ -246,13 +265,7 @@ void Renderer::arrangeGroup(std::vector<vk::PhysicalDevice>& devices)
 std::vector<const char*> Renderer::getRequiredExtensions()
 {
 
-	unsigned int extensionCount;
-
-	SDL_Vulkan_GetInstanceExtensions(Window::window, &extensionCount, nullptr);
-
-	std::vector<const char*> extensions(extensionCount);
-
-	SDL_Vulkan_GetInstanceExtensions(Window::window, &extensionCount, extensions.data());
+	std::vector<const char*> extensions;
 
 	if (enableValidationLayers)
 	{
