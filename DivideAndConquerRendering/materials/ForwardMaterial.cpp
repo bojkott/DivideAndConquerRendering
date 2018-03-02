@@ -15,6 +15,9 @@ ForwardMaterial::ForwardMaterial() : Material("Forward.vert", "Forward.frag", De
 	layoutInfo.pBindings = &uboLayoutBinding;
 
 
+	
+
+
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.binding = 0;
 	bindingDescription.stride = sizeof(ModelHelper::Vertex);
@@ -40,10 +43,10 @@ ForwardMaterial::ForwardMaterial() : Material("Forward.vert", "Forward.frag", De
 	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::texCoord);
 	attributeDescriptions.push_back(attributeDescription);
 
-	//attributeDescription.binding = 0;
-	//attributeDescription.location = 3;
-	//attributeDescription.format = VK_FORMAT_R32G32_SFLOAT;	//Norm (When added)
-	//attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::norm);
-	//attributeDescriptions.push_back(attributeDescription);
+	attributeDescription.binding = 0;
+	attributeDescription.location = 3;
+	attributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;	//Norm
+	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::norm);
+	attributeDescriptions.push_back(attributeDescription);
 	
 }

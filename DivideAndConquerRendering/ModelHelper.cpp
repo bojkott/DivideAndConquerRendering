@@ -33,6 +33,13 @@ std::vector<ModelHelper::MeshInfo> ModelHelper::loadModelFromFile(const std::str
 			};
 
 			vertex.color = { 1.0f, 1.0f, 1.0f };
+
+			vertex.norm = {
+				attrib.normals[3 * index.vertex_index + 0],
+				attrib.normals[3 * index.vertex_index + 1],
+				attrib.normals[3 * index.vertex_index + 2],
+			};
+
 			mesh.vertices.push_back(vertex);
 		}
 

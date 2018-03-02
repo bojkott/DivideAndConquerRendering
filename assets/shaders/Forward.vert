@@ -14,7 +14,7 @@ struct Vertex {
 	vec3 pos;
 	vec3 color;
 	vec2 texCoord;
-	//vec3 norm;
+	vec3 norm;
 };
 
 void main() 
