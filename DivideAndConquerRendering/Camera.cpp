@@ -1,27 +1,26 @@
 #include "Camera.h"
 #include "Renderer.h"
 #include "Window.h"
+#include "UniformBuffer.h"
+Camera* Camera::instance;
 
-std::map<DeviceContext*, Camera> Camera::cameraDict;
-
-
-vk::DescriptorSetLayout* Camera::getDescriptorSetLayout()
+Camera Camera::getInstance( float x, float y, float z)  
 {
-	return &descriptorSetLayout;
+	if (instance == nullptr)
+	{
+		instance = new Camera(x, y, z);
+	}
+	return *instance;
 }
 
-Camera Camera::getInstance(DeviceContext* context, float x, float y, float z)  
+void Camera::bindCamera(DeviceContext * context, vk::DescriptorSet descSet)
 {
-	if (cameraDict.find(context) == cameraDict.end())
-	{
-		cameraDict[context] = Camera(context, x, y, z);
-	}
-	return cameraDict[context];
+	//bufferGroup.sets[context]->bind(PER_CAMERA_BINDING, descSet);
 }
 
 Camera::~Camera()
 {
-	device->destroyDescriptorSetLayout(descriptorSetLayout);
+	delete instance;
 }
 
 void Camera::update(float dt)
@@ -70,41 +69,27 @@ void Camera::update(float dt)
 	
 
 	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	updateCameraBuffer();
 }
 
-Camera::Camera(DeviceContext * context, float x, float y, float z)
+Camera::Camera(float x, float y, float z)
 {
-	cameraBuffer = std::move(Buffer(context,
-		sizeof(UniformBufferObject), vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached));
-	vk::DescriptorSetLayoutBinding uboLayoutBinding = {};
+	Renderer::deviceGroup.createUniformBufferGroup(sizeof(UniformBufferObject), bufferGroup);
 
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-	uboLayoutBinding.descriptorCount = 1;
-
-	uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
-
-	vk::DescriptorSetLayoutCreateInfo layout = {};
-	layout.bindingCount = 1;
-	layout.pBindings = &uboLayoutBinding;
-
-	context->getDevice().createDescriptorSetLayout(&layout, nullptr, &descriptorSetLayout);
-	
-	// TODO: sätt den till faktiska mitten
 	SDL_WarpMouseInWindow(Window::window, 400, 300);
 
-
 	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 	cameraObject.proj[1][1] *= -1;
 
-	cameraBuffer.setData(&cameraObject);
+	for (auto& pair : bufferGroup.sets)
+		pair.second->setData(&cameraObject);
 }
 
 void Camera::updateCameraBuffer()
 {
-
+	for (auto& pair : bufferGroup.sets)
+		pair.second->setData(&cameraObject);
 }
 

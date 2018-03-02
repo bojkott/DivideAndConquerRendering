@@ -3,7 +3,7 @@
 #include <vulkan\vulkan.hpp>
 #include <glm\glm.hpp>
 #include "DeviceContext.h"
-#include "Buffer.h"
+#include "vkGroups.h"
 
 class Camera
 {
@@ -17,26 +17,27 @@ public:
 
 
 private:
-	vk::DescriptorSetLayout descriptorSetLayout;
-	vk::Device* device;
-	Buffer cameraBuffer;
+	vkGroups::UniformBufferGroup bufferGroup;
 	UniformBufferObject cameraObject;
-	static std::map<DeviceContext*, Camera> cameraDict;
+	static Camera* instance;
 
 	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 public:
-	vk::DescriptorSetLayout* getDescriptorSetLayout();
-	static Camera getInstance(DeviceContext* context, float x = 0, float y = 0, float z = 0);
+	static Camera getInstance(float x = 0, float y = 0, float z = 0);
+	void bindCamera(DeviceContext* context, vk::DescriptorSet descSet);
+	void update(float dt);
+
 	~Camera();
 	Camera() {}; // Fuck you map
-	void update(float dt);
+
+
 
 
 private:
-	Camera(DeviceContext* context, float x = 0, float y = 0, float z = 0);
+	Camera(float x = 0, float y = 0, float z = 0);
 	void updateCameraBuffer();
 
 };
