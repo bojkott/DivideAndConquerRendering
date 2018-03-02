@@ -14,10 +14,15 @@ private:
 		glm::vec3 ambient;
 		glm::vec3 objColor;
 
-	};
+	}buffer;
 
 	tinyobj::material_t material;
 public:
 	ForwardMaterial(tinyobj::material_t material);
 	tinyobj::material_t* getMaterial();
+
+	size_t getMaterialBufferSize();
+
+	void* getMaterialBufferData();
+
 };

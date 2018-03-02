@@ -48,6 +48,7 @@ void run() {
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
 		camera->update(lastDelta/1000.0f);
+		m->submitModel(renderer->deviceGroup.getMainDevice());
 		renderer->render();
 		updateDelta();
 		sprintf_s(titleBuff, "Vulkan - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());

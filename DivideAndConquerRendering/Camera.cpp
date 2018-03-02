@@ -69,8 +69,8 @@ void Camera::update(float dt)
 	cameraFront = glm::normalize(front);
 	
 
-	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	updateCameraBuffer();
+	//cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	//updateCameraBuffer();
 }
 
 Camera::Camera(float x, float y, float z)

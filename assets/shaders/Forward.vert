@@ -1,16 +1,13 @@
 #version 450
 
-layout(binding = 0) uniform Vertex
-{
-	vec3 pos;
-	vec2 texCoord;
-	vec3 norm;
-} vertex;
+layout(location = 0) in vec3 inPos;
+layout(location = 1) in vec2 inTexCoord;
+layout(location = 2) in vec3 inNorm;
 
 layout(binding = 1) uniform camera
 {
-	uniform mat4 view;
-	uniform mat4 projection;
+	mat4 view;
+	mat4 projection;
 } cam;
 
 layout(binding = 2) uniform Material
@@ -21,24 +18,19 @@ layout(binding = 2) uniform Material
 
 layout(push_constant) uniform ModelMat
 {
-	mat4 model;
+	layout(offset=0) mat4 model;
 } modelMat;
 
-layout(location = 0) out Vertex
-{
-	vec4 pos;
-	vec2 texCoord;
-	vec3 norm;
-} outVertex;
+layout(location = 0) out vec2 outTexCoord;
+layout(location = 1) out vec3 outNorm;
+
 
 void main() 
 {
-	vec4 pos = vec4(vertex.pos, 1.0);
-	outVertex.pos = cam.projection * cam.view * modelMat.model * pos;
-	outVertex.norm = mat3(transpose(inverse(modelMat.model))) * vertex.norm;
-	outVertex.texCoord = vertex.texCoord;
+	vec4 pos = vec4(inPos, 1.0);
+	outNorm = mat3(transpose(inverse(modelMat.model))) * inNorm;
+	outTexCoord = inTexCoord;
 
 	gl_Position = cam.projection * cam.view * modelMat.model * pos;
-	gl_Position.y = -gl_Position.y; //Flip that shit! //Why tho?
-	gl_Position.z = -gl_Position.z;
+	//gl_Position.y = -gl_Position.y; //Flip that shit! //Why tho?
 }

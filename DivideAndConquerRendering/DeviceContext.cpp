@@ -182,19 +182,10 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 
 		commandBuffer.begin(beginInfo);
 
-		for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
-		{
-			vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
+		renderPassInfo.framebuffer = swapchain.framebuffers[i];
+		renderPassInfo.renderArea.extent = swapchain.extent;
 
-			commandBuffer.begin(beginInfo);
-
-			renderPassInfo.framebuffer = swapchain.framebuffers[i];
-			renderPassInfo.renderArea.extent = swapchain.extent;
-
-			commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-
-
-		}
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 	}
 	
 }
@@ -231,6 +222,8 @@ void DeviceContext::tempPresent()
 
 	presentQueue.presentKHR(presentInfo);
 	presentQueue.waitIdle();
+
+	renderQueue.clear();
 }
 
 void DeviceContext::executeCommandQueue()
@@ -308,9 +301,7 @@ void DeviceContext::renderGeometry()
 		}
 
 		commandBuffer.endRenderPass();
-
 		commandBuffer.end();
-
 	}
 }
 
@@ -964,7 +955,7 @@ void DeviceContext::startFinalRenderPass()
 	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 	combineTechnique->bind(commandBuffer);
 
-	commandBuffer.draw(6, 1, 0, 0);
+	//commandBuffer.draw(6, 1, 0, 0);
 
 	commandBuffer.endRenderPass();
 	commandBuffer.end();

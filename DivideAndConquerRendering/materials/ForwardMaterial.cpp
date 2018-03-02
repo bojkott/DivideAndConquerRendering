@@ -34,10 +34,24 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	attributeDescription.format = vk::Format::eR32G32B32Sfloat;	//Norm
 	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::norm);
 	attributeDescriptions.push_back(attributeDescription);
-	
+
+
+	buffer.ambient = (glm::vec3&)material.ambient;
+	buffer.objColor = (glm::vec3&)material.diffuse;
+
 }
 
 tinyobj::material_t* ForwardMaterial::getMaterial()
 {
 	return &material;
+}
+
+size_t ForwardMaterial::getMaterialBufferSize()
+{
+	return sizeof(MaterialBuffer);
+}
+
+void * ForwardMaterial::getMaterialBufferData()
+{
+	return &buffer;
 }
