@@ -46,14 +46,14 @@ void Renderer::render()
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
 	mainDevice->clearBuffer(1, 1, 0, 1);
-	//mainDevice->DrawGeometry
+	mainDevice->renderGeometry();
+	mainDevice->executeCommandQueue();
 	for (auto& slaveDevices : mainDevice->getTexturePairs())
 	{
 		DeviceContext* device = slaveDevices.first;
 
 		device->clearBuffer(0, 0, 1, 1);
-		//device->DrawGeometry
-		device->transferRenderTexture();
+		device->renderGeometry();
 		device->executeCommandQueue();
 		
 	}

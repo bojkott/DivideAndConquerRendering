@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vulkan\vulkan.hpp>
 #include "ModelHelper.h"
 
 class DeviceContext;
@@ -15,8 +16,12 @@ private:
 	Technique* technique;
 	Model* model;
 public:
-	Mesh(DeviceContext* context, Model* model, ModelHelper::MeshInfo& meshInfo);
+	Mesh(DeviceContext* context, ModelHelper::MeshInfo& meshInfo);
 	Mesh() {};
+
+	Technique* getTechnique();
+
+	void bind(vk::CommandBuffer commandBuffer);
 private:
 };
 

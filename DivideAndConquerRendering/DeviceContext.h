@@ -67,6 +67,8 @@ private:
 
 	vk::CommandBuffer transferToCpuCommandBuffer;
 	vk::CommandBuffer combineDaQCommandBuffer;
+
+	uint32_t finalCommandBufferIndex;
 	
 
 	struct QueueFamilyIndices
@@ -87,7 +89,7 @@ private:
 	};
 
 	
-	std::map<Technique*, Mesh*> renderQueue;
+	std::map<Technique*, std::vector<Mesh*>> renderQueue;
 
 public:
 	DeviceContext(DeviceGroup* group, vk::Instance& instance, vk::PhysicalDevice physicalDevice);
@@ -109,12 +111,14 @@ public:
 	void tempPresent();
 	void executeCommandQueue();
 
+	void submitMesh(Mesh* mesh);
+	void renderGeometry();
+
 	void initDevice();
 
 	void setCombineTechnique(Technique* combineTechnique);
 
 	void executeSingleTimeQueue(std::function< void (vk::CommandBuffer)> commands);
-	void transferRenderTexture();
 
 	SecondaryDeviceTexturePair* getTexturePair(DeviceContext* deviceContext);
 	std::map<DeviceContext*, SecondaryDeviceTexturePair*> getTexturePairs();

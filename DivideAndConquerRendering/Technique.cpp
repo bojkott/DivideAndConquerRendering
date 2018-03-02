@@ -1,11 +1,12 @@
 #include "Technique.h"
 #include "Renderer.h"
 #include "DeviceContext.h"
+#include "UniformBuffer.h"
 
 std::map<Material*, vkGroups::TechniqueGroup> Technique::loadedTechniques;
 Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r)
 {
-
+	this->deviceContext = deviceContext;
 	material = m;
 	renderState = r;
 
@@ -56,6 +57,13 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
+
+	if (m->getMaterialBufferSize() > 0)
+	{
+		materialBuffer = new UniformBuffer(deviceContext, m->getMaterialBufferSize());
+		materialBuffer->setData(m->getMaterialBufferData());
+	}
+
 }
 
 Technique * Technique::createOrGetTechnique(DeviceContext * deviceContext, Material * m, RenderState* r)
@@ -90,6 +98,9 @@ Technique::~Technique()
 
 void Technique::bind(vk::CommandBuffer& commandBuffer)
 {
+	if(materialBuffer)
+		materialBuffer->bind(PER_CAMERA_BINDING, descriptorSets[0]);
+
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSets, {});
 }

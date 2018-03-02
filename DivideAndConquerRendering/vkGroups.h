@@ -5,9 +5,9 @@
 
 class Shader;
 class DeviceContext;
-class Model;
 class Technique;
 class UniformBuffer;
+class Mesh;
 namespace vkGroups {
 
 	struct ShaderGroup {
@@ -27,11 +27,6 @@ namespace vkGroups {
 		~BufferMemoryGroup();
 	};
 
-	struct ModelGroup
-	{
-		std::map<DeviceContext*, Model*> sets;
-		~ModelGroup();
-	};
 
 	struct TechniqueGroup
 	{
@@ -43,5 +38,11 @@ namespace vkGroups {
 	{
 		std::map < DeviceContext*, UniformBuffer*> sets;
 		~UniformBufferGroup();
+	};
+
+	struct MeshGroup
+	{
+		std::map < DeviceContext*, std::vector<Mesh*>> sets;
+		~MeshGroup();
 	};
 }

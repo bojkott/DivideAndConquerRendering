@@ -3,6 +3,12 @@
 #include "vkGroups.h"
 #include "DeviceGroup.h"
 #include "DeviceContext.h"
+
+
+#define PER_CAMERA_BINDING 1
+#define PER_MATERIAL_BINDING 2
+#define PER_OBJECT_BINDING 3
+
 class Shader;
 
 class Material
@@ -35,6 +41,10 @@ public:
 	vk::DescriptorSetLayoutCreateInfo getDescriptorSetLayoutInfo();
 	vk::PipelineVertexInputStateCreateInfo getVertexinputInfo();
 	DeviceContext::RENDERPASS_TYPE getRenderPassType();
+
+	virtual size_t getMaterialBufferSize() { return 0; }
+
+	virtual void* getMaterialBufferData() { return nullptr; }
 
 protected:
 	void addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags);

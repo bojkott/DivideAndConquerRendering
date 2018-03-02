@@ -5,7 +5,7 @@
 #include "Material.h"
 
 #include <vulkan\vulkan.hpp>
-
+class UniformBuffer;
 class Technique
 {
 private:
@@ -19,8 +19,9 @@ private:
 
 
 	Material* material = nullptr;
+	UniformBuffer* materialBuffer = nullptr;
 	RenderState* renderState = nullptr;
-
+	DeviceContext* deviceContext;
 
 	static std::map<Material*, vkGroups::TechniqueGroup> loadedTechniques;
 

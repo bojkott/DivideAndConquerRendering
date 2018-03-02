@@ -2,6 +2,7 @@
 #include <vulkan\vulkan.hpp>
 #include "DeviceContext.h"
 
+
 class Texture
 {
 protected:
@@ -11,6 +12,7 @@ protected:
 	vk::DeviceMemory imageMemory;
 	DeviceContext* deviceContext;
 	vk::Format format;
+	
 public:
 	Texture(DeviceContext* deviceContext, uint32_t width, uint32_t height, vk::Format format, vk::ImageLayout layout, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags memoryProperties, vk::ImageAspectFlags aspectFlag);
 

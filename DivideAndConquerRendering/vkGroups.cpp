@@ -28,13 +28,6 @@ namespace vkGroups {
 		}
 	}
 
-	ModelGroup::~ModelGroup()
-	{
-		for (auto const& set : sets)
-		{
-			delete set.second;
-		}
-	}
 	TechniqueGroup::~TechniqueGroup()
 	{
 		for (auto const& set : sets)
@@ -47,6 +40,15 @@ namespace vkGroups {
 		for (auto const& set : sets)
 		{
 			delete set.second;
+		}
+	}
+	MeshGroup::~MeshGroup()
+	{
+		for (auto & set : sets)
+		{
+			for (auto const& mesh : set.second)
+				delete mesh;
+			set.second.clear();
 		}
 	}
 }

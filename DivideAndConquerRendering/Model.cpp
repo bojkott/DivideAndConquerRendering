@@ -1,11 +1,18 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "ModelHelper.h"
-Model::Model(DeviceContext * device, std::vector<ModelHelper::MeshInfo> meshesInfo)
+#include "Renderer.h"
+#include "DeviceContext.h"
+
+Model::Model(std::string filepath)
 {
-	for (auto & meshInfo : meshesInfo)
+	Renderer::deviceGroup.createMeshGroup(ModelHelper::loadModelFromFile(filepath), meshGroup);
+}
+
+void Model::submitModel(DeviceContext * device)
+{
+	for (Mesh* mesh : meshGroup.sets[device])
 	{
-		Mesh* mesh = new Mesh(device, this, meshInfo);
-		meshes.push_back(mesh);
+		device->submitMesh(mesh);
 	}
 }

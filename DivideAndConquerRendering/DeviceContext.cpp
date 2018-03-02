@@ -7,6 +7,7 @@
 #include "VulkanHelpers.h"
 #include "Technique.h"
 #include "Buffer.h"
+#include "Mesh.h"
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): mode(DEVICE_MODE::HEADLESS), deviceGroup(group), physicalDevice(physicalDevice)
 {
 	createDevice(instance);
@@ -167,6 +168,7 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
 		renderPassCommandBuffer.begin(beginInfo);
+
 		renderPassInfo.renderArea.extent = getMainDevice()->swapchain.extent;
 		renderPassInfo.framebuffer = renderTextureFrameBuffer;
 
@@ -179,22 +181,25 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 
 		commandBuffer.begin(beginInfo);
 
-		renderPassInfo.framebuffer = swapchain.framebuffers[i];
-		renderPassInfo.renderArea.extent = swapchain.extent;
+		for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
+		{
+			vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
 
-		
-		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-		commandBuffer.endRenderPass();
+			commandBuffer.begin(beginInfo);
 
+			renderPassInfo.framebuffer = swapchain.framebuffers[i];
+			renderPassInfo.renderArea.extent = swapchain.extent;
+
+			commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+
+
+		}
 	}
 	
 }
 
 void DeviceContext::tempPresent()
 {
-
-	uint32_t imageIndex = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, imageAvailableSemaphore, vk::Fence()).value;
-
 
 	vk::SubmitInfo submitInfo;
 
@@ -205,7 +210,7 @@ void DeviceContext::tempPresent()
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &swapchain.commandBuffers[imageIndex];
+	submitInfo.pCommandBuffers = &swapchain.commandBuffers[finalCommandBufferIndex];
 
 	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
 	submitInfo.signalSemaphoreCount = 1;
@@ -221,7 +226,7 @@ void DeviceContext::tempPresent()
 	vk::SwapchainKHR swapChains[] = { swapchain.swapchain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
-	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pImageIndices = &finalCommandBufferIndex;
 
 	presentQueue.presentKHR(presentInfo);
 	presentQueue.waitIdle();
@@ -230,6 +235,18 @@ void DeviceContext::tempPresent()
 void DeviceContext::executeCommandQueue()
 {
 
+
+	vk::CommandBuffer commandBuffer;
+
+	if (mode == DEVICE_MODE::HEADLESS)
+		commandBuffer = renderPassCommandBuffer;
+	else
+	{
+		uint32_t imageIndex = device.acquireNextImageKHR(swapchain.swapchain, UINT64_MAX, imageAvailableSemaphore, vk::Fence()).value;
+		commandBuffer = swapchain.commandBuffers[imageIndex];
+		finalCommandBufferIndex = imageIndex;
+	}
+	
 	vk::SubmitInfo submitInfo;
 
 
@@ -238,23 +255,62 @@ void DeviceContext::executeCommandQueue()
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &renderPassCommandBuffer;
+	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-
-	graphicsQueue.submit(1, &submitInfo, vk::Fence());
-
-	submitInfo.commandBufferCount = 0;
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = signalSemaphores;
-	submitInfo.signalSemaphoreCount = 0;
-
-	graphicsQueue.submit(1, &submitInfo, vk::Fence());
+	graphicsQueue.submit(1, &submitInfo, {});
 
 	graphicsQueue.waitIdle();
 
+}
+
+void DeviceContext::submitMesh(Mesh * mesh)
+{
+	renderQueue[mesh->getTechnique()].push_back(mesh);
+}
+
+void DeviceContext::renderGeometry()
+{
+
+	if (mode == DEVICE_MODE::HEADLESS)
+	{
+		
+
+		for (auto& queueElement : renderQueue)
+		{
+			//Camera::getInstance()->bind(this);
+			queueElement.first->bind(renderPassCommandBuffer);
+			for (Mesh* mesh : queueElement.second)
+			{
+				mesh->bind(renderPassCommandBuffer);
+			}
+		}
+		renderPassCommandBuffer.endRenderPass();
+
+		//Transfer texture
+		renderPassCommandBuffer.executeCommands(1, &transferToCpuCommandBuffer);
+
+		renderPassCommandBuffer.end();
+	}
+
+	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
+	{
+		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
+
+		for (auto& queueElement : renderQueue)
+		{
+			//Camera::getInstance()->bind(this);
+			queueElement.first->bind(commandBuffer);
+			for (Mesh* mesh : queueElement.second)
+			{
+				mesh->bind(commandBuffer);
+			}
+		}
+
+		commandBuffer.endRenderPass();
+
+		commandBuffer.end();
+
+	}
 }
 
 void DeviceContext::executeSingleTimeQueue(std::function< void(vk::CommandBuffer)> commands)
@@ -282,15 +338,6 @@ void DeviceContext::executeSingleTimeQueue(std::function< void(vk::CommandBuffer
 	graphicsQueue.submit(submitInfo, {});
 	graphicsQueue.waitIdle();
 	device.freeCommandBuffers(commandPool, commandBuffer);
-}
-
-void DeviceContext::transferRenderTexture()
-{
-	renderPassCommandBuffer.endRenderPass();
-
-	renderPassCommandBuffer.executeCommands(1, &transferToCpuCommandBuffer);
-
-	renderPassCommandBuffer.end();
 }
 
 DeviceContext::SecondaryDeviceTexturePair * DeviceContext::getTexturePair(DeviceContext * deviceContext)
@@ -895,30 +942,31 @@ void DeviceContext::startFinalRenderPass()
 {
 	
 
+	vk::CommandBufferBeginInfo beginInfo;
+	beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
+
 	vk::RenderPassBeginInfo finalPassInfo;
 	finalPassInfo.renderPass = presentRenderPass;
 	finalPassInfo.renderArea.offset = { 0, 0 };
 
 	finalPassInfo.clearValueCount = 0;
 
-	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
-	{
-		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
+	vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[finalCommandBufferIndex];
+	commandBuffer.begin(beginInfo);
 
 
-		finalPassInfo.framebuffer = swapchain.finalframebuffers[i];
-		finalPassInfo.renderArea.extent = swapchain.extent;
+	finalPassInfo.framebuffer = swapchain.finalframebuffers[finalCommandBufferIndex];
+	finalPassInfo.renderArea.extent = swapchain.extent;
 				
-		commandBuffer.executeCommands(1, &combineDaQCommandBuffer);
+	commandBuffer.executeCommands(1, &combineDaQCommandBuffer);
 
-		commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
-		combineTechnique->bind(commandBuffer);
+	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
+	combineTechnique->bind(commandBuffer);
 
-		commandBuffer.draw(6, 1, 0, 0);
+	commandBuffer.draw(6, 1, 0, 0);
 
-		commandBuffer.endRenderPass();
-		commandBuffer.end();
-	}
+	commandBuffer.endRenderPass();
+	commandBuffer.end();
 }
 
 void DeviceContext::createSecondaryDeviceFramebuffer()

@@ -1,6 +1,7 @@
 #include "DeviceGroup.h"
 #include "DeviceContext.h"
 #include "UniformBuffer.h"
+#include "Mesh.h"
 DeviceGroup::DeviceGroup()
 {
 }
@@ -59,5 +60,19 @@ void DeviceGroup::createUniformBufferGroup(size_t bufferSize, vkGroups::UniformB
 	{
 		bufferGroup.sets.insert(std::make_pair(device, new UniformBuffer(device, bufferSize)));
 	}
+}
+
+void DeviceGroup::createMeshGroup(std::vector<ModelHelper::MeshInfo> meshesInfo, vkGroups::MeshGroup & meshGroup)
+{
+	for (DeviceContext* const device : devices)
+	{
+		meshGroup.sets[device];
+		for (auto & meshInfo : meshesInfo)
+		{
+			Mesh* mesh = new Mesh(device, meshInfo);
+			meshGroup.sets[device].push_back(mesh);
+		}
+	}
+	
 }
 
