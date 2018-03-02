@@ -5,8 +5,9 @@
 #include "ModelHelper.h"
 #include "Technique.h"
 #include "Model.h"
-Mesh::Mesh(DeviceContext* context, ModelHelper::MeshInfo& meshInfo)
+Mesh::Mesh(DeviceContext* context, Model* model, ModelHelper::MeshInfo& meshInfo)
 {
+	this->model = model;
 	// Data has been loaded, time to create buffers
 	vertexBuffer = new VertexBuffer(meshInfo.vertices, context);
 	//indexBuffer = new IndexBuffer(meshInfo.indices, context);
@@ -20,5 +21,6 @@ Technique * Mesh::getTechnique()
 
 void Mesh::bind(vk::CommandBuffer commandBuffer)
 {
+	commandBuffer.pushConstants(technique->getPipelineLayout(), vk::ShaderStageFlagBits::eVertex, 0, 1, &model->getModelMatrix());
 	vertexBuffer->bind(commandBuffer);
 }

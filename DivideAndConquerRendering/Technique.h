@@ -34,4 +34,6 @@ public:
 	void bind(vk::CommandBuffer& commandBuffer);
 
 	std::vector<vk::DescriptorSet> getDescriptionSets();
+
+	vk::PipelineLayout& getPipelineLayout();
 };

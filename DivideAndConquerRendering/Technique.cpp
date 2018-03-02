@@ -109,3 +109,8 @@ std::vector<vk::DescriptorSet> Technique::getDescriptionSets()
 {
 	return descriptorSets;
 }
+
+vk::PipelineLayout & Technique::getPipelineLayout()
+{
+	return pipelineLayout;
+}

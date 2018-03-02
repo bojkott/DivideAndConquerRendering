@@ -3,10 +3,10 @@
 #include "ModelHelper.h"
 #include "Renderer.h"
 #include "DeviceContext.h"
-
+#include <glm\gtx\transform.hpp>
 Model::Model(std::string filepath)
 {
-	Renderer::deviceGroup.createMeshGroup(ModelHelper::loadModelFromFile(filepath), meshGroup);
+	Renderer::deviceGroup.createMeshGroup(ModelHelper::loadModelFromFile(filepath), this, meshGroup);
 }
 
 void Model::submitModel(DeviceContext * device)
@@ -15,4 +15,9 @@ void Model::submitModel(DeviceContext * device)
 	{
 		device->submitMesh(mesh);
 	}
+}
+
+glm::mat4 Model::getModelMatrix()
+{
+	return modelMatrix;
 }

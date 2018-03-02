@@ -16,7 +16,7 @@ private:
 	Technique* technique;
 	Model* model;
 public:
-	Mesh(DeviceContext* context, ModelHelper::MeshInfo& meshInfo);
+	Mesh(DeviceContext* context, Model* model, ModelHelper::MeshInfo& meshInfo);
 	Mesh() {};
 
 	Technique* getTechnique();
