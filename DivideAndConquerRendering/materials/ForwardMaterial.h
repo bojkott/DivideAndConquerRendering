@@ -9,10 +9,12 @@
 class ForwardMaterial : public Material
 {
 private:
-	struct UniformBufferObject
+	struct MaterialBuffer
 	{
-		glm::mat4 view;
-		glm::mat4 proj;
+		/*
+		Get stuff from tiny obj
+		Like difuse and color
+		*/
 	};
 
 	tinyobj::material_t material;
