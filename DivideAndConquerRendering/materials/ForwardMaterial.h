@@ -15,6 +15,8 @@ private:
 		glm::mat4 proj;
 	};
 
+	tinyobj::material_t material;
 public:
-	ForwardMaterial();
+	ForwardMaterial(tinyobj::material_t material);
+	tinyobj::material_t* getMaterial();
 };
