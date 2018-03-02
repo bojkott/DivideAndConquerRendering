@@ -1,0 +1,297 @@
+#
+#
+#
+
+newmtl arcs_01 Mesh_sp_01_luk_a
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_02 Mesh_sp_01_luk_a
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_03 Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_04 Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_floor_long Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_floor_small Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_long Mesh_sp_01_luk_a
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl arcs_small Mesh_sp_01_luk_a
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl ceiling Mesh_sp_00_svod
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.941200 0.866700 0.737300
+Ks 0.034000 0.032300 0.029300
+Ns 0.000000
+
+newmtl doors Mesh_sp_00_vrata_kock
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.784300 0.784300 0.784300
+Ks 0.000000 0.000000 0.000000
+Ns 20.000000
+map_Kd vrata_ko.JPG
+
+newmtl doors Mesh_sp_00_vrata_krug
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.784300 0.784300 0.784300
+Ks 0.000000 0.000000 0.000000
+Ns 20.000000
+map_Kd vrata_kr.JPG
+
+newmtl floors Mesh_sp_00_pod
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.627500 0.572500 0.560800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd KAMEN.JPG
+
+newmtl holes Mesh_sp_01_stup
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.827500 0.800000 0.768600
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd x01_st.JPG
+
+newmtl object19 Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl object21 Mesh_sp_00_svod
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.941200 0.866700 0.737300
+Ks 0.034000 0.032300 0.029300
+Ns 0.000000
+
+newmtl object23 Mesh_sp_vijenac
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.713700 0.705900 0.658800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 00_skap.JPG
+
+newmtl object27 Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl object28 Mesh_sp_01_stub_baza
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.784300 0.749000
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 01_S_ba.JPG
+
+newmtl object3 Mesh_sp_01_stup_baza
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.784300 0.749000
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 01_S_ba.JPG
+
+newmtl object31 Mesh_sp_01_stub_baza_
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.784300 0.784300 0.784300
+Ks 0.000000 0.000000 0.000000
+Ns 20.000000
+
+newmtl object32 Mesh_sp_svod_kapitel
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.713700 0.705900 0.658800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 00_skap.JPG
+
+newmtl object4 Mesh_sp_00_luk_mali
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl object5 Mesh_sp_svod_kapitel
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.713700 0.705900 0.658800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 00_skap.JPG
+
+newmtl object6 Mesh_sp_svod_kapitel
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.713700 0.705900 0.658800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 00_skap.JPG
+
+newmtl outside01 Mesh_sp_zid_vani
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.627500 0.572500 0.560800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd KAMEN.JPG
+
+newmtl parapet Mesh_sp_01_luk_a
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl pillar_corners Mesh_sp_01_stub_kut
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.737300 0.709800 0.670600
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 01_STUB.JPG
+
+newmtl pillar_floor Mesh_sp_00_stup
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.737300 0.709800 0.670600
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 01_STUB.JPG
+
+newmtl pillar_quader Mesh_sp_01_stub
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.737300 0.709800 0.670600
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 01_STUB.JPG
+
+newmtl pillar_round Mesh_sp_01_stup
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.827500 0.800000 0.768600
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd x01_st.JPG
+
+newmtl puillar_floor_corner Mesh_sp_00_stup
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.737300 0.709800 0.670600
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd 01_STUB.JPG
+
+newmtl relief Mesh_sp_02_reljef
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.529400 0.498000 0.490200
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd reljef.JPG
+
+newmtl round_holes Mesh_sp_01_luk_a
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.745100 0.709800 0.674500
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd sp_luk.JPG
+
+newmtl walls Mesh_sp_00_prozor
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd prozor1.JPG
+
+newmtl walls Mesh_sp_00_vrata_krug
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.784300 0.784300 0.784300
+Ks 0.000000 0.000000 0.000000
+Ns 20.000000
+map_Kd vrata_kr.JPG
+
+newmtl walls Mesh_sp_00_zid
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 0.627500 0.572500 0.560800
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd KAMEN.JPG
+
+newmtl windows Mesh_sp_00_prozor
+illum 2
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ns 50.000000
+map_Kd prozor1.JPG
+

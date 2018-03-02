@@ -8,6 +8,7 @@
 #include "Technique.h"
 #include "Buffer.h"
 #include "Mesh.h"
+#include "Camera.h"
 DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::PhysicalDevice physicalDevice): mode(DEVICE_MODE::HEADLESS), deviceGroup(group), physicalDevice(physicalDevice)
 {
 	createDevice(instance);
@@ -277,7 +278,7 @@ void DeviceContext::renderGeometry()
 
 		for (auto& queueElement : renderQueue)
 		{
-			//Camera::getInstance()->bind(this);
+			Camera::getInstance()->bindCamera(this, queueElement.first->getDescriptionSets()[0]);
 			queueElement.first->bind(renderPassCommandBuffer);
 			for (Mesh* mesh : queueElement.second)
 			{
@@ -298,7 +299,7 @@ void DeviceContext::renderGeometry()
 
 		for (auto& queueElement : renderQueue)
 		{
-			//Camera::getInstance()->bind(this);
+			Camera::getInstance()->bindCamera(this, queueElement.first->getDescriptionSets()[0]);
 			queueElement.first->bind(commandBuffer);
 			for (Mesh* mesh : queueElement.second)
 			{

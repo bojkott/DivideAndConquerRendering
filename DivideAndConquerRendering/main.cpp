@@ -7,10 +7,12 @@
 #include <iostream>
 #include "Window.h"
 #include "Renderer.h"
+#include "Camera.h"
 
 Window* window;
 Renderer* renderer;
-
+Camera* camera;
+Model* m;
 char titleBuff[256];
 double lastDelta = 0.0;
 
@@ -45,9 +47,7 @@ void run() {
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
-
-		//updateScene();
-		//renderScene();
+		camera->update(lastDelta/1000.0f);
 		renderer->render();
 		updateDelta();
 		sprintf_s(titleBuff, "Vulkan - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());
@@ -63,6 +63,8 @@ int main()
 	try {
 		window = new Window(1280, 720);
 		renderer = new Renderer();
+		camera = Camera::getInstance();
+		m = new Model("box.obj");
 		run();
 	}
 	catch (std::exception& e)

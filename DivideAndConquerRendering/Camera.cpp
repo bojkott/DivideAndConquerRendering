@@ -2,20 +2,21 @@
 #include "Renderer.h"
 #include "Window.h"
 #include "UniformBuffer.h"
+#include "Material.h"
 Camera* Camera::instance;
 
-Camera Camera::getInstance( float x, float y, float z)  
+Camera* Camera::getInstance( float x, float y, float z)  
 {
 	if (instance == nullptr)
 	{
 		instance = new Camera(x, y, z);
 	}
-	return *instance;
+	return instance;
 }
 
 void Camera::bindCamera(DeviceContext * context, vk::DescriptorSet descSet)
 {
-	//bufferGroup.sets[context]->bind(PER_CAMERA_BINDING, descSet);
+	bufferGroup.sets[context]->bind(PER_CAMERA_BINDING, descSet);
 }
 
 Camera::~Camera()

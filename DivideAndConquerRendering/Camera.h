@@ -26,7 +26,7 @@ private:
 	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 public:
-	static Camera getInstance(float x = 0, float y = 0, float z = 0);
+	static Camera* getInstance(float x = 0, float y = 0, float z = 0);
 	void bindCamera(DeviceContext* context, vk::DescriptorSet descSet);
 	void update(float dt);
 

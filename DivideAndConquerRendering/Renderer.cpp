@@ -45,18 +45,37 @@ void Renderer::render()
 {
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
-	mainDevice->clearBuffer(1, 1, 0, 1);
-	mainDevice->renderGeometry();
-	mainDevice->executeCommandQueue();
+
+
+	std::thread mainDeviceThread([mainDevice]()
+	{
+		mainDevice->clearBuffer(1, 1, 0, 1);
+		mainDevice->renderGeometry();
+		mainDevice->executeCommandQueue();
+	});
+
+	std::vector<std::thread> workers;
+
+
+
+
+	
 	for (auto& slaveDevices : mainDevice->getTexturePairs())
 	{
 		DeviceContext* device = slaveDevices.first;
 
-		device->clearBuffer(0, 0, 1, 1);
-		device->renderGeometry();
-		device->executeCommandQueue();
-		
+		workers.push_back(std::thread(
+			[device]() 
+		{
+			device->clearBuffer(0, 0, 1, 1);
+			device->renderGeometry();
+			device->executeCommandQueue();
+		}));
 	}
+
+
+	for (auto & worker : workers)
+		worker.join();
 
 	Uint32 transferStart = SDL_GetPerformanceCounter(); 
 	for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
@@ -68,6 +87,8 @@ void Renderer::render()
 	Uint32 transferEnd = SDL_GetPerformanceCounter();
 	transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
 	
+
+	mainDeviceThread.join();
 	//Sync GPUs
 
 	mainDevice->startFinalRenderPass(); //Combine

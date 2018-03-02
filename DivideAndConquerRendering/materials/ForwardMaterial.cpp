@@ -16,10 +16,6 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	layoutInfo.bindingCount = 1;
 	layoutInfo.pBindings = &uboLayoutBinding;*/
 
-
-	
-
-
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.binding = 0;
 	bindingDescription.stride = sizeof(ModelHelper::Vertex);
@@ -33,20 +29,15 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::pos);
 	attributeDescriptions.push_back(attributeDescription);
 
-	attributeDescription.binding = 0;
-	attributeDescription.location = 1;
-	attributeDescription.format = vk::Format::eR32G32B32Sfloat;	//Color
-	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::color);
-	attributeDescriptions.push_back(attributeDescription);
 
 	attributeDescription.binding = 0;
-	attributeDescription.location = 2;
+	attributeDescription.location = 1;
 	attributeDescription.format = vk::Format::eR32G32Sfloat;	//TexCoord
 	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::texCoord);
 	attributeDescriptions.push_back(attributeDescription);
 
 	attributeDescription.binding = 0;
-	attributeDescription.location = 3;
+	attributeDescription.location = 2;
 	attributeDescription.format = vk::Format::eR32G32B32Sfloat;	//Norm
 	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::norm);
 	attributeDescriptions.push_back(attributeDescription);
