@@ -14,7 +14,7 @@ private:
 	vk::PipelineColorBlendStateCreateInfo colorBlending;
 	vk::PipelineDepthStencilStateCreateInfo depthStencil;
 public:
-	RenderState();
+	RenderState(vk::FrontFace frontFace= vk::FrontFace::eCounterClockwise);
 
 	void setWireFrame(bool);
 	

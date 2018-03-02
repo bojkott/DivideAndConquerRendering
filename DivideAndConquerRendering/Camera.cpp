@@ -30,7 +30,7 @@ void Camera::update(float dt)
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_GetRelativeMouseState(&x, &y);
 	const Uint8 *state = SDL_GetKeyboardState(NULL);
-	float cameraSpeed = 50.0f * dt;
+	float cameraSpeed = 100.0f * dt;
 
 
 	// Fucking keyboard n shit
@@ -84,7 +84,7 @@ Camera::Camera(float x, float y, float z)
 
 	SDL_WarpMouseInWindow(Window::window, 400, 300);
 
-	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
+	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 10000.0f);
 	cameraObject.view = glm::lookAt(cameraPos, cameraFront, cameraUp);
 
 	cameraObject.proj[1][1] *= -1;
@@ -95,7 +95,13 @@ Camera::Camera(float x, float y, float z)
 
 void Camera::updateCameraBuffer()
 {
+	int deviceId = 0;
 	for (auto& pair : bufferGroup.sets)
+	{
+		cameraObject.deviceId = deviceId;
 		pair.second->setData(&cameraObject);
+		deviceId++;
+	}
+		
 }
 

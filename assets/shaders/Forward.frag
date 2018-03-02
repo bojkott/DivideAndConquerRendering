@@ -7,8 +7,10 @@ layout(binding = 2) uniform Material
 	vec3 objColor;
 } material;
 
+
 layout(location = 0) in vec2 inTexCoord;
 layout(location = 1) in vec3 inNorm;
+layout(location = 2) in float deviceId;
 
 layout (location = 0) out vec4 fragment_color;
 
@@ -24,6 +26,10 @@ void main() {
 	vec3 diffuse = diff * ambient + vec3(0.2f,0.2f,0.2f);
 
 	vec3 result = (material.ambient + diffuse) * material.objColor;
+
+	diffuse += vec3(0.2f, 0, 0)*deviceId;
+
+	diffuse += vec3(0.0, 0.2f, 0)*(1-deviceId);
 
 	fragment_color = vec4(diffuse, 1.0);
 }

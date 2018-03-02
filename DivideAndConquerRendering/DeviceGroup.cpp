@@ -76,3 +76,18 @@ void DeviceGroup::createMeshGroup(std::vector<ModelHelper::MeshInfo> meshesInfo,
 	
 }
 
+void DeviceGroup::createAdvancedMeshGroup(std::vector<ModelHelper::MeshInfo> meshesInfo, Model * model, vkGroups::AdvancedMeshGroup & advancedMeshGroup)
+{
+
+	for (auto & meshInfo : meshesInfo)
+	{
+		vkGroups::MeshGroup& meshGroup = advancedMeshGroup.sets[meshInfo.material];
+
+		for (DeviceContext* const device : devices)
+		{
+			Mesh* mesh = new Mesh(device, model, meshInfo);
+			meshGroup.sets[device].push_back(mesh);
+		}
+	}
+}
+

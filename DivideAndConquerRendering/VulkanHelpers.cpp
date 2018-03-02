@@ -1,6 +1,6 @@
 #include "VulkanHelpers.h"
 
-void VulkanHelpers::cmdTransitionLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags oldAccessMask, vk::AccessFlags newAccessMask, vk::PipelineStageFlags oldStage, vk::PipelineStageFlags newStage, vk::ImageAspectFlagBits aspectMask)
+void VulkanHelpers::cmdTransitionLayout(vk::CommandBuffer commandBuffer, vk::Image image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::AccessFlags oldAccessMask, vk::AccessFlags newAccessMask, vk::PipelineStageFlags oldStage, vk::PipelineStageFlags newStage, vk::ImageAspectFlags aspectMask)
 {
 	vk::ImageMemoryBarrier barrier;
 	barrier.oldLayout = oldLayout;

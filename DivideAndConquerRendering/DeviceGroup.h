@@ -30,4 +30,6 @@ public:
 	void createUniformBufferGroup(size_t bufferSize, vkGroups::UniformBufferGroup& bufferGroup);
 
 	void createMeshGroup(std::vector<ModelHelper::MeshInfo> meshesInfo, Model* model, vkGroups::MeshGroup& meshGroup);
+
+	void createAdvancedMeshGroup(std::vector<ModelHelper::MeshInfo> meshesInfo, Model* model, vkGroups::AdvancedMeshGroup& advancedMeshGroup);
 };

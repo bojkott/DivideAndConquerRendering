@@ -4,17 +4,19 @@
 #include "ModelHelper.h"
 
 #include <glm\glm.hpp>
-
-class DeviceContext;
 class Mesh;
+class DeviceGroup;
 class Model {
 private:
-	vkGroups::MeshGroup meshGroup;
+	//vkGroups::MeshGroup meshGroup;
+	vkGroups::AdvancedMeshGroup advancedMeshGroup;
 	glm::mat4 modelMatrix;
 public:
 	Model(std::string filepath);
 
-	void submitModel(DeviceContext* device);
+	void submitModel(DeviceGroup* device);
 
 	glm::mat4 getModelMatrix();
+
+	void setPosition(glm::vec3 pos);
 };

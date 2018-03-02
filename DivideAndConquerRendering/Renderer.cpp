@@ -23,7 +23,7 @@ Renderer::Renderer()
 	createSurface();
 	setupDeviceGroup();
 
-	daQCombineTechnique = Technique::createOrGetTechnique(deviceGroup.getMainDevice(), new DaQCombineMaterial(), new RenderState());
+	daQCombineTechnique = Technique::createOrGetTechnique(deviceGroup.getMainDevice(), new DaQCombineMaterial(), new RenderState(vk::FrontFace::eClockwise));
 	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
 
 }
@@ -45,19 +45,22 @@ void Renderer::render()
 {
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
+	double mainDeviceTime = 0.0f;
 
-
-	std::thread mainDeviceThread([mainDevice]()
+	std::thread mainDeviceThread([mainDevice, &mainDeviceTime]()
 	{
+		Uint32 start = SDL_GetPerformanceCounter();
 		mainDevice->clearBuffer(1, 1, 0, 1);
 		mainDevice->renderGeometry();
 		mainDevice->executeCommandQueue();
+
+		Uint32 end = SDL_GetPerformanceCounter();
+		mainDeviceTime = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
 	});
 
 	std::vector<std::thread> workers;
 
-
-
+	std::vector<double> slaveDeviceTimes;
 
 	
 	for (auto& slaveDevices : mainDevice->getTexturePairs())
@@ -65,11 +68,15 @@ void Renderer::render()
 		DeviceContext* device = slaveDevices.first;
 
 		workers.push_back(std::thread(
-			[device]() 
+			[device, &slaveDeviceTimes]()
 		{
+			Uint32 start = SDL_GetPerformanceCounter();
 			device->clearBuffer(0, 0, 1, 1);
 			device->renderGeometry();
 			device->executeCommandQueue();
+			Uint32 end = SDL_GetPerformanceCounter();
+			double time = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
+			slaveDeviceTimes.push_back(time);
 		}));
 	}
 
@@ -91,8 +98,22 @@ void Renderer::render()
 	mainDeviceThread.join();
 	//Sync GPUs
 
+	
+	Uint32 start = SDL_GetPerformanceCounter();
 	mainDevice->startFinalRenderPass(); //Combine
 	mainDevice->tempPresent(); //Final pass
+	Uint32 end = SDL_GetPerformanceCounter();
+	double combineTime = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
+
+
+	std::cout << "Main Device geometry time: " << mainDeviceTime;
+	for (int i = 0; i < slaveDeviceTimes.size(); i++)
+	{
+		std::cout << " slave " << i << " geometry time: " << slaveDeviceTimes[i];
+	}
+
+	std::cout << " transfer time: " << transferTime << " combine time: " << combineTime << std::endl;
+
 }
 
 bool Renderer::checkValidationLayerSupport()

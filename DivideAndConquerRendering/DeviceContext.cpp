@@ -61,25 +61,66 @@ void DeviceContext::setCombineTechnique(Technique * combineTechnique)
 	this->combineTechnique = combineTechnique;
 
 	std::vector<vk::WriteDescriptorSet> writes;
+	
+
+	vk::DescriptorImageInfo finalDepthImage;
+	finalDepthImage.imageLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+	finalDepthImage.imageView = swapchain.depthImage->getImageView();
+	finalDepthImage.sampler = nullptr;
+
+	vk::WriteDescriptorSet finalDepthWrite;
+
+	finalDepthWrite.descriptorCount = 1;
+	finalDepthWrite.dstSet = combineTechnique->getDescriptionSets()[0];
+	finalDepthWrite.dstBinding = 0;
+	finalDepthWrite.descriptorType = vk::DescriptorType::eInputAttachment;
+	finalDepthWrite.pImageInfo = &finalDepthImage;
+	finalDepthWrite.pBufferInfo = nullptr;
+	finalDepthWrite.pTexelBufferView = nullptr;
+	finalDepthWrite.dstArrayElement = 0;
+
+	writes.push_back(finalDepthWrite);
+
+	int i = 1;
 	for (auto& texturePairs : secondaryDeviceTextures)
 	{
-		vk::DescriptorImageInfo inputImageInfo;
-		inputImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		inputImageInfo.imageView = texturePairs.second->renderTexture->getImageView();
-		inputImageInfo.sampler = nullptr;
+		vk::DescriptorImageInfo renderInputImageInfo;
+		renderInputImageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		renderInputImageInfo.imageView = texturePairs.second->renderTexture->getImageView();
+		renderInputImageInfo.sampler = nullptr;
 
-		vk::WriteDescriptorSet write;
+		vk::DescriptorImageInfo depthInputImageInfo;
+		depthInputImageInfo.imageLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+		depthInputImageInfo.imageView = texturePairs.second->renderDepthTexture->getImageView();
+		depthInputImageInfo.sampler = nullptr;
 
-		write.dstSet = combineTechnique->getDescriptionSets()[0];
-		write.dstBinding = 0;
-		write.descriptorCount = 1;
-		write.descriptorType = vk::DescriptorType::eInputAttachment;
-		write.pImageInfo = &inputImageInfo;
-		write.pBufferInfo = nullptr;
-		write.pTexelBufferView = nullptr;
-		write.dstArrayElement = 0;
+		vk::WriteDescriptorSet renderWrite;
 
-		writes.push_back(write);
+		renderWrite.descriptorCount = 1;
+		renderWrite.dstSet = combineTechnique->getDescriptionSets()[0];
+		renderWrite.dstBinding = i;
+		renderWrite.descriptorType = vk::DescriptorType::eInputAttachment;
+		renderWrite.pImageInfo = &renderInputImageInfo;
+		renderWrite.pBufferInfo = nullptr;
+		renderWrite.pTexelBufferView = nullptr;
+		renderWrite.dstArrayElement = 0;
+
+		writes.push_back(renderWrite);
+		
+		vk::WriteDescriptorSet depthWrite;
+
+		depthWrite.descriptorCount = 1;
+		depthWrite.dstSet = combineTechnique->getDescriptionSets()[0];
+		depthWrite.dstBinding = i+1;
+		depthWrite.descriptorType = vk::DescriptorType::eInputAttachment;
+		depthWrite.pImageInfo = &depthInputImageInfo;
+		depthWrite.pBufferInfo = nullptr;
+		depthWrite.pTexelBufferView = nullptr;
+		depthWrite.dstArrayElement = 0;
+
+		writes.push_back(depthWrite);
+
+		i += 2;
 	}
 
 	device.updateDescriptorSets(writes, {});
@@ -223,7 +264,6 @@ void DeviceContext::tempPresent()
 	presentQueue.presentKHR(presentInfo);
 	presentQueue.waitIdle();
 
-	renderQueue.clear();
 }
 
 void DeviceContext::executeCommandQueue()
@@ -311,7 +351,7 @@ void DeviceContext::renderGeometry()
 			commandBuffer.end();
 		}
 	}
-
+	renderQueue.clear();
 	
 }
 
@@ -440,7 +480,7 @@ void DeviceContext::createRenderPass()
 	{
 		case DEVICE_MODE::WINDOW:
 			colorAttachment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
-			depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+			depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
 			break;
 		case DEVICE_MODE::HEADLESS:
 			colorAttachment.finalLayout = vk::ImageLayout::eTransferSrcOptimal;
@@ -500,30 +540,35 @@ void DeviceContext::createPresentRenderPass()
 	colorAttachment.initialLayout = vk::ImageLayout::eTransferDstOptimal;
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
+
+	vk::AttachmentDescription PresentDepthAttachment;
+	PresentDepthAttachment.format = swapchain.depthImage->getFormat(); //maybe hardcode?
+	PresentDepthAttachment.samples = vk::SampleCountFlagBits::e1;
+	PresentDepthAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
+	PresentDepthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	PresentDepthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eLoad;
+	PresentDepthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eStore;
+	PresentDepthAttachment.initialLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+	PresentDepthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 	
-	std::vector<vk::AttachmentDescription> attatchments = { colorAttachment };
+	std::vector<vk::AttachmentDescription> attatchments = { colorAttachment, PresentDepthAttachment };
 	std::vector<vk::AttachmentReference> inputAttatchmentRefs;
 
-	int i = 1;
+
+	vk::AttachmentReference colorAttachmentRef;
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+	vk::AttachmentReference depthInputAttachmentRef;
+	depthInputAttachmentRef.attachment = 1;
+	depthInputAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+	inputAttatchmentRefs.push_back(depthInputAttachmentRef);
+
+	int i = 2;
 	for (auto& secondaryTexture : secondaryDeviceTextures)
 	{
-		vk::AttachmentDescription depthAttachment;
-		depthAttachment.format = swapchain.depthImage->getFormat(); //maybe hardcode?
-		depthAttachment.samples = vk::SampleCountFlagBits::e1;
-		depthAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
-		depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-		depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eLoad;
-		depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eStore;
-		depthAttachment.initialLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
-		depthAttachment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
-
-		attatchments.push_back(depthAttachment);
-
-		vk::AttachmentReference depthAttachmentRef;
-		depthAttachmentRef.attachment = i;
-		depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
-		inputAttatchmentRefs.push_back(depthAttachmentRef);
-
+		
 		vk::AttachmentDescription inputAttatchment;
 		inputAttatchment.format = swapchain.imageFormat; //maybe hardcode?
 		inputAttatchment.samples = vk::SampleCountFlagBits::e1;
@@ -537,17 +582,31 @@ void DeviceContext::createPresentRenderPass()
 		attatchments.push_back(inputAttatchment);
 
 		vk::AttachmentReference inputAttatchmentRef;
-		inputAttatchmentRef.attachment = i+1;
+		inputAttatchmentRef.attachment = i;
 		inputAttatchmentRef.layout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		inputAttatchmentRefs.push_back(inputAttatchmentRef);
+
+
+		vk::AttachmentDescription depthAttachment;
+		depthAttachment.format = swapchain.depthImage->getFormat(); //maybe hardcode?
+		depthAttachment.samples = vk::SampleCountFlagBits::e1;
+		depthAttachment.loadOp = vk::AttachmentLoadOp::eLoad;
+		depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+		depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eLoad;
+		depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eStore;
+		depthAttachment.initialLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+		depthAttachment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
+
+		attatchments.push_back(depthAttachment);
+
+		vk::AttachmentReference depthAttachmentRef;
+		depthAttachmentRef.attachment = i+1;
+		depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+		inputAttatchmentRefs.push_back(depthAttachmentRef);
 
 		i+=2;
 	}
 
-	vk::AttachmentReference colorAttachmentRef;
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
-	
 
 	vk::SubpassDescription subpass;
 	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
@@ -586,11 +645,11 @@ void DeviceContext::createFrameBuffers()
 	//create an image view for the output to the swap texture.
 	for (size_t i = 0; i < frameBufferCount; i++) {
 		std::vector<vk::ImageView> attachments = { swapchain.imageViews[i], swapchain.depthImage->getImageView() };
-		std::vector<vk::ImageView> finalFrameBufferattachments = { swapchain.imageViews[i] };
+		std::vector<vk::ImageView> finalFrameBufferattachments = { swapchain.imageViews[i], swapchain.depthImage->getImageView() };
 		for (auto & secondaryTextures : secondaryDeviceTextures)
 		{
-			finalFrameBufferattachments.push_back(secondaryTextures.second->renderDepthTexture->getImageView());
 			finalFrameBufferattachments.push_back(secondaryTextures.second->renderTexture->getImageView());
+			finalFrameBufferattachments.push_back(secondaryTextures.second->renderDepthTexture->getImageView());
 		}
 			
 		vk::FramebufferCreateInfo framebufferInfo = {};
@@ -745,7 +804,8 @@ void DeviceContext::createSwapchain()
 		swapchain.extent.width, swapchain.extent.height,
 		vk::Format::eD32Sfloat,
 		vk::ImageLayout::eUndefined, vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth);
+		vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eInputAttachment,
+		vk::MemoryPropertyFlagBits::eDeviceLocal, vk::ImageAspectFlagBits::eDepth);
 
 
 	//Transition depth image layout
@@ -965,7 +1025,7 @@ void DeviceContext::startFinalRenderPass()
 	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 	combineTechnique->bindPipeline(commandBuffer);
 
-	//commandBuffer.draw(6, 1, 0, 0);
+	commandBuffer.draw(6, 1, 0, 0);
 
 	commandBuffer.endRenderPass();
 	commandBuffer.end();

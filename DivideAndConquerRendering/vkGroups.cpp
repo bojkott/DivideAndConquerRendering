@@ -51,4 +51,7 @@ namespace vkGroups {
 			set.second.clear();
 		}
 	}
+	AdvancedMeshGroup::~AdvancedMeshGroup()
+	{
+	}
 }

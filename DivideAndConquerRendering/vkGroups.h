@@ -8,6 +8,7 @@ class DeviceContext;
 class Technique;
 class UniformBuffer;
 class Mesh;
+class Material;
 namespace vkGroups {
 
 	struct ShaderGroup {
@@ -44,5 +45,11 @@ namespace vkGroups {
 	{
 		std::map < DeviceContext*, std::vector<Mesh*>> sets;
 		~MeshGroup();
+	};
+
+	struct AdvancedMeshGroup
+	{
+		std::map<Material*, MeshGroup> sets;
+		 ~AdvancedMeshGroup();
 	};
 }

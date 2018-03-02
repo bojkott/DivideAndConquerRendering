@@ -24,7 +24,7 @@ void Buffer::transferBufferTo(Buffer & destination)
 
 	void* dataB = destination.deviceContext->getDevice().mapMemory(destination.bufferMemory, 0, bufferSize);
 
-//	memcpy(dataB, dataA, bufferSize);
+	memcpy(dataB, dataA, bufferSize);
 
 	this->deviceContext->getDevice().unmapMemory(this->bufferMemory);
 	destination.deviceContext->getDevice().unmapMemory(destination.bufferMemory);

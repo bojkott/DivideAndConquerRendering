@@ -8,6 +8,7 @@ layout(binding = 1) uniform camera
 {
 	mat4 view;
 	mat4 projection;
+	int deviceId;
 } cam;
 
 layout(binding = 2) uniform Material
@@ -23,6 +24,7 @@ layout(push_constant) uniform ModelMat
 
 layout(location = 0) out vec2 outTexCoord;
 layout(location = 1) out vec3 outNorm;
+layout(location = 2) out float deviceId;
 
 
 void main() 
@@ -33,4 +35,6 @@ void main()
 
 	gl_Position = cam.projection * cam.view * modelMat.model * pos;
 	//gl_Position.y = -gl_Position.y; //Flip that shit! //Why tho?
+
+	deviceId = cam.deviceId;
 }

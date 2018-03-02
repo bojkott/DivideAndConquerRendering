@@ -1,6 +1,6 @@
 #include "RenderState.h"
 #include "Window.h"
-RenderState::RenderState()
+RenderState::RenderState(vk::FrontFace frontFace)
 {
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
@@ -25,7 +25,7 @@ RenderState::RenderState()
 	rasterizer.polygonMode = vk::PolygonMode::eFill;
 	rasterizer.lineWidth = 1.0f;
 	rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-	rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
+	rasterizer.frontFace = frontFace;
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f;
 	rasterizer.depthBiasClamp = 0.0f;

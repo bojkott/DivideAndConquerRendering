@@ -12,10 +12,10 @@
 Window* window;
 Renderer* renderer;
 Camera* camera;
-Model* m;
 char titleBuff[256];
 double lastDelta = 0.0;
 
+std::vector<Model*> models;
 
 void updateDelta()
 {
@@ -48,10 +48,13 @@ void run() {
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
 		camera->update(lastDelta/1000.0f);
-		m->submitModel(renderer->deviceGroup.getMainDevice());
+
+		for (Model* m : models)
+			m->submitModel(&renderer->deviceGroup);
+
 		renderer->render();
 		updateDelta();
-		sprintf_s(titleBuff, "Vulkan - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());
+		sprintf_s(titleBuff, "Divide & Conquer Rendering [Vulkan] - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());
 		SDL_SetWindowTitle(window->window, titleBuff);
 	}
 }
@@ -65,7 +68,14 @@ int main()
 		window = new Window(1280, 720);
 		renderer = new Renderer();
 		camera = Camera::getInstance();
-		m = new Model("sponza.obj");
+
+		for (int i = 0; i < 1; i++)
+		{
+			Model* m = new Model("sponza.obj");
+			m->setPosition(glm::vec3((i/5)*1000, 0, i * 500));
+			models.push_back(m);
+		}
+		
 		run();
 	}
 	catch (std::exception& e)
