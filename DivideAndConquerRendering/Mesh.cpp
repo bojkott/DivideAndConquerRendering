@@ -21,6 +21,6 @@ Technique * Mesh::getTechnique()
 
 void Mesh::bind(vk::CommandBuffer commandBuffer)
 {
-	commandBuffer.pushConstants(technique->getPipelineLayout(), vk::ShaderStageFlagBits::eVertex, 0, 1, &model->getModelMatrix());
+	commandBuffer.pushConstants(technique->getPipelineLayout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(&model->getModelMatrix()), &model->getModelMatrix());
 	vertexBuffer->bind(commandBuffer);
 }
