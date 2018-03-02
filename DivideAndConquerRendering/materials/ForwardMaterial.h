@@ -11,10 +11,9 @@ class ForwardMaterial : public Material
 private:
 	struct MaterialBuffer
 	{
-		/*
-		Get stuff from tiny obj
-		Like difuse and color
-		*/
+		glm::vec3 ambient;
+		glm::vec3 objColor;
+
 	};
 
 	tinyobj::material_t material;

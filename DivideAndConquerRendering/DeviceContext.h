@@ -1,5 +1,4 @@
 #pragma once
-// Albin is a little gay ass boy
 #include <vulkan\vulkan.hpp>
 #include <SDL.h>
 #include <memory>

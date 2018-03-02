@@ -5,16 +5,9 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 {
 	this->material = material;
 
-	/*vk::DescriptorSetLayoutBinding uboLayoutBinding;
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
-	uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-
-	vk::DescriptorSetLayoutCreateInfo layoutInfo;
-	layoutInfo.bindingCount = 1;
-	layoutInfo.pBindings = &uboLayoutBinding;*/
+	addBinding(PER_CAMERA_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics);
+	setPushConstant(vk::ShaderStageFlagBits::eVertex, sizeof(glm::mat4));	//Per_Object
 
 	vk::VertexInputBindingDescription bindingDescription;
 	bindingDescription.binding = 0;

@@ -1,29 +1,44 @@
 #version 450
-layout(location = 0) in vec4 pos_in;
-layout(location = 1) in vec3 normal_in;
-layout(location = 0) out vec4 pos;
-layout(location = 1) out vec3 normal;
-layout(binding = 0) uniform UniformBufferObject
-{
-	uniform mat4 model;
-	uniform mat4 view;
-	uniform mat4 projection;
-} ubo;
 
-struct Vertex {
+layout(binding = 0) uniform Vertex
+{
 	vec3 pos;
-	vec3 color;
 	vec2 texCoord;
 	vec3 norm;
-};
+} vertex;
+
+layout(binding = 1) uniform camera
+{
+	uniform mat4 view;
+	uniform mat4 projection;
+} cam;
+
+layout(binding = 2) uniform Material
+{
+	vec3 ambient;
+	vec3 objColor;
+} material;
+
+layout(push_constant) uniform ModelMat
+{
+	mat4 model;
+} modelMat;
+
+layout(location = 0) out Vertex
+{
+	vec4 pos;
+	vec2 texCoord;
+	vec3 norm;
+} outVertex;
 
 void main() 
 {
-	pos = ubo.projection * ubo.view * ubo.model * pos_in;
-	normal = mat3(transpose(inverse(ubo.model))) * normal_in;
-			/*This transpose and inverse should be done on the CPU and then passed to the shader*/
+	vec4 pos = vec4(vertex.pos, 1.0);
+	outVertex.pos = cam.projection * cam.view * modelMat.model * pos;
+	outVertex.norm = mat3(transpose(inverse(modelMat.model))) * vertex.norm;
+	outVertex.texCoord = vertex.texCoord;
 
-	gl_Position = ubo.projection * ubo.view * ubo.model * pos_in;
+	gl_Position = cam.projection * cam.view * modelMat.model * pos;
 	gl_Position.y = -gl_Position.y; //Flip that shit! //Why tho?
 	gl_Position.z = -gl_Position.z;
 }
