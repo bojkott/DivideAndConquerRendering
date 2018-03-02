@@ -45,6 +45,7 @@ void run() {
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
+
 		//updateScene();
 		//renderScene();
 		renderer->render();
@@ -57,6 +58,8 @@ void run() {
 #undef main SDL_main	//Beacuse SDL_main was defined as main...
 int main()
 {
+
+
 	try {
 		window = new Window(1280, 720);
 		renderer = new Renderer();

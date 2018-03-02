@@ -4,16 +4,21 @@
 #define GLM_FORCE_RADIANS
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
+#include <tiny_obj_loader.h>
 
 class ForwardMaterial : public Material
 {
 private:
-	struct UniformBufferObject {
-		glm::mat4 model;
-		glm::mat4 view;
-		glm::mat4 proj;
+	struct MaterialBuffer
+	{
+		/*
+		Get stuff from tiny obj
+		Like difuse and color
+		*/
 	};
 
+	tinyobj::material_t material;
 public:
-	ForwardMaterial();
+	ForwardMaterial(tinyobj::material_t material);
+	tinyobj::material_t* getMaterial();
 };

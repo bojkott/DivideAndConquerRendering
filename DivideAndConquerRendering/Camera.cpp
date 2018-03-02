@@ -1,48 +1,95 @@
 #include "Camera.h"
 #include "Renderer.h"
+#include "Window.h"
+#include "UniformBuffer.h"
+Camera* Camera::instance;
 
-vk::DescriptorSetLayout Camera::descriptorSetLayout;
-vk::Device* Camera::device = nullptr;
-Buffer Camera::cameraBuffer;
-Camera::UniformBufferObject Camera::cameraObject;
-
-
-vk::DescriptorSetLayout* Camera::getDescriptorSetLayout()
+Camera Camera::getInstance( float x, float y, float z)  
 {
-	return &descriptorSetLayout;
+	if (instance == nullptr)
+	{
+		instance = new Camera(x, y, z);
+	}
+	return *instance;
 }
 
-void Camera::Init(DeviceContext* context, float x, float y, float z)  
+void Camera::bindCamera(DeviceContext * context, vk::DescriptorSet descSet)
 {
-	cameraBuffer = Buffer(context,
-		sizeof(UniformBufferObject), vk::BufferUsageFlagBits::eUniformBuffer, vk::SharingMode::eExclusive,
-		vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-	vk::DescriptorSetLayoutBinding uboLayoutBinding = {};
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-	uboLayoutBinding.descriptorCount = 1;
+	//bufferGroup.sets[context]->bind(PER_CAMERA_BINDING, descSet);
+}
 
-	uboLayoutBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
+Camera::~Camera()
+{
+	delete instance;
+}
 
-	vk::DescriptorSetLayoutCreateInfo layout = {};
-	layout.bindingCount = 1;
-	layout.pBindings = &uboLayoutBinding;
+void Camera::update(float dt)
+{
+	int x, y;
 
-	context->getDevice().createDescriptorSetLayout(&layout, nullptr, &descriptorSetLayout);
+	SDL_GetRelativeMouseState(&x, &y);
+	const Uint8 *state = SDL_GetKeyboardState(NULL);
+	float cameraSpeed = 0.05f * dt;
 
-	cameraObject.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	cameraObject.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	cameraObject.proj = glm::perspective(glm::radians(45.0f), (float) context->getSwapchain().extent.width / (float) context->getSwapchain().extent.height,
-		0.1f, 10.0f);
+
+	// Fucking keyboard n shit
+	if (state[SDL_SCANCODE_W])
+		cameraPos += cameraSpeed * cameraFront;
+
+	if (state[SDL_SCANCODE_S])
+		cameraPos -= cameraSpeed * cameraFront;
+
+	if (state[SDL_SCANCODE_A])
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+	if (state[SDL_SCANCODE_D])
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+
+	// Fucking mouse fuck
+	float sensitivity = 0.05;
+    y *= sensitivity;
+    x *= sensitivity;
+
+	static float yaw = 0;
+	static float pitch = 0;
+	yaw += x;
+	pitch += y;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+	
+
+	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	updateCameraBuffer();
+}
+
+Camera::Camera(float x, float y, float z)
+{
+	Renderer::deviceGroup.createUniformBufferGroup(sizeof(UniformBufferObject), bufferGroup);
+
+	SDL_WarpMouseInWindow(Window::window, 400, 300);
+
+	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 	cameraObject.proj[1][1] *= -1;
 
-	cameraBuffer.setData(&cameraObject);
+	for (auto& pair : bufferGroup.sets)
+		pair.second->setData(&cameraObject);
 }
 
-void Camera::Destroy()
+void Camera::updateCameraBuffer()
 {
-	if (device != nullptr)
-		device->destroyDescriptorSetLayout(descriptorSetLayout);
+	for (auto& pair : bufferGroup.sets)
+		pair.second->setData(&cameraObject);
 }
+

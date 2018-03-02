@@ -10,6 +10,13 @@ layout(binding = 0) uniform UniformBufferObject
 	uniform mat4 projection;
 } ubo;
 
+struct Vertex {
+	vec3 pos;
+	vec3 color;
+	vec2 texCoord;
+	vec3 norm;
+};
+
 void main() 
 {
 	pos = ubo.projection * ubo.view * ubo.model * pos_in;
