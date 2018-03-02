@@ -1,6 +1,6 @@
 #include "ForwardMaterial.h"
 
-ForwardMaterial::ForwardMaterial() : Material("Forward.vert", "Forward.frag", DeviceContext::RENDERPASS_TYPE::Final)
+ForwardMaterial::ForwardMaterial() : Material("Forward.vert", "Forward.frag", DeviceContext::RENDERPASS_TYPE::Standard)
 {
 	vk::DescriptorSetLayoutBinding uboLayoutBinding;
 	uboLayoutBinding.binding = 0;

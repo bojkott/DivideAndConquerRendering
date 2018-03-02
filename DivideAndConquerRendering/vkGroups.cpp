@@ -42,4 +42,11 @@ namespace vkGroups {
 			delete set.second;
 		}
 	}
+	UniformBufferGroup::~UniformBufferGroup()
+	{
+		for (auto const& set : sets)
+		{
+			delete set.second;
+		}
+	}
 }

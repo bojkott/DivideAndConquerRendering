@@ -1,6 +1,6 @@
 #include "DeviceGroup.h"
 #include "DeviceContext.h"
-
+#include "UniformBuffer.h"
 DeviceGroup::DeviceGroup()
 {
 }
@@ -50,6 +50,14 @@ void DeviceGroup::createShaderGroup(const std::string & shaderFilename, Shader::
 	for (DeviceContext* const device : devices)
 	{
 		shaderGroup.sets.insert(std::make_pair(device, new Shader(shaderFilename, shaderType, device)));
+	}
+}
+
+void DeviceGroup::createUniformBufferGroup(size_t bufferSize, vkGroups::UniformBufferGroup & bufferGroup)
+{
+	for (DeviceContext* const device : devices)
+	{
+		bufferGroup.sets.insert(std::make_pair(device, new UniformBuffer(device, bufferSize)));
 	}
 }
 

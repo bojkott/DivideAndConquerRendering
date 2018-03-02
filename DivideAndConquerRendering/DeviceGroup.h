@@ -26,4 +26,5 @@ public:
 
 	void createShaderGroup(const std::string& shaderFilename, Shader::ShaderType shaderType, vkGroups::ShaderGroup& shaderGroup);
 
+	void createUniformBufferGroup(size_t bufferSize, vkGroups::UniformBufferGroup& bufferGroup);
 };
