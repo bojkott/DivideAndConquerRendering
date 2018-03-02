@@ -96,11 +96,14 @@ Technique::~Technique()
 	
 }
 
-void Technique::bind(vk::CommandBuffer& commandBuffer)
+void Technique::bindMaterial()
 {
-	if(materialBuffer)
-		materialBuffer->bind(PER_CAMERA_BINDING, descriptorSets[0]);
+	if (materialBuffer)
+		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
+}
 
+void Technique::bindPipeline(vk::CommandBuffer& commandBuffer)
+{
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSets, {});
 }

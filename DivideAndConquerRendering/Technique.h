@@ -31,7 +31,8 @@ public:
 	static Technique* createOrGetTechnique(DeviceContext* deviceContext, Material* m, RenderState* r);
 	~Technique();
 
-	void bind(vk::CommandBuffer& commandBuffer);
+	void bindMaterial();
+	void bindPipeline(vk::CommandBuffer& commandBuffer);
 
 	std::vector<vk::DescriptorSet> getDescriptionSets();
 

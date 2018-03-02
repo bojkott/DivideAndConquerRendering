@@ -3,7 +3,7 @@
 #include "DeviceContext.h"
 
 VertexBuffer::VertexBuffer(std::vector<ModelHelper::Vertex>& verts, DeviceContext * context)
-	: Buffer(context, sizeof(verts[0].pos) * verts.size(), vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal)
+	: Buffer(context, sizeof(verts[0]) * verts.size(), vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst, vk::SharingMode::eExclusive, vk::MemoryPropertyFlagBits::eDeviceLocal)
 {
 	nrOfVerts = verts.size();
 	// Map to cpu 
@@ -37,6 +37,11 @@ void VertexBuffer::bind(vk::CommandBuffer& commandBuffer) const
 
 	vk::DeviceSize offsets[] = { 0 };
 	commandBuffer.bindVertexBuffers(0, 1, &buffer, offsets);
+}
+
+void VertexBuffer::draw(vk::CommandBuffer & commandBuffer) const
+{
+	commandBuffer.draw(nrOfVerts, 1, 0, 0);
 }
 
 inline uint32_t VertexBuffer::getNrOfVerts() const

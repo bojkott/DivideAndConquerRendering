@@ -11,6 +11,7 @@ private:
 public:
 	VertexBuffer(std::vector<ModelHelper::Vertex>& verts, DeviceContext * context);
 	void bind(vk::CommandBuffer& commandBuffer) const;
+	void draw(vk::CommandBuffer& commandBuffer) const;
 	uint32_t getNrOfVerts() const;
 
 private:

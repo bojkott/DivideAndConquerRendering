@@ -265,17 +265,23 @@ void DeviceContext::submitMesh(Mesh * mesh)
 void DeviceContext::renderGeometry()
 {
 
+	//maybe only do this once? :)
+	for (auto& queueElement : renderQueue)
+	{
+		queueElement.first->bindMaterial();
+		Camera::getInstance()->bindCamera(this, queueElement.first->getDescriptionSets()[0]);
+	}
+
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
 		
 
 		for (auto& queueElement : renderQueue)
 		{
-			Camera::getInstance()->bindCamera(this, queueElement.first->getDescriptionSets()[0]);
-			queueElement.first->bind(renderPassCommandBuffer);
+			queueElement.first->bindPipeline(renderPassCommandBuffer);
 			for (Mesh* mesh : queueElement.second)
 			{
-				mesh->bind(renderPassCommandBuffer);
+				mesh->draw(renderPassCommandBuffer);
 			}
 		}
 		renderPassCommandBuffer.endRenderPass();
@@ -285,24 +291,28 @@ void DeviceContext::renderGeometry()
 
 		renderPassCommandBuffer.end();
 	}
-
-	for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
+	else
 	{
-		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
-
-		for (auto& queueElement : renderQueue)
+		for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
 		{
-			Camera::getInstance()->bindCamera(this, queueElement.first->getDescriptionSets()[0]);
-			queueElement.first->bind(commandBuffer);
-			for (Mesh* mesh : queueElement.second)
-			{
-				mesh->bind(commandBuffer);
-			}
-		}
+			vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
 
-		commandBuffer.endRenderPass();
-		commandBuffer.end();
+			for (auto& queueElement : renderQueue)
+			{
+				queueElement.first->bindPipeline(commandBuffer);
+				
+				for (Mesh* mesh : queueElement.second)
+				{
+					mesh->draw(commandBuffer);
+				}
+			}
+
+			commandBuffer.endRenderPass();
+			commandBuffer.end();
+		}
 	}
+
+	
 }
 
 void DeviceContext::executeSingleTimeQueue(std::function< void(vk::CommandBuffer)> commands)
@@ -953,7 +963,7 @@ void DeviceContext::startFinalRenderPass()
 	commandBuffer.executeCommands(1, &combineDaQCommandBuffer);
 
 	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
-	combineTechnique->bind(commandBuffer);
+	combineTechnique->bindPipeline(commandBuffer);
 
 	//commandBuffer.draw(6, 1, 0, 0);
 

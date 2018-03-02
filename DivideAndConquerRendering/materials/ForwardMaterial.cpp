@@ -18,21 +18,21 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	vk::VertexInputAttributeDescription attributeDescription;
 	attributeDescription.binding = 0;
 	attributeDescription.location = 0;
-	attributeDescription.format = vk::Format::eR32G32B32Sfloat;	//Pos
-	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::pos);
+	attributeDescription.format = vk::Format::eR32G32B32A32Sfloat;	//Pos
+	attributeDescription.offset = offsetof(ModelHelper::Vertex, pos);
 	attributeDescriptions.push_back(attributeDescription);
 
 
 	attributeDescription.binding = 0;
 	attributeDescription.location = 1;
 	attributeDescription.format = vk::Format::eR32G32Sfloat;	//TexCoord
-	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::texCoord);
+	attributeDescription.offset = offsetof(ModelHelper::Vertex, texCoord);
 	attributeDescriptions.push_back(attributeDescription);
 
 	attributeDescription.binding = 0;
 	attributeDescription.location = 2;
-	attributeDescription.format = vk::Format::eR32G32B32Sfloat;	//Norm
-	attributeDescription.offset = offsetof(ModelHelper::Vertex, ModelHelper::Vertex::norm);
+	attributeDescription.format = vk::Format::eR32G32B32A32Sfloat;	//Norm
+	attributeDescription.offset = offsetof(ModelHelper::Vertex, norm);
 	attributeDescriptions.push_back(attributeDescription);
 
 

@@ -27,10 +27,10 @@ Camera::~Camera()
 void Camera::update(float dt)
 {
 	int x, y;
-
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_GetRelativeMouseState(&x, &y);
 	const Uint8 *state = SDL_GetKeyboardState(NULL);
-	float cameraSpeed = 0.05f * dt;
+	float cameraSpeed = 50.0f * dt;
 
 
 	// Fucking keyboard n shit
@@ -46,13 +46,18 @@ void Camera::update(float dt)
 	if (state[SDL_SCANCODE_D])
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 
+	if (state[SDL_SCANCODE_Q])
+		cameraPos += cameraSpeed * cameraUp;
+
+	if (state[SDL_SCANCODE_E])
+		cameraPos -= cameraSpeed * cameraUp;
 
 	// Fucking mouse fuck
 	float sensitivity = 0.05;
-    y *= sensitivity;
+    y *= -sensitivity;
     x *= sensitivity;
 
-	static float yaw = 0;
+	static float yaw = 95;
 	static float pitch = 0;
 	yaw += x;
 	pitch += y;
@@ -69,8 +74,8 @@ void Camera::update(float dt)
 	cameraFront = glm::normalize(front);
 	
 
-	//cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	//updateCameraBuffer();
+	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	updateCameraBuffer();
 }
 
 Camera::Camera(float x, float y, float z)
@@ -79,8 +84,8 @@ Camera::Camera(float x, float y, float z)
 
 	SDL_WarpMouseInWindow(Window::window, 400, 300);
 
-	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
+	cameraObject.view = glm::lookAt(cameraPos, cameraFront, cameraUp);
 
 	cameraObject.proj[1][1] *= -1;
 

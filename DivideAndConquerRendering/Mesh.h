@@ -21,7 +21,7 @@ public:
 
 	Technique* getTechnique();
 
-	void bind(vk::CommandBuffer commandBuffer);
+	void draw(vk::CommandBuffer commandBuffer);
 private:
 };
 

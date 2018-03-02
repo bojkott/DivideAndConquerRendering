@@ -65,7 +65,7 @@ int main()
 		window = new Window(1280, 720);
 		renderer = new Renderer();
 		camera = Camera::getInstance();
-		m = new Model("box.obj");
+		m = new Model("sponza.obj");
 		run();
 	}
 	catch (std::exception& e)
