@@ -59,7 +59,7 @@ int main()
 		renderer = new Renderer();
 		camera = Camera::getInstance();
 
-		for (int i = 0; i < 0; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Model* m = new Model("sponza.obj");
 			m->setPosition(glm::vec3((i/5)*1000, 0, i * 500));
