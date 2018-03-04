@@ -45,18 +45,6 @@ void Renderer::render()
 {
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
-	double mainDeviceTime = 0.0f;
-
-	std::thread mainDeviceThread([mainDevice, &mainDeviceTime]()
-	{
-		Uint32 start = SDL_GetPerformanceCounter();
-		mainDevice->clearBuffer(1, 1, 0, 1);
-		mainDevice->renderGeometry();
-		mainDevice->executeCommandQueue();
-
-		Uint32 end = SDL_GetPerformanceCounter();
-		mainDeviceTime = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
-	});
 
 	std::vector<std::thread> workers;
 
@@ -66,20 +54,16 @@ void Renderer::render()
 	for (auto& slaveDevices : mainDevice->getTexturePairs())
 	{
 		DeviceContext* device = slaveDevices.first;
+		slaveDeviceTimes.push_back(0);
+		executeFirstPassOnDevice(device, slaveDeviceTimes[slaveDeviceTimes.size() - 1]);
+		//workers.push_back(std::thread(&Renderer::executeFirstPassOnDevice, this, device, std::ref(slaveDeviceTimes[slaveDeviceTimes.size()-1])));
 
-		workers.push_back(std::thread(
-			[device, &slaveDeviceTimes]()
-		{
-			Uint32 start = SDL_GetPerformanceCounter();
-			device->clearBuffer(0, 0, 1, 1);
-			device->renderGeometry();
-			device->executeCommandQueue();
-			Uint32 end = SDL_GetPerformanceCounter();
-			double time = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
-			slaveDeviceTimes.push_back(time);
-		}));
 	}
 
+
+	double mainDeviceTime = 0;
+	executeFirstPassOnDevice(mainDevice, mainDeviceTime);
+	//std::thread mainDeviceThread(&Renderer::executeFirstPassOnDevice, this, mainDevice, std::ref(mainDeviceTime));
 
 	for (auto & worker : workers)
 		worker.join();
@@ -94,11 +78,9 @@ void Renderer::render()
 	Uint32 transferEnd = SDL_GetPerformanceCounter();
 	transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
 	
-
-	mainDeviceThread.join();
+	//mainDeviceThread.join();
 	//Sync GPUs
-
-	
+		
 	Uint32 start = SDL_GetPerformanceCounter();
 	mainDevice->startFinalRenderPass(); //Combine
 	mainDevice->tempPresent(); //Final pass
@@ -114,6 +96,16 @@ void Renderer::render()
 
 	std::cout << " transfer time: " << transferTime << " combine time: " << combineTime << std::endl;
 
+}
+
+void Renderer::executeFirstPassOnDevice(DeviceContext* device, double& time)
+{
+	Uint32 start = SDL_GetPerformanceCounter();
+	device->clearBuffer(0, 0, 0, 1);
+	device->renderGeometry();
+	device->executeCommandQueue();
+	Uint32 end = SDL_GetPerformanceCounter();
+	time = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
 }
 
 bool Renderer::checkValidationLayerSupport()

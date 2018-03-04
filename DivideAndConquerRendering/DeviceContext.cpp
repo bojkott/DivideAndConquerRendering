@@ -284,13 +284,20 @@ void DeviceContext::executeCommandQueue()
 	vk::SubmitInfo submitInfo;
 
 
+	vk::Semaphore waitSemaphores[] = { imageAvailableSemaphore };
 	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-	submitInfo.waitSemaphoreCount = 0;
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
+	if (mode == DEVICE_MODE::WINDOW)
+	{
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+	}
+	
+	
 	graphicsQueue.submit(1, &submitInfo, {});
 
 	graphicsQueue.waitIdle();
@@ -319,6 +326,7 @@ void DeviceContext::renderGeometry()
 		for (auto& queueElement : renderQueue)
 		{
 			queueElement.first->bindPipeline(renderPassCommandBuffer);
+			queueElement.first->bindDescriptorSet(renderPassCommandBuffer);
 			for (Mesh* mesh : queueElement.second)
 			{
 				mesh->draw(renderPassCommandBuffer);
@@ -340,7 +348,7 @@ void DeviceContext::renderGeometry()
 			for (auto& queueElement : renderQueue)
 			{
 				queueElement.first->bindPipeline(commandBuffer);
-				
+				queueElement.first->bindDescriptorSet(commandBuffer);
 				for (Mesh* mesh : queueElement.second)
 				{
 					mesh->draw(commandBuffer);
@@ -764,7 +772,7 @@ void DeviceContext::createSwapchain()
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
 	createInfo.imageExtent = extent;
 	createInfo.imageArrayLayers = 1; // 1 if not VR
-	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst, vk::ImageUsageFlagBits::eInputAttachment;
+	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
 
 	QueueFamilyIndices indices = findQueueFamilies();
@@ -1002,15 +1010,16 @@ void DeviceContext::createSemaphores()
 
 void DeviceContext::startFinalRenderPass()
 {
-	
+	if (deviceGroup->getGroupSize() == 1)
+		return;
 
 	vk::CommandBufferBeginInfo beginInfo;
+
 	beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 
 	vk::RenderPassBeginInfo finalPassInfo;
 	finalPassInfo.renderPass = presentRenderPass;
 	finalPassInfo.renderArea.offset = { 0, 0 };
-
 	finalPassInfo.clearValueCount = 0;
 
 	vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[finalCommandBufferIndex];
@@ -1024,7 +1033,7 @@ void DeviceContext::startFinalRenderPass()
 
 	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
 	combineTechnique->bindPipeline(commandBuffer);
-
+	combineTechnique->bindDescriptorSet(commandBuffer);
 	commandBuffer.draw(6, 1, 0, 0);
 
 	commandBuffer.endRenderPass();
@@ -1103,15 +1112,15 @@ DeviceContext::SwapChainSupportDetails DeviceContext::querySwapChainSupport()
 
 vk::SurfaceFormatKHR DeviceContext::chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
 {
-	//changed from b8g8r8a8 to r8g8b8a8
+
 	if (availableFormats.size() == 1 && availableFormats[0].format == vk::Format::eUndefined)
 	{
-		return { vk::Format::eR8G8B8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
+		return { vk::Format::eB8G8R8A8Unorm, vk::ColorSpaceKHR::eSrgbNonlinear };
 	}
 
 	for (const auto& availableFormat : availableFormats)
 	{
-		if (availableFormat.format == vk::Format::eR8G8B8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+		if (availableFormat.format == vk::Format::eB8G8R8A8Unorm && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
 		{
 			return availableFormat;
 		}
@@ -1138,7 +1147,7 @@ vk::PresentModeKHR DeviceContext::chooseSwapPresentMode(const std::vector<vk::Pr
 
 	for (const auto& availablePresentMode : availablePresentModes)
 	{
-		if (availablePresentMode == vk::PresentModeKHR::eFifo)
+		if (availablePresentMode == vk::PresentModeKHR::eMailbox)
 		{
 			return availablePresentMode;
 		}

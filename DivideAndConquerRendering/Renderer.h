@@ -37,6 +37,9 @@ public:
 	void render();
 private:
 
+
+	void executeFirstPassOnDevice(DeviceContext* device, double& time);
+
 	bool checkValidationLayerSupport();
 	void createInstance();
 	void setupDebugCallBack();

@@ -105,6 +105,11 @@ void Technique::bindMaterial()
 void Technique::bindPipeline(vk::CommandBuffer& commandBuffer)
 {
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+	
+}
+
+void Technique::bindDescriptorSet(vk::CommandBuffer & commandBuffer)
+{
 	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSets, {});
 }
 

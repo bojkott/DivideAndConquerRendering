@@ -33,6 +33,7 @@ public:
 
 	void bindMaterial();
 	void bindPipeline(vk::CommandBuffer& commandBuffer);
+	void bindDescriptorSet(vk::CommandBuffer& commandBuffer);
 
 	std::vector<vk::DescriptorSet> getDescriptionSets();
 

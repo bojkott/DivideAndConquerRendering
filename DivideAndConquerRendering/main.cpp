@@ -19,22 +19,12 @@ std::vector<Model*> models;
 
 void updateDelta()
 {
-#define WINDOW_SIZE 10
-	static Uint64 start = 0;
-	static Uint64 last = 0;
-	static double avg[WINDOW_SIZE] = { 0.0 };
-	static double lastSum = 10.0;
-	static int loop = 0;
+static Uint64 start = 0;
+static Uint64 last = 0;
 
 	last = start;
 	start = SDL_GetPerformanceCounter();
-	double deltaTime = (double)((start - last) * 1000.0 / SDL_GetPerformanceFrequency());
-	// moving average window of WINDOWS_SIZE
-	lastSum -= avg[loop];
-	lastSum += deltaTime;
-	avg[loop] = deltaTime;
-	loop = (loop + 1) % WINDOW_SIZE;
-	lastDelta = (lastSum / WINDOW_SIZE);
+	lastDelta = (double)((start - last) * 1000.0 / SDL_GetPerformanceFrequency());
 };
 
 void run() {
@@ -69,7 +59,7 @@ int main()
 		renderer = new Renderer();
 		camera = Camera::getInstance();
 
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 0; i++)
 		{
 			Model* m = new Model("sponza.obj");
 			m->setPosition(glm::vec3((i/5)*1000, 0, i * 500));
