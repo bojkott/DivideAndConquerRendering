@@ -569,7 +569,7 @@ void DeviceContext::createPresentRenderPass()
 
 	vk::AttachmentReference depthInputAttachmentRef;
 	depthInputAttachmentRef.attachment = 1;
-	depthInputAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+	depthInputAttachmentRef.layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
 
 	inputAttatchmentRefs.push_back(depthInputAttachmentRef);
 
