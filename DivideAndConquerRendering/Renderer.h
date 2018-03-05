@@ -17,7 +17,7 @@ public:
 	static const std::vector<const char*> validationLayers;
 	static DeviceGroup deviceGroup;
 private:
-
+	Renderer();
 	#define FAILED(x) x != vk::Result::eSuccess
 
 	
@@ -31,8 +31,10 @@ private:
 
 	bool slaveDevicesEnabled = true;
 
+	static Renderer* RenderInstance;
+
 public:
-	Renderer();
+	static Renderer* getInstance();
 	double getTransferTime();
 	~Renderer();
 	

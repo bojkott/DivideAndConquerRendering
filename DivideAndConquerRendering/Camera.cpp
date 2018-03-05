@@ -27,9 +27,10 @@ Camera::~Camera()
 void Camera::update(float dt)
 {
 	int x, y;
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_GetRelativeMouseState(&x, &y);
 	const Uint8 *state = SDL_GetKeyboardState(NULL);
-	float cameraSpeed = 100.0f * dt;
+	float cameraSpeed = 550.0f * dt;
 
 
 	// Fucking keyboard n shit
@@ -51,8 +52,9 @@ void Camera::update(float dt)
 	if (state[SDL_SCANCODE_E])
 		cameraPos -= cameraSpeed * cameraUp;
 
+
 	// Fucking mouse fuck
-	float sensitivity = 0.5 * dt;
+	float sensitivity = 0.05f;
     y *= -sensitivity;
     x *= sensitivity;
 

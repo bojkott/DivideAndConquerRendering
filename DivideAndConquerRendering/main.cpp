@@ -30,14 +30,17 @@ static Uint64 last = 0;
 void run() {
 
 	SDL_Event windowEvent;
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	
 	while (true)
 	{
 		if (SDL_PollEvent(&windowEvent))
 		{
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_SPACE)
+			{
+					renderer->toggleSlaveDevices(!renderer->getSlaveDevicesEnabled());
+			}
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
-			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_1) renderer->toggleSlaveDevices(!renderer->getSlaveDevicesEnabled());
 		}
 		camera->update(lastDelta/1000.0f);
 
@@ -58,13 +61,15 @@ int main()
 
 	try {
 		window = new Window(1280, 720);
-		renderer = new Renderer();
+		renderer = Renderer::getInstance();
 		camera = Camera::getInstance();
 
-		for (int i = 0; i < 1; i++)
+		Model* model = new Model("sponza.obj");
+		models.push_back(model);
+		for (int i = 1; i < 10; i++)
 		{
-			Model* m = new Model("sponza.obj");
-			m->setPosition(glm::vec3((i/5)*1000, 0, i * 500));
+			Model* m = new Model(model);
+			m->setPosition(glm::vec3((i/5)*3500, 0, (i%5) * 2000));
 			models.push_back(m);
 		}
 		

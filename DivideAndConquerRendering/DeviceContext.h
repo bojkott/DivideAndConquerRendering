@@ -36,7 +36,7 @@ public:
 	};
 
 private:
-		
+	bool badRendering = true;
 	Technique* combineTechnique;
 
 	std::map<DeviceContext*, SecondaryDeviceTexturePair*> secondaryDeviceTextures;
@@ -57,6 +57,8 @@ private:
 	vk::CommandPool commandPool;
 	vk::Queue graphicsQueue;
 	vk::Queue presentQueue;
+
+	vk::Fence geometryFinished;
 
 	Swapchain swapchain;
 
@@ -88,6 +90,7 @@ private:
 	};
 
 	
+	std::vector<Mesh*> badRenderQueue;
 	std::map<Technique*, std::vector<Mesh*>> renderQueue;
 
 public:

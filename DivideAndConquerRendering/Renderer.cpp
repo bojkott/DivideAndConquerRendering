@@ -12,6 +12,7 @@ const std::vector<const char*> Renderer::validationLayers = {
 
 #include "Model.h"
 
+Renderer* Renderer::RenderInstance = nullptr;
 DeviceGroup Renderer::deviceGroup;
 
 Renderer::Renderer()
@@ -26,6 +27,14 @@ Renderer::Renderer()
 	daQCombineTechnique = Technique::createOrGetTechnique(deviceGroup.getMainDevice(), new DaQCombineMaterial(), new RenderState(vk::FrontFace::eClockwise));
 	deviceGroup.getMainDevice()->setCombineTechnique(daQCombineTechnique);
 
+}
+
+Renderer * Renderer::getInstance()
+{
+	if (RenderInstance)
+		return RenderInstance;
+	else
+		RenderInstance = new Renderer();
 }
 
 double Renderer::getTransferTime()

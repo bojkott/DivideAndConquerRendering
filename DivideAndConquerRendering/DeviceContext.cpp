@@ -269,7 +269,7 @@ void DeviceContext::tempPresent()
 void DeviceContext::executeCommandQueue()
 {
 
-
+	device.resetFences(geometryFinished);
 	vk::CommandBuffer commandBuffer;
 
 	if (mode == DEVICE_MODE::HEADLESS)
@@ -298,30 +298,34 @@ void DeviceContext::executeCommandQueue()
 	}
 	
 	
-	graphicsQueue.submit(1, &submitInfo, {});
-
-	graphicsQueue.waitIdle();
-
+	graphicsQueue.submit(1, &submitInfo, geometryFinished);
+	
 }
 
 void DeviceContext::submitMesh(Mesh * mesh)
 {
-	renderQueue[mesh->getTechnique()].push_back(mesh);
+	if (badRendering)
+		badRenderQueue.push_back(mesh);
+	else
+		renderQueue[mesh->getTechnique()].push_back(mesh);
 }
 
 void DeviceContext::renderGeometry()
 {
 
-	//maybe only do this once? :)
-	for (auto& queueElement : renderQueue)
+	while (device.getFenceStatus(geometryFinished) != vk::Result::eSuccess)
 	{
-		queueElement.first->bindMaterial();
-		Camera::getInstance()->bindCamera(this, queueElement.first->getDescriptionSets()[0]);
 	}
 
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
-		
+
+		for (auto& mesh : badRenderQueue)
+		{
+			mesh->getTechnique()->bindPipeline(renderPassCommandBuffer);
+			mesh->getTechnique()->bindDescriptorSet(renderPassCommandBuffer);
+			mesh->draw(renderPassCommandBuffer);
+		}
 
 		for (auto& queueElement : renderQueue)
 		{
@@ -345,6 +349,13 @@ void DeviceContext::renderGeometry()
 		{
 			vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
 
+			for (auto& mesh : badRenderQueue)
+			{
+				mesh->getTechnique()->bindPipeline(commandBuffer);
+				mesh->getTechnique()->bindDescriptorSet(commandBuffer);
+				mesh->draw(commandBuffer);
+			}
+
 			for (auto& queueElement : renderQueue)
 			{
 				queueElement.first->bindPipeline(commandBuffer);
@@ -360,6 +371,7 @@ void DeviceContext::renderGeometry()
 		}
 	}
 	renderQueue.clear();
+	badRenderQueue.clear();
 	
 }
 
@@ -996,6 +1008,10 @@ void DeviceContext::createCommandBuffers()
 		combineDaQCommandBuffer.end();
 
 	}
+
+	vk::FenceCreateInfo fenceInfo;
+	fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+	geometryFinished = device.createFence(fenceInfo);
 	
 }
 
@@ -1012,6 +1028,12 @@ void DeviceContext::startFinalRenderPass()
 {
 	if (deviceGroup->getGroupSize() == 1)
 		return;
+
+	graphicsQueue.waitIdle();
+	//while (device.getFenceStatus(geometryFinished) != vk::Result::eSuccess)
+	//{
+
+	//}
 
 	vk::CommandBufferBeginInfo beginInfo;
 

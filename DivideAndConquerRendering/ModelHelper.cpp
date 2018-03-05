@@ -20,7 +20,12 @@ std::vector<ModelHelper::MeshInfo> ModelHelper::loadModelFromFile(const std::str
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, fullpath.c_str(), MTL_BASEDIR.c_str())) {
 		throw std::runtime_error(err);
 	}
-
+	std::vector<Material*> mats(materials.size());
+	for (int i = 0; i < mats.size(); i++)
+	{
+		mats[i] = new ForwardMaterial(materials[i]);
+	}
+	Material* blankMat = new ForwardMaterial(tinyobj::material_t());
 
 	// Loop over shapes
 	for (size_t s = 0; s < shapes.size(); s++) {
@@ -58,47 +63,16 @@ std::vector<ModelHelper::MeshInfo> ModelHelper::loadModelFromFile(const std::str
 		int matIndex = shapes[s].mesh.material_ids[0];
 		if (matIndex != -1)
 		{
-			mesh.material = new ForwardMaterial(materials[matIndex]);
+			mesh.material = mats[matIndex];
+		}
+		else
+		{
+			mesh.material = blankMat;
 		}
 		
 		meshes.push_back(mesh);
 
 	}
 
-
-
-	//for (int i = 0; i < shapes.size(); i++)
-	//{
-	//	MeshInfo mesh;
-
-	//	for (int j = 0; j < shapes[i].mesh.indices.size(); j += 3)
-	//	{
-	//		Vertex vertex;
-	//		vertex.pos = {
-	//			attrib.vertices[shapes[i].mesh.indices[j].vertex_index],
-	//			attrib.vertices[shapes[i].mesh.indices[j+1].vertex_index],
-	//			attrib.vertices[shapes[i].mesh.indices[j+2].vertex_index],
-	//		};
-
-	//		vertex.texCoord = {
-	//			attrib.texcoords[2 * index.texcoord_index + 0],
-	//			1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-	//		};
-
-	//		vertex.color = { 1.0f, 1.0f, 1.0f };
-
-	//		vertex.norm = {
-	//			attrib.normals[3 * index.normal_index + 0],
-	//			attrib.normals[3 * index.normal_index + 1],
-	//			attrib.normals[3 * index.vertex_index + 2],
-	//		};
-
-	//		mesh.vertices.push_back(vertex);
-	//	}
-
-	//	//Material* mat = new ForwardMaterial(materials[i]);
-	//	//mesh.material = mat;
-	//	//meshes.push_back(mesh);
-	//}
 	return meshes;
 }

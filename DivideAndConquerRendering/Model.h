@@ -8,12 +8,12 @@ class Mesh;
 class Renderer;
 class Model {
 private:
-	//vkGroups::MeshGroup meshGroup;
+	std::vector<ModelHelper::MeshInfo> meshInfo;
 	vkGroups::AdvancedMeshGroup advancedMeshGroup;
 	glm::mat4 modelMatrix;
 public:
 	Model(std::string filepath);
-
+	Model(Model* otherModel);
 	void submitModel(Renderer* renderer);
 
 	glm::mat4 getModelMatrix();
