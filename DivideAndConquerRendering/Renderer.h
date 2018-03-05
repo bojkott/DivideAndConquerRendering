@@ -29,12 +29,17 @@ private:
 
 	double transferTime = 0.0f;
 
+	bool slaveDevicesEnabled = true;
+
 public:
 	Renderer();
 	double getTransferTime();
 	~Renderer();
 	
 	void render();
+
+	void toggleSlaveDevices(bool value);
+	bool getSlaveDevicesEnabled();
 private:
 
 

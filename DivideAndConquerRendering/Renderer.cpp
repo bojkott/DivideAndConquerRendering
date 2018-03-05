@@ -50,14 +50,16 @@ void Renderer::render()
 
 	std::vector<double> slaveDeviceTimes;
 
-	
-	for (auto& slaveDevices : mainDevice->getTexturePairs())
+	if (slaveDevicesEnabled)
 	{
-		DeviceContext* device = slaveDevices.first;
-		slaveDeviceTimes.push_back(0);
-		executeFirstPassOnDevice(device, slaveDeviceTimes[slaveDeviceTimes.size() - 1]);
-		//workers.push_back(std::thread(&Renderer::executeFirstPassOnDevice, this, device, std::ref(slaveDeviceTimes[slaveDeviceTimes.size()-1])));
+		for (auto& slaveDevices : mainDevice->getTexturePairs())
+		{
+			DeviceContext* device = slaveDevices.first;
+			slaveDeviceTimes.push_back(0);
+			executeFirstPassOnDevice(device, slaveDeviceTimes[slaveDeviceTimes.size() - 1]);
+			//workers.push_back(std::thread(&Renderer::executeFirstPassOnDevice, this, device, std::ref(slaveDeviceTimes[slaveDeviceTimes.size()-1])));
 
+		}
 	}
 
 
@@ -68,11 +70,17 @@ void Renderer::render()
 	for (auto & worker : workers)
 		worker.join();
 
+
+
 	Uint32 transferStart = SDL_GetPerformanceCounter(); 
-	for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
+
+	if (slaveDevicesEnabled)
 	{
-		slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
-		slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
+		for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
+		{
+			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
+			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
+		}
 	}
 
 	Uint32 transferEnd = SDL_GetPerformanceCounter();
@@ -82,7 +90,8 @@ void Renderer::render()
 	//Sync GPUs
 		
 	Uint32 start = SDL_GetPerformanceCounter();
-	mainDevice->startFinalRenderPass(); //Combine
+	if(slaveDevicesEnabled)
+		mainDevice->startFinalRenderPass(); //Combine
 	mainDevice->tempPresent(); //Final pass
 	Uint32 end = SDL_GetPerformanceCounter();
 	double combineTime = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
@@ -96,6 +105,16 @@ void Renderer::render()
 
 	std::cout << " transfer time: " << transferTime << " combine time: " << combineTime << std::endl;
 
+}
+
+void Renderer::toggleSlaveDevices(bool value)
+{
+	slaveDevicesEnabled = value;
+}
+
+bool Renderer::getSlaveDevicesEnabled()
+{
+	return slaveDevicesEnabled;
 }
 
 void Renderer::executeFirstPassOnDevice(DeviceContext* device, double& time)

@@ -2,6 +2,7 @@
 #include "Mesh.h"
 #include "ModelHelper.h"
 #include "DeviceGroup.h"
+#include "Renderer.h"
 #include "DeviceContext.h"
 #include "Renderer.h"
 #include <glm\gtx\transform.hpp>
@@ -12,9 +13,9 @@ Model::Model(std::string filepath)
 	Renderer::deviceGroup.createAdvancedMeshGroup(ModelHelper::loadModelFromFile(filepath), this, advancedMeshGroup);
 }
 
-void Model::submitModel(DeviceGroup * deviceGroup)
+void Model::submitModel(Renderer* renderer)
 {
-
+	DeviceGroup* deviceGroup = &renderer->deviceGroup;
 	int deviceIndex = 0;
 	for (auto& advancedSet : advancedMeshGroup.sets)
 	{
@@ -23,8 +24,8 @@ void Model::submitModel(DeviceGroup * deviceGroup)
 		{
 			device->submitMesh(mesh);
 		}
-
-		deviceIndex = (deviceIndex + 1) % deviceGroup->getGroupSize();
+		if(renderer->getSlaveDevicesEnabled())
+			deviceIndex = (deviceIndex + 1) % deviceGroup->getGroupSize();
 	}
 
 }

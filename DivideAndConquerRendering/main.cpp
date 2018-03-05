@@ -30,17 +30,19 @@ static Uint64 last = 0;
 void run() {
 
 	SDL_Event windowEvent;
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 	while (true)
 	{
 		if (SDL_PollEvent(&windowEvent))
 		{
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_1) renderer->toggleSlaveDevices(!renderer->getSlaveDevicesEnabled());
 		}
 		camera->update(lastDelta/1000.0f);
 
 		for (Model* m : models)
-			m->submitModel(&renderer->deviceGroup);
+			m->submitModel(renderer);
 
 		renderer->render();
 		updateDelta();

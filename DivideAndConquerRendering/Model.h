@@ -5,7 +5,7 @@
 
 #include <glm\glm.hpp>
 class Mesh;
-class DeviceGroup;
+class Renderer;
 class Model {
 private:
 	//vkGroups::MeshGroup meshGroup;
@@ -14,7 +14,7 @@ private:
 public:
 	Model(std::string filepath);
 
-	void submitModel(DeviceGroup* device);
+	void submitModel(Renderer* renderer);
 
 	glm::mat4 getModelMatrix();
 
