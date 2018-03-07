@@ -96,7 +96,7 @@ Texture* Texture::loadFromFile(DeviceContext * deviceContext, std::string filena
 	{
 		VulkanHelpers::cmdTransitionLayout(
 			commandBuffer,
-			texture->getImage(),						//The image		
+			texture->getImage(),					//The image		
 			vk::ImageLayout::eUndefined,			//Old image layout
 			vk::ImageLayout::eTransferDstOptimal,	//New image layout
 			{},										//Old access mask
