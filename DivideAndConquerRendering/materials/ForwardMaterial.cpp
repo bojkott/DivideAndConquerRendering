@@ -10,14 +10,14 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 
 	//If you add a PER_MATERIAL_BINDING binding before this, you must change the order in the shader.
 	//For simplicity add after the bindings.
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Ambient
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Diffuse
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Specular
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Specular Highlight
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Bump
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Displacement
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Alpha
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Reflecton
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Ambient
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Diffuse
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Specular
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Specular Highlight
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Bump
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Displacement
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Alpha
+	//addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Reflecton
 	//Down here!!!
 
 
@@ -50,8 +50,10 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	attributeDescriptions.push_back(attributeDescription);
 
 
-	buffer.ambient = (glm::vec3&)material.ambient;
-	buffer.objColor = (glm::vec3&)material.diffuse;
+	buffer.ambient = (glm::vec4&)material.ambient;
+	buffer.objColor = (glm::vec4&)material.diffuse;
+	buffer.specular = (glm::vec4&)material.specular;
+	buffer.emission = (glm::vec4&)material.emission;
 
 }
 

@@ -11,8 +11,10 @@ class ForwardMaterial : public Material
 private:
 	struct MaterialBuffer
 	{
-		glm::vec3 ambient;
-		glm::vec3 objColor;
+		glm::vec4 ambient;
+		glm::vec4 objColor;
+		glm::vec4 emission;
+		glm::vec4 specular;
 
 	}buffer;
 

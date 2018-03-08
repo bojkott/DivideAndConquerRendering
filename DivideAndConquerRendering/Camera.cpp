@@ -76,6 +76,7 @@ void Camera::update(float dt)
 	
 
 	cameraObject.view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+	cameraObject.pos = (glm::vec4&)cameraPos;
 	updateCameraBuffer();
 }
 
@@ -87,7 +88,7 @@ Camera::Camera(float x, float y, float z)
 
 	cameraObject.proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 10000.0f);
 	cameraObject.view = glm::lookAt(cameraPos, cameraFront, cameraUp);
-
+	cameraObject.pos = (glm::vec4&)cameraPos;
 	cameraObject.proj[1][1] *= -1;
 
 	for (auto& pair : bufferGroup.sets)
