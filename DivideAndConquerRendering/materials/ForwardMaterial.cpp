@@ -4,26 +4,23 @@
 ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forward.vert", "Forward.frag", DeviceContext::RENDERPASS_TYPE::Standard)
 {
 	this->material = material;
-	
-	if (this->material.ambient_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.diffuse_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.specular_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.specular_highlight_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.bump_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.displacement_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.alpha_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
-	if (this->material.reflection_texname != "")
-		addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eFragment);
 
 	addBinding(PER_CAMERA_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex);
-	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics);
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eAllGraphics);	
+
+	//If you add a PER_MATERIAL_BINDING binding before this, you must change the order in the shader.
+	//For simplicity add after the bindings.
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Ambient
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Diffuse
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Specular
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Specular Highlight
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Bump
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Displacement
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Alpha
+	addBinding(PER_MATERIAL_BINDING, vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment);	//Reflecton
+	//Down here!!!
+
+
 	setPushConstant(vk::ShaderStageFlagBits::eVertex, sizeof(glm::mat4));	//Per_Object
 
 	vk::VertexInputBindingDescription bindingDescription;
