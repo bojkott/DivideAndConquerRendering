@@ -6,6 +6,8 @@
 #include "Technique.h"
 #include "Buffer.h"
 #include <thread>
+#include <future>
+
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
 };
@@ -55,64 +57,63 @@ void Renderer::render()
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
 
-	std::vector<std::thread> workers;
 
-	std::vector<double> slaveDeviceTimes;
+	std::map<DeviceContext*, float> deviceTimes;
 
 	if (slaveDevicesEnabled)
 	{
 		for (auto& slaveDevices : mainDevice->getTexturePairs())
 		{
 			DeviceContext* device = slaveDevices.first;
-			slaveDeviceTimes.push_back(0);
-			executeFirstPassOnDevice(device, slaveDeviceTimes[slaveDeviceTimes.size() - 1]);
-			//workers.push_back(std::thread(&Renderer::executeFirstPassOnDevice, this, device, std::ref(slaveDeviceTimes[slaveDeviceTimes.size()-1])));
-
+			executeGeometryPass(device);
 		}
 	}
-
-
-	double mainDeviceTime = 0;
-	executeFirstPassOnDevice(mainDevice, mainDeviceTime);
-	//std::thread mainDeviceThread(&Renderer::executeFirstPassOnDevice, this, mainDevice, std::ref(mainDeviceTime));
-
-	for (auto & worker : workers)
-		worker.join();
-
-
-
-	Uint32 transferStart = SDL_GetPerformanceCounter(); 
+	mainDevice->waitForMainDevice();
+	executeGeometryPass(mainDevice);
+			
+	transferTime = 0;
 
 	if (slaveDevicesEnabled)
 	{
 		for (auto& slaveDeviceTarget : mainDevice->getTexturePairs())
 		{
+			DeviceContext* slaveDevice = slaveDeviceTarget.first;
+			slaveDevice->waitForGeometry();
+			float slaveTime = slaveDevice->getTimeTaken();
+			deviceTimes[slaveDevice] = slaveTime;
+			Uint32 transferStart = SDL_GetPerformanceCounter();
 			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetTexture->transferTextureTo(*slaveDeviceTarget.second->targetTexture);
 			slaveDeviceTarget.first->getTexturePair(slaveDeviceTarget.first)->targetDepthBuffer->transferBufferTo(*slaveDeviceTarget.second->targetDepthBuffer);
+			Uint32 transferEnd = SDL_GetPerformanceCounter();
+
+			float deviceTransferTime = (float)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
+			deviceTimes[slaveDevice] += deviceTransferTime;
+			transferTime += deviceTransferTime;
 		}
 	}
 
-	Uint32 transferEnd = SDL_GetPerformanceCounter();
-	transferTime = (double)((transferEnd - transferStart) * 1000.0 / SDL_GetPerformanceFrequency());
 	
-	//mainDeviceThread.join();
-	//Sync GPUs
-		
+	
+
+	mainDevice->waitForGeometry();
+	float mainDeviceGeometryTime = mainDevice->getTimeTaken();
+	deviceTimes[mainDevice] = mainDeviceGeometryTime;
 	Uint32 start = SDL_GetPerformanceCounter();
-	if(slaveDevicesEnabled)
-		mainDevice->startFinalRenderPass(); //Combine
-	mainDevice->tempPresent(); //Final pass
+	if (slaveDevicesEnabled)
+		mainDevice->startFinalRenderPass();
+	mainDevice->tempPresent();
 	Uint32 end = SDL_GetPerformanceCounter();
-	double combineTime = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
+	float combineTime = (float)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
 
+	balanceDeviceTime(deviceTimes);
+	
 
-	std::cout << "Main Device geometry time: " << mainDeviceTime;
-	for (int i = 0; i < slaveDeviceTimes.size(); i++)
-	{
-		std::cout << " slave " << i << " geometry time: " << slaveDeviceTimes[i];
-	}
+	//std::cout << "Main Device geometry time: " << mainDeviceTime;
+	//for (int i = 0; i < slaveDeviceTimes.size(); i++)
+	//{
+	//	std::cout << " slave " << i << " geometry time: " << slaveDeviceTimes[i];
+	//}
 
-	std::cout << " transfer time: " << transferTime << " combine time: " << combineTime << std::endl;
 
 }
 
@@ -126,14 +127,36 @@ bool Renderer::getSlaveDevicesEnabled()
 	return slaveDevicesEnabled;
 }
 
-void Renderer::executeFirstPassOnDevice(DeviceContext* device, double& time)
+void Renderer::executeGeometryPass(DeviceContext* device)
 {
-	Uint32 start = SDL_GetPerformanceCounter();
 	device->clearBuffer(0, 0, 0, 1);
 	device->renderGeometry();
 	device->executeCommandQueue();
-	Uint32 end = SDL_GetPerformanceCounter();
-	time = (double)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
+}
+
+void Renderer::balanceDeviceTime(std::map<DeviceContext*, float>& times)
+{
+	int deviceIndex = 0;
+	for (auto& time : times)
+	{
+		for (auto& time2 : times)
+		{
+			if (time.first != time2.first)
+			{
+				if (time.second > time2.second)
+				{
+					float time1Load = time.first->getLoadPercentage();
+					float time2Load = time2.first->getLoadPercentage();
+					time.first->setLoadPercentage(time1Load - 0.2f);
+					time2.first->setLoadPercentage(time2Load + 0.2f);
+				}
+			}
+		}
+		std::string type = time.first == deviceGroup.getMainDevice() ? "master" : "slave";
+		std::cout << "(" << type << ") device " << deviceIndex << ": " << time.second << "(" << time.first->getLoadPercentage() << ") ";
+		deviceIndex++;
+	}
+	std::cout  << std::endl;
 }
 
 bool Renderer::checkValidationLayerSupport()

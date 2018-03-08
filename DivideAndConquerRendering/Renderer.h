@@ -45,7 +45,9 @@ public:
 private:
 
 
-	void executeFirstPassOnDevice(DeviceContext* device, double& time);
+	void executeGeometryPass(DeviceContext* device);
+	void balanceDeviceTime(std::map<DeviceContext*, float>& times);
+
 
 	bool checkValidationLayerSupport();
 	void createInstance();
