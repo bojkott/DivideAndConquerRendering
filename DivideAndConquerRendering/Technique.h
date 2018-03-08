@@ -3,6 +3,7 @@
 #include "RenderState.h"
 #include "DeviceGroup.h"
 #include "Material.h"
+#include "Texture.h"
 
 #include <vulkan\vulkan.hpp>
 class UniformBuffer;
@@ -14,9 +15,10 @@ private:
 	vk::PipelineCache pipelineCache;
 	vk::DescriptorSetLayout descriptorSetLayout;
 	vk::DescriptorPool descriptorPool;
+	vk::Sampler textureSampler;
 	std::vector<vk::DescriptorSet> descriptorSets;
 	vk::PipelineLayout pipelineLayout;
-
+	std::vector<Texture*> textures;
 
 	Material* material = nullptr;
 	UniformBuffer* materialBuffer = nullptr;
@@ -38,4 +40,9 @@ public:
 	std::vector<vk::DescriptorSet> getDescriptionSets();
 
 	vk::PipelineLayout& getPipelineLayout();
+
+private:
+	void createTexturesFromMaterial();
+	void bindTextures();
+	void createTextureSampler();
 };

@@ -2,8 +2,12 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
 #include "UniformBuffer.h"
+#include "materials\ForwardMaterial.h"
 
 #include "Camera.h"
+
+class ForwardMaterial;
+
 std::map<Material*, vkGroups::TechniqueGroup> Technique::loadedTechniques;
 Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r)
 {
@@ -58,6 +62,11 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
+	ForwardMaterial* forward = (ForwardMaterial*)material;	//Can also test dynamic_cast<ForwardMaterial*>(material)
+	if (forward)
+		//createTexturesFromMaterial();
+
+
 
 	if (m->getMaterialBufferSize() > 0)
 	{
@@ -102,9 +111,12 @@ void Technique::bindMaterial()
 {
 	if (materialBuffer)
 	{
-		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
 
-		Camera::getInstance()->bindCamera(deviceContext, getDescriptionSets()[0]);
+		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
+		
+		if(textures.size())
+
+		Camera::getInstance()->bindCamera(deviceContext, descriptorSets[0]);
 	}
 		
 }
@@ -128,4 +140,59 @@ std::vector<vk::DescriptorSet> Technique::getDescriptionSets()
 vk::PipelineLayout & Technique::getPipelineLayout()
 {
 	return pipelineLayout;
+}
+
+void Technique::createTexturesFromMaterial()
+{
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getAmbientTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getDiffuseTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getSpecularTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getSpecularHighlightTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getBumpTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getDisplacementTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getAlphaTexname()));
+	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getReflectionTexname()));
+}
+
+void Technique::bindTextures()
+{
+	std::vector<vk::WriteDescriptorSet> descWrites;
+
+	vk::DescriptorImageInfo imageInfo;
+	imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+	imageInfo.sampler = textureSampler;
+
+	vk::WriteDescriptorSet desc;
+	desc.dstSet = descriptorSets[0];
+	desc.dstArrayElement = 0;
+	desc.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+	desc.descriptorCount = 1;
+	desc.pImageInfo = &imageInfo;
+
+	for (int i = 0; i < textures.size(); ++i)
+	{
+		imageInfo.imageView = textures[i]->getImageView();
+		desc.dstBinding = 4 + i;
+	}
+
+	deviceContext->getDevice().updateDescriptorSets(descWrites.size(), descWrites.data(), 0, nullptr);
+}
+
+void Technique::createTextureSampler()
+{
+	vk::SamplerCreateInfo samplerInfo;
+	samplerInfo.magFilter = vk::Filter::eLinear;
+	samplerInfo.minFilter = vk::Filter::eLinear;
+	samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+	samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+	samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = 16;
+	samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = vk::CompareOp::eAlways;
+	samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+
+	textureSampler = deviceContext->getDevice().createSampler(samplerInfo);
 }
