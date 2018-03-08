@@ -3,15 +3,18 @@
 // inputs
 layout(binding = 2) uniform Material
 {
-	vec3 ambient;
-	vec3 objColor;
+	vec4 ambient;
+	vec4 objColor;
+	vec4 emission;
+	vec4 specular;
 } material;
 
 
 layout(location = 0) in vec2 inTexCoord;
 layout(location = 1) in vec3 inNorm;
 layout(location = 2) in float deviceId;
-
+layout(location = 3) in vec4 outCamPos;
+layout(location = 4) in vec3 outWorldPos;
 layout (location = 0) out vec4 fragment_color;
 
 //Textures
@@ -28,6 +31,7 @@ void main() {
 	vec3 lightPos = vec3(0.0, 10.0, -10.0);
 	vec3 lightColor = vec3(1.0, 1.0, 1.0);
 	vec3 ambient = vec3(0.5, 0.5f, 0.5f);
+	float specularStrength = 0.5;
 
 	vec3 norm = normalize(inNorm);
 	vec3 lightDir = vec3(0,1,0);
@@ -35,11 +39,19 @@ void main() {
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * ambient + vec3(0.2f,0.2f,0.2f);
 
-	vec3 result = (material.ambient + diffuse) * material.objColor;
+	// Specularpart
+	vec3 viewDir = normalize(outCamPos.xyz - outWorldPos);
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+	vec3 reflectDir = reflect(-lightDir, norm); 
 
-	diffuse += vec3(0.2f, 0, 0)*deviceId;
+	//float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+	float spec = pow(max(dot(norm, halfwayDir), 0.0), 32);
 
-	diffuse += vec3(0.0, 0.2f, 0)*(1-deviceId);
+	vec3 specular = specularStrength * spec * lightColor;  
+	vec3 result = (material.ambient.xyz + diffuse + specular) * material.objColor.xyz;
+	//diffuse += vec3(0.2f, 0, 0)*deviceId;
 
-	fragment_color = vec4(diffuse, 1.0);
+	//diffuse += vec3(0.0, 0.2f, 0)*(1-deviceId);
+
+	fragment_color = vec4(result, 1.0f);
 }

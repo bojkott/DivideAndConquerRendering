@@ -47,8 +47,10 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	attributeDescriptions.push_back(attributeDescription);
 
 
-	buffer.ambient = (glm::vec3&)material.ambient;
-	buffer.objColor = (glm::vec3&)material.diffuse;
+	buffer.ambient = (glm::vec4&)material.ambient;
+	buffer.objColor = (glm::vec4&)material.diffuse;
+	buffer.specular = (glm::vec4&)material.specular;
+	buffer.emission = (glm::vec4&)material.emission;
 
 }
 
