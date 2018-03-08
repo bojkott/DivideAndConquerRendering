@@ -21,23 +21,19 @@ DeviceContext::DeviceContext(DeviceGroup* group, vk::Instance & instance, vk::Ph
 
 void DeviceContext::initDevice()
 {
+
+	createCommandPool();
 	if (mode == DEVICE_MODE::HEADLESS) 
 	{
 		createRenderPass();
-		createCommandPool();
 		createSecondaryDeviceTexture(this);
 		createSecondaryDeviceFramebuffer();
-		
-		createCommandBuffers();
-		createSemaphores();
 	}
 	else
 	{
-		createCommandPool();
 		createSwapchain();
 		createRenderPass();
-		
-				
+			
 		for (DeviceContext* deviceContext : deviceGroup->getDevices()) //one for each subdevice. so -1 to remove the primary device.
 		{
 			if (deviceContext == this)
@@ -47,13 +43,14 @@ void DeviceContext::initDevice()
 		}
 		createPresentRenderPass();
 		createFrameBuffers();
-		
-		createCommandBuffers();
-		createSemaphores();
-
-		
+			
 
 	}
+	createCommandBuffers();
+	createSemaphores();
+	createQueries();
+
+	loadPercentage = 1.0f/deviceGroup->getGroupSize();
 }
 
 void DeviceContext::setCombineTechnique(Technique * combineTechnique)
@@ -210,7 +207,8 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
 		renderPassCommandBuffer.begin(beginInfo);
-
+		renderPassCommandBuffer.resetQueryPool(timestamQuery, 0, 2);
+		renderPassCommandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 0);
 		renderPassInfo.renderArea.extent = getMainDevice()->swapchain.extent;
 		renderPassInfo.framebuffer = renderTextureFrameBuffer;
 
@@ -222,7 +220,8 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 		vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
 
 		commandBuffer.begin(beginInfo);
-
+		commandBuffer.resetQueryPool(timestamQuery, 0, 2);
+		commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 0);
 		renderPassInfo.framebuffer = swapchain.framebuffers[i];
 		renderPassInfo.renderArea.extent = swapchain.extent;
 
@@ -233,7 +232,6 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 
 void DeviceContext::tempPresent()
 {
-
 	vk::SubmitInfo submitInfo;
 
 	vk::Semaphore waitSemaphores[] = { imageAvailableSemaphore };
@@ -262,7 +260,7 @@ void DeviceContext::tempPresent()
 	presentInfo.pImageIndices = &finalCommandBufferIndex;
 
 	presentQueue.presentKHR(presentInfo);
-	presentQueue.waitIdle();
+
 
 }
 
@@ -280,7 +278,7 @@ void DeviceContext::executeCommandQueue()
 		commandBuffer = swapchain.commandBuffers[imageIndex];
 		finalCommandBufferIndex = imageIndex;
 	}
-	
+
 	vk::SubmitInfo submitInfo;
 
 
@@ -296,10 +294,10 @@ void DeviceContext::executeCommandQueue()
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 	}
-	
-	
+
+
 	graphicsQueue.submit(1, &submitInfo, geometryFinished);
-	
+
 }
 
 void DeviceContext::submitMesh(Mesh * mesh)
@@ -313,13 +311,8 @@ void DeviceContext::submitMesh(Mesh * mesh)
 void DeviceContext::renderGeometry()
 {
 
-	while (device.getFenceStatus(geometryFinished) != vk::Result::eSuccess)
-	{
-	}
-
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
-
 		for (auto& mesh : badRenderQueue)
 		{
 			mesh->getTechnique()->bindPipeline(renderPassCommandBuffer);
@@ -340,7 +333,7 @@ void DeviceContext::renderGeometry()
 
 		//Transfer texture
 		renderPassCommandBuffer.executeCommands(1, &transferToCpuCommandBuffer);
-
+		renderPassCommandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 1);
 		renderPassCommandBuffer.end();
 	}
 	else
@@ -367,6 +360,7 @@ void DeviceContext::renderGeometry()
 			}
 
 			commandBuffer.endRenderPass();
+			commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 1);
 			commandBuffer.end();
 		}
 	}
@@ -410,6 +404,32 @@ DeviceContext::SecondaryDeviceTexturePair * DeviceContext::getTexturePair(Device
 std::map<DeviceContext*, DeviceContext::SecondaryDeviceTexturePair*> DeviceContext::getTexturePairs()
 {
 	return secondaryDeviceTextures;
+}
+
+void DeviceContext::waitForGeometry()
+{
+	while (device.getFenceStatus(geometryFinished) != vk::Result::eSuccess)
+	{
+	}
+}
+
+float DeviceContext::getTimeTaken()
+{
+	std::vector<int> timestamps(2);
+	device.getQueryPoolResults<int>(timestamQuery, 0, 2, timestamps, sizeof(int), {});
+
+	return ((timestamps[1] - timestamps[0])*timestampPeriod)/1000.0f/1000.0f;
+}
+
+float DeviceContext::getLoadPercentage()
+{
+	return loadPercentage;
+}
+
+void DeviceContext::setLoadPercentage(float value)
+{
+	
+	loadPercentage = std::fmax(0.0f, std::fmin(1.0f, value));
 }
 
 
@@ -464,6 +484,8 @@ void DeviceContext::createDevice(vk::Instance & instance)
 	else
 		createInfo.enabledLayerCount = 0;
 
+
+	timestampPeriod = physicalDevice.getProperties().limits.timestampPeriod;
 
 	device = physicalDevice.createDevice(createInfo);
 
@@ -727,7 +749,6 @@ void DeviceContext::createSecondaryDeviceTexture(DeviceContext * deviceContext)
 		vk::MemoryPropertyFlagBits::eHostCoherent | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCached);
 
 
-
 	vk::ImageLayout renderTextureLayout = mode == DEVICE_MODE::HEADLESS ? vk::ImageLayout::eGeneral : vk::ImageLayout::eTransferDstOptimal;
 	vk::ImageLayout renderDepthTextureLayout = mode == DEVICE_MODE::HEADLESS ? vk::ImageLayout::eDepthStencilAttachmentOptimal : vk::ImageLayout::eTransferDstOptimal;
 	executeSingleTimeQueue(
@@ -947,9 +968,7 @@ void DeviceContext::createCommandBuffers()
 		allocInfo.level = vk::CommandBufferLevel::eSecondary;
 
 		combineDaQCommandBuffer = device.allocateCommandBuffers(allocInfo)[0];
-
-
-
+		
 		vk::CommandBufferBeginInfo beginInfo;
 		beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
 		beginInfo.pInheritanceInfo = &inheritanceInfo;
@@ -957,6 +976,7 @@ void DeviceContext::createCommandBuffers()
 
 		for (auto& texturePairs : secondaryDeviceTextures)
 		{
+			
 			Texture* targetTexture = texturePairs.second->targetTexture;
 			RenderTexture* renderTexture = texturePairs.second->renderTexture;
 			Texture* renderDepthTexture = texturePairs.second->renderDepthTexture;
@@ -968,7 +988,6 @@ void DeviceContext::createCommandBuffers()
 				vk::ImageLayout::eGeneral, vk::ImageLayout::eTransferSrcOptimal,
 				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
 				vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::ImageAspectFlagBits::eColor);
-
 
 			VulkanHelpers::cmdBlitSimple(
 				combineDaQCommandBuffer,
@@ -1004,13 +1023,13 @@ void DeviceContext::createCommandBuffers()
 				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eDepthStencilReadOnlyOptimal,
 				vk::AccessFlagBits::eMemoryWrite, vk::AccessFlagBits::eMemoryRead,
 				vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::PipelineStageFlagBits::eEarlyFragmentTests, vk::ImageAspectFlagBits::eDepth);
+
 		}
 		combineDaQCommandBuffer.end();
 
 	}
 
 	vk::FenceCreateInfo fenceInfo;
-	fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 	geometryFinished = device.createFence(fenceInfo);
 	
 }
@@ -1024,17 +1043,24 @@ void DeviceContext::createSemaphores()
 	renderFinishedSemaphore = device.createSemaphore(semaphoreInfo);
 }
 
+void DeviceContext::createQueries()
+{
+	vk::QueryPoolCreateInfo createInfo;
+	createInfo.queryType = vk::QueryType::eTimestamp;
+	createInfo.queryCount = 2;
+
+	timestamQuery = device.createQueryPool(createInfo);
+}
+
+void DeviceContext::waitForMainDevice()
+{
+	presentQueue.waitIdle();
+}
+
 void DeviceContext::startFinalRenderPass()
 {
 	if (deviceGroup->getGroupSize() == 1)
 		return;
-
-	graphicsQueue.waitIdle();
-	//while (device.getFenceStatus(geometryFinished) != vk::Result::eSuccess)
-	//{
-
-	//}
-
 	vk::CommandBufferBeginInfo beginInfo;
 
 	beginInfo.flags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
@@ -1050,7 +1076,7 @@ void DeviceContext::startFinalRenderPass()
 
 	finalPassInfo.framebuffer = swapchain.finalframebuffers[finalCommandBufferIndex];
 	finalPassInfo.renderArea.extent = swapchain.extent;
-				
+
 	commandBuffer.executeCommands(1, &combineDaQCommandBuffer);
 
 	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);

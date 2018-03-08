@@ -36,6 +36,7 @@ public:
 	};
 
 private:
+	float loadPercentage;
 	bool badRendering = true;
 	Technique* combineTechnique;
 
@@ -61,13 +62,15 @@ private:
 	vk::Fence geometryFinished;
 
 	Swapchain swapchain;
-
-
+	
 	vk::Semaphore imageAvailableSemaphore;
 	vk::Semaphore renderFinishedSemaphore;
 
 	vk::CommandBuffer transferToCpuCommandBuffer;
 	vk::CommandBuffer combineDaQCommandBuffer;
+
+	vk::QueryPool timestamQuery;
+	float timestampPeriod;
 
 	uint32_t finalCommandBufferIndex;
 	
@@ -125,6 +128,13 @@ public:
 	SecondaryDeviceTexturePair* getTexturePair(DeviceContext* deviceContext);
 	std::map<DeviceContext*, SecondaryDeviceTexturePair*> getTexturePairs();
 
+	void waitForGeometry();
+	void waitForMainDevice();
+	float getTimeTaken();
+
+	float getLoadPercentage();
+	void setLoadPercentage(float value);
+
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 private:
 	void createDevice(vk::Instance& instance);
@@ -136,7 +146,8 @@ private:
 	void createCommandPool();
 	void createCommandBuffers();
 	void createSemaphores();
-
+	void createQueries();
+	
 	
 
 	QueueFamilyIndices findQueueFamilies();

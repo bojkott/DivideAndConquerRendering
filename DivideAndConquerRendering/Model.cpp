@@ -26,23 +26,27 @@ void Model::submitModel(Renderer* renderer)
 	int deviceIndex = 0;
 
 
-	float device0Percentage = 0.5f;
-	float device1Percentage = 0.5f;
+	std::map<DeviceContext*, int> numberOfMaterialsOnDevices;
+	for (auto& device : deviceGroup->getDevices())
+	{
+		numberOfMaterialsOnDevices[device] = advancedMeshGroup.sets.size() * device->getLoadPercentage();
+	}
 
-	int numberOfSetsOnDevice0 = advancedMeshGroup.sets.size()*device0Percentage;
 	int setIndex = 0;
 	for (auto& advancedSet : advancedMeshGroup.sets)
 	{
 		setIndex++;
 		DeviceContext* device = deviceGroup->getDevices()[deviceIndex];
+		int numberOfMaterialsOnDevice = numberOfMaterialsOnDevices[device];
 		for (Mesh* mesh : advancedSet.second.sets[device])
 		{
 			device->submitMesh(mesh);
 		}
-		if (setIndex > numberOfSetsOnDevice0)
+		if (setIndex > numberOfMaterialsOnDevice)
 		{
 			if (renderer->getSlaveDevicesEnabled())
 				deviceIndex = deviceGroup->getGroupSize()-1;
+			setIndex = 0;
 		}
 
 	}
