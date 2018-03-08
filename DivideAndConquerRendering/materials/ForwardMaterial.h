@@ -23,6 +23,15 @@ public:
 
 	size_t getMaterialBufferSize();
 
+	std::string getAmbientTexname();
+	std::string getDiffuseTexname();
+	std::string getSpecularTexname();
+	std::string getSpecularHighlightTexname();
+	std::string getBumpTexname();
+	std::string getDisplacementTexname();
+	std::string getAlphaTexname();
+	std::string getReflectionTexname();
+
 	void* getMaterialBufferData();
 
 };

@@ -103,6 +103,7 @@ void Technique::bindMaterial()
 	if (materialBuffer)
 	{
 		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
+
 		Camera::getInstance()->bindCamera(deviceContext, getDescriptionSets()[0]);
 	}
 		
