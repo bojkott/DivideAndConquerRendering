@@ -62,6 +62,8 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
+
+
 	if (m->getMaterialBufferSize() > 0)
 	{
 		createTextureSampler();
