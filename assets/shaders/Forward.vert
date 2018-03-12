@@ -34,7 +34,7 @@ void main()
 {
 	vec4 pos = vec4(inPos, 1.0);
 	outNorm = mat3(transpose(inverse(modelMat.model))) * inNorm;
-	outTexCoord = inTexCoord;
+	outTexCoord = vec2(inTexCoord.x, -inTexCoord.y);
 	outCamPos = cam.camPos;
 	outWorldPos = modelMat.model * pos;
 	gl_Position = cam.projection * cam.view * modelMat.model * pos;

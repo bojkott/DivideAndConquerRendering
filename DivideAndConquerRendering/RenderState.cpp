@@ -42,10 +42,10 @@ RenderState::RenderState(vk::FrontFace frontFace)
 
 	colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
 										  vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-	colorBlendAttachment.blendEnable = VK_FALSE;
+	colorBlendAttachment.blendEnable = VK_TRUE;
 	//Optional
-	colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
-	colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+	colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+	colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
 	colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
 	colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
 	colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;

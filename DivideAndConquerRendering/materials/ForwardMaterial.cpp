@@ -48,9 +48,10 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 
 
 	buffer.ambient = (glm::vec4&)material.ambient;
-	buffer.objColor = (glm::vec4&)material.diffuse;
+	buffer.diffuse = (glm::vec4&)material.diffuse;
 	buffer.specular = (glm::vec4&)material.specular;
 	buffer.emission = (glm::vec4&)material.emission;
+	buffer.hasMask = !getAlphaTexname().empty();
 
 }
 

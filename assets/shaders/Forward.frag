@@ -4,9 +4,10 @@
 layout(binding = 2) uniform Material
 {
 	vec4 ambient;
-	vec4 objColor;
+	vec4 diffuse;
 	vec4 emission;
 	vec4 specular;
+	bool hasMask;
 } material;
 
 
@@ -30,14 +31,23 @@ layout (binding = 10) uniform sampler2D reflecton;
 void main() {
 	vec3 lightPos = vec3(0.0, 10.0, -10.0);
 	vec3 lightColor = vec3(1.0, 1.0, 1.0);
-	vec3 ambient = vec3(0.5, 0.5f, 0.5f);
-	float specularStrength = 0.5;
+	vec3 ambientAlbedo = (texture(ambient, inTexCoord) * material.ambient).rgb;
+	vec3 diffuseAlbedo = (texture(diffuse, inTexCoord) * material.diffuse).rgb;
+	float specularStrength = (texture(specular, inTexCoord)* material.specular).r;
+	float alphaAlbedo = 1.0f;
+
+	if(material.hasMask)
+	{
+		alphaAlbedo = texture(alpha, inTexCoord).r;
+	}
+		
+
 
 	vec3 norm = normalize(inNorm);
 	vec3 lightDir = vec3(0,1,0);
 
 	float diff = max(dot(norm, lightDir), 0.0);
-	vec3 diffuse = diff * ambient + vec3(0.2f,0.2f,0.2f);
+	vec3 diffuse = diff * diffuseAlbedo;
 
 	// Specularpart
 	vec3 viewDir = normalize(outCamPos.xyz - outWorldPos);
@@ -48,10 +58,10 @@ void main() {
 	float spec = pow(max(dot(norm, halfwayDir), 0.0), 32);
 
 	vec3 specular = specularStrength * spec * lightColor;  
-	vec3 result = (material.ambient.xyz + diffuse + specular) * material.objColor.xyz;
+	vec3 result = (diffuse + specular + ambientAlbedo);
 	//diffuse += vec3(0.2f, 0, 0)*deviceId;
 
 	//diffuse += vec3(0.0, 0.2f, 0)*(1-deviceId);
 
-	fragment_color = vec4(result, 1.0f);
+	fragment_color = vec4(result, alphaAlbedo);
 }

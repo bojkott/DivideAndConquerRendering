@@ -12,9 +12,10 @@ private:
 	struct MaterialBuffer
 	{
 		glm::vec4 ambient;
-		glm::vec4 objColor;
+		glm::vec4 diffuse;
 		glm::vec4 emission;
 		glm::vec4 specular;
+		bool hasMask;
 
 	}buffer;
 

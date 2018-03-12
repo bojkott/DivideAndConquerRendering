@@ -182,6 +182,7 @@ void Technique::bindTextures()
 {
 	std::vector<vk::WriteDescriptorSet> descWrites;
 
+	std::vector<vk::DescriptorImageInfo> imageInfos;
 	vk::DescriptorImageInfo imageInfo;
 	imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 	imageInfo.sampler = textureSampler;
@@ -191,12 +192,14 @@ void Technique::bindTextures()
 	desc.dstArrayElement = 0;
 	desc.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 	desc.descriptorCount = 1;
-	desc.pImageInfo = &imageInfo;
+	
 
 	for (auto& texture : textures)
 	{
 		desc.dstBinding = texture.first;
 		imageInfo.imageView = texture.second->getImageView();
+		imageInfos.push_back(imageInfo);
+		desc.pImageInfo = &imageInfos[imageInfos.size()-1];
 		descWrites.push_back(desc);
 	}
 

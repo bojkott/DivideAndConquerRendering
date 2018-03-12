@@ -75,7 +75,7 @@ Texture* Texture::loadFromFile(DeviceContext * deviceContext, std::string filena
 		throw std::runtime_error("Failed to load image: " + filename);
 
 	Texture* texture = new Texture(
-		deviceContext, texWidth, texHeight, vk::Format::eB8G8R8A8Unorm,
+		deviceContext, texWidth, texHeight, vk::Format::eR8G8B8A8Unorm,
 		vk::ImageLayout::eUndefined,
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
