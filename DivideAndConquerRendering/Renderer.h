@@ -55,7 +55,7 @@ private:
 	void createSurface();
 	void setupDeviceGroup();
 	bool isDeviceSuitable(const vk::PhysicalDevice& device);
-	void arrangeGroup(std::vector<vk::PhysicalDevice>& devices);
+	void pickMaster(vk::PhysicalDevice& master, std::vector<vk::PhysicalDevice>& devices);
 	std::vector<const char*> getRequiredExtensions();
 
 	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
