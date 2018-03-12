@@ -221,7 +221,7 @@ void Technique::createTextureSampler()
 	samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
 	samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
 	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = 1;
+	samplerInfo.maxAnisotropy = 16;
 	samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 	samplerInfo.unnormalizedCoordinates = VK_FALSE;
 	samplerInfo.compareEnable = VK_FALSE;

@@ -473,7 +473,7 @@ void DeviceContext::createDevice(vk::Instance & instance)
 	}
 
 	vk::PhysicalDeviceFeatures deviceFeatures; //Enable features here? Or enable all available?
-
+	deviceFeatures.samplerAnisotropy = true;
 	std::vector<const char*> deviceExtensions;
 	if (mode == DEVICE_MODE::WINDOW)
 		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);

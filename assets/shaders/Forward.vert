@@ -4,7 +4,6 @@ layout(location = 0) in vec3 inPos;
 layout(location = 1) in vec2 inTexCoord;
 layout(location = 2) in vec3 inNorm;
 layout(location = 3) in vec3 inTangent;
-layout(location = 4) in vec3 inBitangent;
 
 layout(binding = 1) uniform camera
 {

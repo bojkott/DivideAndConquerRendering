@@ -2,7 +2,7 @@
 #include "../Renderer.h"
 DaQCombineMaterial::DaQCombineMaterial() : Material("DaQCombine.vert", "DaQCombine.frag", DeviceContext::RENDERPASS_TYPE::Final)
 {
-	for (int i = 0; i < Renderer::deviceGroup.getGroupSize()*2; i++)
+	for (int i = 0; i < Renderer::deviceGroup.getGroupSize()*2+1; i++)
 	{
 		addBinding(i, vk::DescriptorType::eInputAttachment, vk::ShaderStageFlagBits::eFragment);
 	}
