@@ -67,12 +67,12 @@ void Texture::transferTextureTo(Texture & destination)
 Texture* Texture::loadFromFile(DeviceContext * deviceContext, std::string filename)
 {
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load(("../assets/" + filename).c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
 	vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
 	if (!pixels)
-		throw std::runtime_error("Failed to load image!");
+		throw std::runtime_error("Failed to load image: " + filename);
 
 	Texture* texture = new Texture(
 		deviceContext, texWidth, texHeight, vk::Format::eB8G8R8A8Unorm,

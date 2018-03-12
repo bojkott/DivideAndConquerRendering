@@ -2,8 +2,12 @@
 #include "Renderer.h"
 #include "DeviceContext.h"
 #include "UniformBuffer.h"
+#include "materials\ForwardMaterial.h"
 
 #include "Camera.h"
+
+class ForwardMaterial;
+
 std::map<Material*, vkGroups::TechniqueGroup> Technique::loadedTechniques;
 Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r)
 {
@@ -59,8 +63,11 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
 
+
 	if (m->getMaterialBufferSize() > 0)
 	{
+		createTextureSampler();
+		createTexturesFromMaterial();
 		materialBuffer = new UniformBuffer(deviceContext, m->getMaterialBufferSize());
 		materialBuffer->setData(m->getMaterialBufferData());
 	}
@@ -102,9 +109,13 @@ void Technique::bindMaterial()
 {
 	if (materialBuffer)
 	{
-		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
 
-		Camera::getInstance()->bindCamera(deviceContext, getDescriptionSets()[0]);
+		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
+		
+		if (textures.size())
+			bindTextures();
+
+		Camera::getInstance()->bindCamera(deviceContext, descriptorSets[0]);
 	}
 		
 }
@@ -128,4 +139,85 @@ std::vector<vk::DescriptorSet> Technique::getDescriptionSets()
 vk::PipelineLayout & Technique::getPipelineLayout()
 {
 	return pipelineLayout;
+}
+
+void Technique::createTexturesFromMaterial()
+{
+	ForwardMaterial* fm = (ForwardMaterial*)material;
+	if (!fm->getAmbientTexname().empty())
+	{
+		textures[AMBIENT_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getAmbientTexname());
+	}
+	if (!fm->getDiffuseTexname().empty())
+	{
+		textures[DIFFUSE_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getDiffuseTexname());
+	}
+	if (!fm->getSpecularTexname().empty())
+	{
+		textures[SPECULAR_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getSpecularTexname());
+	}
+	if (!fm->getSpecularHighlightTexname().empty())
+	{
+		textures[SPECULAR_HIGHLIGHT_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getSpecularHighlightTexname());
+	}
+	if (!fm->getBumpTexname().empty())
+	{
+		textures[BUMP_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getBumpTexname());
+	}
+	if (!fm->getDisplacementTexname().empty())
+	{
+		textures[DISPLACEMENT_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getDisplacementTexname());
+	}
+	if (!fm->getAlphaTexname().empty())
+	{
+		textures[ALPHA_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getAlphaTexname());
+	}
+	if (!fm->getReflectionTexname().empty())
+	{
+		textures[REFLECTION_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getReflectionTexname());
+	}
+}
+
+void Technique::bindTextures()
+{
+	std::vector<vk::WriteDescriptorSet> descWrites;
+
+	vk::DescriptorImageInfo imageInfo;
+	imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+	imageInfo.sampler = textureSampler;
+
+	vk::WriteDescriptorSet desc;
+	desc.dstSet = descriptorSets[0];
+	desc.dstArrayElement = 0;
+	desc.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+	desc.descriptorCount = 1;
+	desc.pImageInfo = &imageInfo;
+
+	for (auto& texture : textures)
+	{
+		desc.dstBinding = texture.first;
+		imageInfo.imageView = texture.second->getImageView();
+		descWrites.push_back(desc);
+	}
+
+	deviceContext->getDevice().updateDescriptorSets(descWrites.size(), descWrites.data(), 0, nullptr);
+}
+
+void Technique::createTextureSampler()
+{
+	vk::SamplerCreateInfo samplerInfo;
+	samplerInfo.magFilter = vk::Filter::eLinear;
+	samplerInfo.minFilter = vk::Filter::eLinear;
+	samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+	samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+	samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = 1;
+	samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = vk::CompareOp::eAlways;
+	samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+
+	textureSampler = deviceContext->getDevice().createSampler(samplerInfo);
 }
