@@ -299,6 +299,12 @@ void Renderer::pickMaster(vk::PhysicalDevice& master, std::vector<vk::PhysicalDe
 		master = devices[options[choice]];
 		devices.erase(devices.begin() + options[choice]);
 	}
+	else
+	{
+		master = devices[0];
+		devices.erase(devices.begin());
+	}
+		
 
 }
 
