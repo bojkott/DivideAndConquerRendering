@@ -30,6 +30,7 @@ private:
 	double transferTime = 0.0f;
 
 	bool slaveDevicesEnabled = true;
+	bool autoLoadBalance = false;
 
 	static Renderer* RenderInstance;
 

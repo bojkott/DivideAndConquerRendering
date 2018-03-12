@@ -129,21 +129,44 @@ void Renderer::executeGeometryPass(DeviceContext* device)
 
 void Renderer::balanceDeviceTime(std::map<DeviceContext*, float>& times)
 {
+	
+	if (!autoLoadBalance && times.size() == 2)
+	{
+		const Uint8 *state = SDL_GetKeyboardState(NULL);
+		int change = 0;
+		if (state[SDL_SCANCODE_LEFT])
+		{
+			change = 0.05f;
+		}
+		else if (state[SDL_SCANCODE_RIGHT])
+			change = -0.05;
+
+		for (auto& time : times)
+		{
+			time.first->setLoadPercentage(time.first->getLoadPercentage() + change);
+			change *= -1;
+		}
+	}
+
 	int deviceIndex = 0;
 	for (auto& time : times)
 	{
-		for (auto& time2 : times)
+		if (autoLoadBalance)
 		{
-			if (time.first != time2.first)
+			for (auto& time2 : times)
 			{
-				if (time.second > time2.second)
+				if (time.first != time2.first)
 				{
-					float time1Load = time.first->getLoadPercentage();
-					float time2Load = time2.first->getLoadPercentage();
-					time.first->setLoadPercentage(time1Load - 0.05f);
-					time2.first->setLoadPercentage(time2Load + 0.05f);
+					if (time.second > time2.second)
+					{
+						float time1Load = time.first->getLoadPercentage();
+						float time2Load = time2.first->getLoadPercentage();
+						time.first->setLoadPercentage(time1Load - 0.05f);
+						time2.first->setLoadPercentage(time2Load + 0.05f);
+					}
 				}
-			}
+		}
+
 		}
 		std::string type = time.first == deviceGroup.getMainDevice() ? "master" : "slave";
 		std::cout << "(" << type << ") device " << deviceIndex << ": " << time.second << "(" << time.first->getLoadPercentage() << ") ";
