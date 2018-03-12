@@ -18,7 +18,7 @@ private:
 	vk::Sampler textureSampler;
 	std::vector<vk::DescriptorSet> descriptorSets;
 	vk::PipelineLayout pipelineLayout;
-	std::vector<Texture*> textures;
+	std::map<int, Texture*> textures;
 
 	Material* material = nullptr;
 	UniformBuffer* materialBuffer = nullptr;

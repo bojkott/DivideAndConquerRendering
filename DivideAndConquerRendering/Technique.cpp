@@ -62,14 +62,10 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
-	ForwardMaterial* forward = (ForwardMaterial*)material;	//Can also test dynamic_cast<ForwardMaterial*>(material)
-	if (forward)
-		//createTexturesFromMaterial();
-
-
-
 	if (m->getMaterialBufferSize() > 0)
 	{
+		createTextureSampler();
+		createTexturesFromMaterial();
 		materialBuffer = new UniformBuffer(deviceContext, m->getMaterialBufferSize());
 		materialBuffer->setData(m->getMaterialBufferData());
 	}
@@ -114,7 +110,8 @@ void Technique::bindMaterial()
 
 		materialBuffer->bind(PER_MATERIAL_BINDING, descriptorSets[0]);
 		
-		if(textures.size())
+		if (textures.size())
+			bindTextures();
 
 		Camera::getInstance()->bindCamera(deviceContext, descriptorSets[0]);
 	}
@@ -144,14 +141,39 @@ vk::PipelineLayout & Technique::getPipelineLayout()
 
 void Technique::createTexturesFromMaterial()
 {
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getAmbientTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getDiffuseTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getSpecularTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getSpecularHighlightTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getBumpTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getDisplacementTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getAlphaTexname()));
-	textures.push_back(Texture::loadFromFile(deviceContext, ((ForwardMaterial*)material)->getReflectionTexname()));
+	ForwardMaterial* fm = (ForwardMaterial*)material;
+	if (!fm->getAmbientTexname().empty())
+	{
+		textures[AMBIENT_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getAmbientTexname());
+	}
+	if (!fm->getDiffuseTexname().empty())
+	{
+		textures[DIFFUSE_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getDiffuseTexname());
+	}
+	if (!fm->getSpecularTexname().empty())
+	{
+		textures[SPECULAR_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getSpecularTexname());
+	}
+	if (!fm->getSpecularHighlightTexname().empty())
+	{
+		textures[SPECULAR_HIGHLIGHT_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getSpecularHighlightTexname());
+	}
+	if (!fm->getBumpTexname().empty())
+	{
+		textures[BUMP_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getBumpTexname());
+	}
+	if (!fm->getDisplacementTexname().empty())
+	{
+		textures[DISPLACEMENT_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getDisplacementTexname());
+	}
+	if (!fm->getAlphaTexname().empty())
+	{
+		textures[ALPHA_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getAlphaTexname());
+	}
+	if (!fm->getReflectionTexname().empty())
+	{
+		textures[REFLECTION_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getReflectionTexname());
+	}
 }
 
 void Technique::bindTextures()
@@ -169,10 +191,11 @@ void Technique::bindTextures()
 	desc.descriptorCount = 1;
 	desc.pImageInfo = &imageInfo;
 
-	for (int i = 0; i < textures.size(); ++i)
+	for (auto& texture : textures)
 	{
-		imageInfo.imageView = textures[i]->getImageView();
-		desc.dstBinding = 4 + i;
+		desc.dstBinding = texture.first;
+		imageInfo.imageView = texture.second->getImageView();
+		descWrites.push_back(desc);
 	}
 
 	deviceContext->getDevice().updateDescriptorSets(descWrites.size(), descWrites.data(), 0, nullptr);
@@ -187,7 +210,7 @@ void Technique::createTextureSampler()
 	samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
 	samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
 	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = 16;
+	samplerInfo.maxAnisotropy = 1;
 	samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 	samplerInfo.unnormalizedCoordinates = VK_FALSE;
 	samplerInfo.compareEnable = VK_FALSE;
