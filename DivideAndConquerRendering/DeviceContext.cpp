@@ -1077,6 +1077,9 @@ void DeviceContext::startFinalRenderPass()
 	finalPassInfo.framebuffer = swapchain.finalframebuffers[finalCommandBufferIndex];
 	finalPassInfo.renderArea.extent = swapchain.extent;
 
+	commandBuffer.resetQueryPool(timestamQuery, 0, 2);
+	commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 0);
+
 	commandBuffer.executeCommands(1, &combineDaQCommandBuffer);
 
 	commandBuffer.beginRenderPass(finalPassInfo, vk::SubpassContents::eInline);
@@ -1085,6 +1088,8 @@ void DeviceContext::startFinalRenderPass()
 	commandBuffer.draw(6, 1, 0, 0);
 
 	commandBuffer.endRenderPass();
+
+	commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 1);
 	commandBuffer.end();
 }
 

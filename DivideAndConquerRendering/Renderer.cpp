@@ -69,6 +69,7 @@ void Renderer::render()
 		}
 	}
 	mainDevice->waitForMainDevice();
+	float combineTime = mainDevice->getTimeTaken();
 	executeGeometryPass(mainDevice);
 			
 	transferTime = 0;
@@ -98,23 +99,15 @@ void Renderer::render()
 	mainDevice->waitForGeometry();
 	float mainDeviceGeometryTime = mainDevice->getTimeTaken();
 	deviceTimes[mainDevice] = mainDeviceGeometryTime;
-	Uint32 start = SDL_GetPerformanceCounter();
+
+
 	if (slaveDevicesEnabled)
 		mainDevice->startFinalRenderPass();
 	mainDevice->tempPresent();
-	Uint32 end = SDL_GetPerformanceCounter();
-	float combineTime = (float)((end - start) * 1000.0 / SDL_GetPerformanceFrequency());
 
 	balanceDeviceTime(deviceTimes);
 	
-
-	//std::cout << "Main Device geometry time: " << mainDeviceTime;
-	//for (int i = 0; i < slaveDeviceTimes.size(); i++)
-	//{
-	//	std::cout << " slave " << i << " geometry time: " << slaveDeviceTimes[i];
-	//}
-
-
+	std::cout << "combine time: " << combineTime << std::endl;
 }
 
 void Renderer::toggleSlaveDevices(bool value)
@@ -147,8 +140,8 @@ void Renderer::balanceDeviceTime(std::map<DeviceContext*, float>& times)
 				{
 					float time1Load = time.first->getLoadPercentage();
 					float time2Load = time2.first->getLoadPercentage();
-					time.first->setLoadPercentage(time1Load - 0.2f);
-					time2.first->setLoadPercentage(time2Load + 0.2f);
+					time.first->setLoadPercentage(time1Load - 0.05f);
+					time2.first->setLoadPercentage(time2Load + 0.05f);
 				}
 			}
 		}
@@ -248,71 +241,63 @@ void Renderer::createSurface()
 void Renderer::setupDeviceGroup()
 {
 
-	uint32_t deviceCount = 0;
-	instance.enumeratePhysicalDevices(&deviceCount, nullptr);
-
-	if (!deviceCount)
+	std::vector<vk::PhysicalDevice> physicalDevices = instance.enumeratePhysicalDevices();
+	
+	for (int i = 0; i < physicalDevices.size(); i++)
 	{
-		throw std::runtime_error("Failed to find VULKAN supported gfx card");
-	}
-
-	std::vector<vk::PhysicalDevice> physicalDevices(deviceCount);
-	instance.enumeratePhysicalDevices(&deviceCount, physicalDevices.data());
-	for (auto& device = physicalDevices.begin(); device != physicalDevices.end(); ++device)
-	{
-		// If it's not suitable, remove it
-		if (!isDeviceSuitable(*device))
+		if (!isDeviceSuitable(physicalDevices[i]))
 		{
-			physicalDevices.erase(device);
+			physicalDevices.erase(physicalDevices.begin()+i);
+			i -= 1;
 		}
 	}
+	vk::PhysicalDevice master;
+	pickMaster(master, physicalDevices);
 
-	arrangeGroup(physicalDevices);
 
 
-
-	deviceGroup.addDevice(instance, physicalDevices[0], surface);
-	for (auto& device = physicalDevices.begin() + 1; device != physicalDevices.end(); device++)
-		deviceGroup.addDevice(instance, *device);
+	deviceGroup.addDevice(instance, master, surface);
+	for (auto& slave = physicalDevices.begin(); slave != physicalDevices.end(); slave++)
+		deviceGroup.addDevice(instance, *slave);
 
 	deviceGroup.initDevices();
 }
 
 bool Renderer::isDeviceSuitable(const vk::PhysicalDevice & device)
 {
-	vk::PhysicalDeviceProperties deviceProperties;
-	vk::PhysicalDeviceFeatures deviceFeatures;
+	vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
+	vk::PhysicalDeviceFeatures deviceFeatures = device.getFeatures();
 
-	device.getProperties(&deviceProperties);
-	device.getFeatures(&deviceFeatures);
+	
 
-	//return deviceProperties.deviceType == vk::PhysicalDeviceType::eCpu;
+	return deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
 	return true; // all is welcome, for now
 }
 
-void Renderer::arrangeGroup(std::vector<vk::PhysicalDevice>& devices)
+void Renderer::pickMaster(vk::PhysicalDevice& master, std::vector<vk::PhysicalDevice>& devices)
 {
 	if (devices.size() > 1)
 	{
-		std::cout << "Select graphics card for head, by selecting device ID" << std::endl;
+		std::cout << "Select master graphics card, by selecting device ID" << std::endl;
 		std::cout << "ID \t Name" << std::endl;
 
 		// Jag kom fan inte på ett bättre sätt att lösa detta på, förlåt
-		std::map<uint32_t, vk::PhysicalDevice> options;
-		for (const auto& device : devices)
+		std::map<uint32_t, int> options;
+		for (int i = 0; i < devices.size(); i++)
 		{
+			vk::PhysicalDevice device = devices[i];
 			vk::PhysicalDeviceProperties deviceProperties;
 			device.getProperties(&deviceProperties);
 			std::cout << deviceProperties.deviceID << "\t " << deviceProperties.deviceName << std::endl;
 
 
-			options[deviceProperties.deviceID] = device;
+			options[deviceProperties.deviceID] = i;
 		}
 
 		int choice;
 		std::cin >> choice;
-		devices.insert(devices.begin(), options[choice]);
-		devices.erase(std::unique(devices.begin(), devices.end()), devices.end());
+		master = devices[options[choice]];
+		devices.erase(devices.begin() + options[choice]);
 	}
 
 }
