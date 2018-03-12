@@ -25,6 +25,8 @@ private:
 	RenderState* renderState = nullptr;
 	DeviceContext* deviceContext;
 
+	bool transparent;
+
 	static std::map<Material*, vkGroups::TechniqueGroup> loadedTechniques;
 
 public:
@@ -36,6 +38,7 @@ public:
 	void bindMaterial();
 	void bindPipeline(vk::CommandBuffer& commandBuffer);
 	void bindDescriptorSet(vk::CommandBuffer& commandBuffer);
+	bool isTransparent();
 
 	std::vector<vk::DescriptorSet> getDescriptionSets();
 

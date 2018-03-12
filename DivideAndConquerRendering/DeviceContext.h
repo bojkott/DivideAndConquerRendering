@@ -37,7 +37,6 @@ public:
 
 private:
 	float loadPercentage;
-	bool badRendering = true;
 	Technique* combineTechnique;
 
 	std::map<DeviceContext*, SecondaryDeviceTexturePair*> secondaryDeviceTextures;
@@ -93,8 +92,8 @@ private:
 	};
 
 	
-	std::vector<Mesh*> badRenderQueue;
 	std::map<Technique*, std::vector<Mesh*>> renderQueue;
+	std::map<Technique*, std::vector<Mesh*>> TransparentRenderQueue;
 
 public:
 	DeviceContext(DeviceGroup* group, vk::Instance& instance, vk::PhysicalDevice physicalDevice);

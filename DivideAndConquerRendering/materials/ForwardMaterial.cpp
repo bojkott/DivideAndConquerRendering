@@ -46,6 +46,11 @@ ForwardMaterial::ForwardMaterial(tinyobj::material_t material) : Material("Forwa
 	attributeDescription.offset = offsetof(ModelHelper::Vertex, norm);
 	attributeDescriptions.push_back(attributeDescription);
 
+	attributeDescription.binding = 0;
+	attributeDescription.location = 3;
+	attributeDescription.format = vk::Format::eR32G32B32A32Sfloat;	//Tangent
+	attributeDescription.offset = offsetof(ModelHelper::Vertex, tangent);
+	attributeDescriptions.push_back(attributeDescription);
 
 	buffer.ambient = (glm::vec4&)material.ambient;
 	buffer.diffuse = (glm::vec4&)material.diffuse;

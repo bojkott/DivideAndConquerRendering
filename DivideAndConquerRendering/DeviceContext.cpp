@@ -302,8 +302,8 @@ void DeviceContext::executeCommandQueue()
 
 void DeviceContext::submitMesh(Mesh * mesh)
 {
-	if (badRendering)
-		badRenderQueue.push_back(mesh);
+	if (mesh->getTechnique()->isTransparent())
+		TransparentRenderQueue[mesh->getTechnique()].push_back(mesh);
 	else
 		renderQueue[mesh->getTechnique()].push_back(mesh);
 }
@@ -313,11 +313,14 @@ void DeviceContext::renderGeometry()
 
 	if (mode == DEVICE_MODE::HEADLESS)
 	{
-		for (auto& mesh : badRenderQueue)
+		for (auto& queueElement : TransparentRenderQueue)
 		{
-			mesh->getTechnique()->bindPipeline(renderPassCommandBuffer);
-			mesh->getTechnique()->bindDescriptorSet(renderPassCommandBuffer);
-			mesh->draw(renderPassCommandBuffer);
+			queueElement.first->bindPipeline(renderPassCommandBuffer);
+			queueElement.first->bindDescriptorSet(renderPassCommandBuffer);
+			for (Mesh* mesh : queueElement.second)
+			{
+				mesh->draw(renderPassCommandBuffer);
+			}
 		}
 
 		for (auto& queueElement : renderQueue)
@@ -329,6 +332,8 @@ void DeviceContext::renderGeometry()
 				mesh->draw(renderPassCommandBuffer);
 			}
 		}
+		
+
 		renderPassCommandBuffer.endRenderPass();
 
 		//Transfer texture
@@ -341,14 +346,16 @@ void DeviceContext::renderGeometry()
 		for (size_t i = 0; i < swapchain.commandBuffers.size(); i++)
 		{
 			vk::CommandBuffer& commandBuffer = swapchain.commandBuffers[i];
-
-			for (auto& mesh : badRenderQueue)
+			for (auto& queueElement : TransparentRenderQueue)
 			{
-				mesh->getTechnique()->bindPipeline(commandBuffer);
-				mesh->getTechnique()->bindDescriptorSet(commandBuffer);
-				mesh->draw(commandBuffer);
+				queueElement.first->bindPipeline(commandBuffer);
+				queueElement.first->bindDescriptorSet(commandBuffer);
+				for (Mesh* mesh : queueElement.second)
+				{
+					mesh->draw(commandBuffer);
+				}
 			}
-
+	
 			for (auto& queueElement : renderQueue)
 			{
 				queueElement.first->bindPipeline(commandBuffer);
@@ -359,13 +366,15 @@ void DeviceContext::renderGeometry()
 				}
 			}
 
+			
+
 			commandBuffer.endRenderPass();
 			commandBuffer.writeTimestamp(vk::PipelineStageFlagBits::eAllGraphics, timestamQuery, 1);
 			commandBuffer.end();
 		}
 	}
 	renderQueue.clear();
-	badRenderQueue.clear();
+	TransparentRenderQueue.clear();
 	
 }
 

@@ -63,7 +63,7 @@ Technique::Technique(DeviceContext* deviceContext, Material * m, RenderState * r
 	pipeline = deviceContext->getDevice().createGraphicsPipeline({}, pipelineInfo);
 
 
-
+	transparent = false;
 	if (m->getMaterialBufferSize() > 0)
 	{
 		createTextureSampler();
@@ -131,6 +131,11 @@ void Technique::bindDescriptorSet(vk::CommandBuffer & commandBuffer)
 	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0, descriptorSets, {});
 }
 
+bool Technique::isTransparent()
+{
+	return transparent;
+}
+
 std::vector<vk::DescriptorSet> Technique::getDescriptionSets()
 {
 	return descriptorSets;
@@ -171,6 +176,7 @@ void Technique::createTexturesFromMaterial()
 	if (!fm->getAlphaTexname().empty())
 	{
 		textures[ALPHA_TEXTURE] = Texture::loadFromFile(deviceContext, fm->getAlphaTexname());
+		transparent = true;
 	}
 	if (!fm->getReflectionTexname().empty())
 	{

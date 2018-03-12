@@ -60,6 +60,7 @@ std::vector<ModelHelper::MeshInfo> ModelHelper::loadModelFromFile(const std::str
 			}
 			index_offset += fv;
 		}
+		computeTangentBasis(mesh.vertices);
 		int matIndex = shapes[s].mesh.material_ids[0];
 		if (matIndex != -1)
 		{
@@ -75,4 +76,34 @@ std::vector<ModelHelper::MeshInfo> ModelHelper::loadModelFromFile(const std::str
 	}
 
 	return meshes;
+}
+
+void ModelHelper::computeTangentBasis(std::vector<Vertex>& vertices)
+{
+	for (int i = 0; i < vertices.size(); i += 3)
+	{
+		glm::vec3 & v0 = vertices[i + 0].pos;
+		glm::vec3 & v1 = vertices[i + 1].pos;
+		glm::vec3 & v2 = vertices[i + 2].pos;
+
+		// Shortcuts for UVs
+		glm::vec2 & uv0 = vertices[i + 0].texCoord;
+		glm::vec2 & uv1 = vertices[i + 1].texCoord;
+		glm::vec2 & uv2 = vertices[i + 2].texCoord;
+
+		// Edges of the triangle : position delta
+		glm::vec3 deltaPos1 = v1 - v0;
+		glm::vec3 deltaPos2 = v2 - v0;
+
+		// UV delta
+		glm::vec2 deltaUV1 = uv1 - uv0;
+		glm::vec2 deltaUV2 = uv2 - uv0;
+
+		float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+		glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y)*r;
+
+		vertices[i + 0].tangent = tangent;
+		vertices[i + 1].tangent = tangent;;
+		vertices[i + 2].tangent = tangent;;
+	}
 }

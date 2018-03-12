@@ -3,6 +3,8 @@
 layout(location = 0) in vec3 inPos;
 layout(location = 1) in vec2 inTexCoord;
 layout(location = 2) in vec3 inNorm;
+layout(location = 3) in vec3 inTangent;
+layout(location = 4) in vec3 inBitangent;
 
 layout(binding = 1) uniform camera
 {
@@ -27,13 +29,17 @@ layout(location = 0) out vec2 outTexCoord;
 layout(location = 1) out vec3 outNorm;
 layout(location = 2) out float deviceId;
 layout(location = 3) out vec4 outCamPos;
-
 layout(location = 4) out vec4 outWorldPos;
+layout(location = 5) out vec3 outTangent;
+
 
 void main() 
 {
 	vec4 pos = vec4(inPos, 1.0);
-	outNorm = mat3(transpose(inverse(modelMat.model))) * inNorm;
+
+	outNorm = mat3(modelMat.model) * inNorm;
+	outTangent = mat3(modelMat.model) * inTangent;
+
 	outTexCoord = vec2(inTexCoord.x, -inTexCoord.y);
 	outCamPos = cam.camPos;
 	outWorldPos = modelMat.model * pos;

@@ -12,6 +12,7 @@ public:
 		glm::vec3 pos;
 		glm::vec2 texCoord;
 		glm::vec3 norm;
+		glm::vec3 tangent;
 		bool operator==(const Vertex& other) const {
 			return pos == other.pos && texCoord == other.texCoord && norm == other.norm;
 		}
@@ -25,6 +26,7 @@ public:
 	};
 
 	static std::vector<MeshInfo> loadModelFromFile(const std::string& filePath);
+	static void computeTangentBasis(std::vector<Vertex>& vertices);
 };
 
 //namespace std {
