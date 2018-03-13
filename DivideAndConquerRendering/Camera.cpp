@@ -29,7 +29,7 @@ void Camera::update(float dt)
 	int x, y;
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	SDL_GetRelativeMouseState(&x, &y);
-	const Uint8 *state = SDL_GetKeyboardState(NULL);
+	state = SDL_GetKeyboardState(NULL);
 	float cameraSpeed = 550.0f * dt;
 
 

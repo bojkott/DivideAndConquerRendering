@@ -54,7 +54,7 @@ public:
 	virtual void* getMaterialBufferData() { return nullptr; }
 
 protected:
-	void addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags);
+	void addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags, int descriptorCount=1);
 	void setPushConstant(vk::ShaderStageFlagBits shaderFlag, size_t size);
 
 	std::vector<vk::VertexInputBindingDescription> bindingDescriptions;

@@ -7,6 +7,7 @@
 #include "Buffer.h"
 #include <thread>
 #include <future>
+#include "Camera.h"
 
 const std::vector<const char*> Renderer::validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"
@@ -132,8 +133,8 @@ void Renderer::balanceDeviceTime(std::map<DeviceContext*, float>& times)
 	
 	if (!autoLoadBalance && times.size() == 2)
 	{
-		const Uint8 *state = SDL_GetKeyboardState(NULL);
-		int change = 0;
+		const Uint8 *state = Camera::getInstance()->state;
+		float change = 0;
 		if (state[SDL_SCANCODE_LEFT])
 		{
 			change = 0.05f;

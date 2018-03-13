@@ -36,7 +36,7 @@ public:
 	Camera() {}; // Fuck you map
 
 
-
+	const Uint8* state;
 
 private:
 	Camera(float x = 0, float y = 0, float z = 0);

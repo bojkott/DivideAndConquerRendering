@@ -82,12 +82,12 @@ vk::DescriptorSetLayoutCreateInfo Material::getDescriptorSetLayoutInfo()
 	return layoutInfo;
 }
 
-void Material::addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags)
+void Material::addBinding(int binding, vk::DescriptorType type, vk::ShaderStageFlags stageFlags, int descriptorCount)
 {
 	vk::DescriptorSetLayoutBinding layoutBinding;
 
 	layoutBinding.binding = binding;
-	layoutBinding.descriptorCount = 1;
+	layoutBinding.descriptorCount = descriptorCount;
 	layoutBinding.descriptorType = type;
 	layoutBinding.pImmutableSamplers = nullptr;
 	layoutBinding.stageFlags = stageFlags;
