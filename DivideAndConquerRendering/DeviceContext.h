@@ -112,7 +112,7 @@ public:
 
 	void clearBuffer(float r, float g, float b, float a);
 	void startFinalRenderPass();
-	void tempPresent();
+	void tempPresent(bool daqEnabled);
 	void executeCommandQueue();
 
 	void submitMesh(Mesh* mesh);

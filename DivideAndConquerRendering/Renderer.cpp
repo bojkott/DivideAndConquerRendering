@@ -57,8 +57,6 @@ void Renderer::render()
 {
 	DeviceContext* mainDevice = deviceGroup.getMainDevice();
 
-
-
 	std::map<DeviceContext*, float> deviceTimes;
 
 	if (slaveDevicesEnabled)
@@ -69,8 +67,7 @@ void Renderer::render()
 			executeGeometryPass(device);
 		}
 	}
-	mainDevice->waitForMainDevice();
-	float combineTime = mainDevice->getTimeTaken();
+
 	executeGeometryPass(mainDevice);
 			
 	transferTime = 0;
@@ -104,7 +101,9 @@ void Renderer::render()
 
 	if (slaveDevicesEnabled)
 		mainDevice->startFinalRenderPass();
-	mainDevice->tempPresent();
+	mainDevice->tempPresent(slaveDevicesEnabled);
+	mainDevice->waitForMainDevice();
+	float combineTime = mainDevice->getTimeTaken();
 
 	balanceDeviceTime(deviceTimes);
 	
@@ -305,23 +304,18 @@ void Renderer::pickMaster(vk::PhysicalDevice& master, std::vector<vk::PhysicalDe
 		std::cout << "Select master graphics card, by selecting device ID" << std::endl;
 		std::cout << "ID \t Name" << std::endl;
 
-		// Jag kom fan inte på ett bättre sätt att lösa detta på, förlåt
-		std::map<uint32_t, int> options;
 		for (int i = 0; i < devices.size(); i++)
 		{
 			vk::PhysicalDevice device = devices[i];
 			vk::PhysicalDeviceProperties deviceProperties;
 			device.getProperties(&deviceProperties);
-			std::cout << deviceProperties.deviceID << "\t " << deviceProperties.deviceName << std::endl;
-
-
-			options[deviceProperties.deviceID] = i;
+			std::cout << deviceProperties.deviceName << "(" << i << ")" << std::endl;
 		}
 
 		int choice;
 		std::cin >> choice;
-		master = devices[options[choice]];
-		devices.erase(devices.begin() + options[choice]);
+		master = devices[choice];
+		devices.erase(devices.begin() + choice);
 	}
 	else
 	{

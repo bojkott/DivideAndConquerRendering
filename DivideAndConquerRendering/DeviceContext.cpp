@@ -230,27 +230,26 @@ void DeviceContext::clearBuffer(float r, float g, float b, float a)
 	
 }
 
-void DeviceContext::tempPresent()
+void DeviceContext::tempPresent(bool daqEnabled)
 {
-	vk::SubmitInfo submitInfo;
-
-	vk::Semaphore waitSemaphores[] = { imageAvailableSemaphore };
-	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
-	//submitInfo.waitSemaphoreCount = 1;
-	//submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
-
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &swapchain.commandBuffers[finalCommandBufferIndex];
-
-	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-
-	graphicsQueue.submit(1, &submitInfo, vk::Fence());
-
 	vk::PresentInfoKHR presentInfo = {};
+	if (daqEnabled)
+	{
+		vk::SubmitInfo submitInfo;
+				
 
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &swapchain.commandBuffers[finalCommandBufferIndex];
+
+		vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		graphicsQueue.submit(1, &submitInfo, vk::Fence());
+
+
+	}
+	vk::Semaphore signalSemaphores[] = { renderFinishedSemaphore };
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
 
@@ -260,7 +259,7 @@ void DeviceContext::tempPresent()
 	presentInfo.pImageIndices = &finalCommandBufferIndex;
 
 	presentQueue.presentKHR(presentInfo);
-
+	presentQueue.waitIdle();
 
 }
 
@@ -293,6 +292,8 @@ void DeviceContext::executeCommandQueue()
 	{
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
+		submitInfo.signalSemaphoreCount = 1;
 	}
 
 
@@ -417,9 +418,7 @@ std::map<DeviceContext*, DeviceContext::SecondaryDeviceTexturePair*> DeviceConte
 
 void DeviceContext::waitForGeometry()
 {
-	while (device.getFenceStatus(geometryFinished) != vk::Result::eSuccess)
-	{
-	}
+	device.waitForFences(1, &geometryFinished, VK_TRUE, UINT64_MAX);
 }
 
 float DeviceContext::getTimeTaken()
@@ -530,7 +529,7 @@ void DeviceContext::createRenderPass()
 	switch (mode)
 	{
 		case DEVICE_MODE::WINDOW:
-			colorAttachment.finalLayout = vk::ImageLayout::eTransferDstOptimal;
+			colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 			depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
 			break;
 		case DEVICE_MODE::HEADLESS:
@@ -588,7 +587,7 @@ void DeviceContext::createPresentRenderPass()
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 	colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eLoad;
 	colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-	colorAttachment.initialLayout = vk::ImageLayout::eTransferDstOptimal;
+	colorAttachment.initialLayout = vk::ImageLayout::ePresentSrcKHR;
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
 

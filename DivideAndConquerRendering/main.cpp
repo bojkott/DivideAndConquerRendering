@@ -66,12 +66,12 @@ int main()
 
 		Model* model = new Model("sponza.obj");
 		models.push_back(model);
-		//for (int i = 1; i < 15; i++)
-		//{
-		//	Model* m = new Model(model);
-		//	m->setPosition(glm::vec3((i/5)*3500, 0, (i%5) * 2000));
-		//	models.push_back(m);
-		//}
+		for (int i = 1; i < 10; i++)
+		{
+			Model* m = new Model(model);
+			m->setPosition(glm::vec3((i/5)*3500, 0, (i%5) * 2000));
+			models.push_back(m);
+		}
 		
 		run();
 	}
