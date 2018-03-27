@@ -55,6 +55,13 @@ void Model::submitModel(Renderer* renderer)
 
 void Model::submitModel(DeviceContext * device)
 {
+	for (auto& advancedSet : advancedMeshGroup.sets)
+	{
+		for (Mesh* mesh : advancedSet.second.sets[device])
+		{
+			device->submitMesh(mesh);
+		}
+	}
 }
 
 glm::mat4 Model::getModelMatrix()
