@@ -98,16 +98,16 @@ void Renderer::render()
 	float mainDeviceGeometryTime = mainDevice->getTimeTaken();
 	deviceTimes[mainDevice] = mainDeviceGeometryTime;
 
-
+	//mainDevice->waitForMainDevice();
 	if (slaveDevicesEnabled)
 		mainDevice->startFinalRenderPass();
 	mainDevice->tempPresent(slaveDevicesEnabled);
-	mainDevice->waitForMainDevice();
-	float combineTime = mainDevice->getTimeTaken();
+	
+	//float combineTime = mainDevice->getTimeTaken();
 
 	balanceDeviceTime(deviceTimes);
 	
-	std::cout << "combine time: " << combineTime << std::endl;
+	//std::cout << "combine time: " << combineTime << std::endl;
 }
 
 void Renderer::toggleSlaveDevices(bool value)
@@ -169,10 +169,11 @@ void Renderer::balanceDeviceTime(std::map<DeviceContext*, float>& times)
 
 		}
 		std::string type = time.first == deviceGroup.getMainDevice() ? "master" : "slave";
-		std::cout << "(" << type << ") device " << deviceIndex << ": " << time.second << "(" << time.first->getLoadPercentage() << ") ";
+		//std::cout << "(" << type << ") device " << deviceIndex << ": " << time.second << "(" << time.first->getLoadPercentage() << ") ";
+		printf("Device: %2.4f", time.first->getLoadPercentage());
 		deviceIndex++;
 	}
-	std::cout  << std::endl;
+	//std::cout  << std::endl;
 }
 
 bool Renderer::checkValidationLayerSupport()

@@ -1065,6 +1065,11 @@ void DeviceContext::waitForMainDevice()
 	presentQueue.waitIdle();
 }
 
+void DeviceContext::waitForCombinePass()
+{
+	graphicsQueue.waitIdle();
+}
+
 void DeviceContext::startFinalRenderPass()
 {
 	if (deviceGroup->getGroupSize() == 1)

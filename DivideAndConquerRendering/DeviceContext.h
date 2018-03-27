@@ -129,6 +129,7 @@ public:
 
 	void waitForGeometry();
 	void waitForMainDevice();
+	void waitForCombinePass();
 	float getTimeTaken();
 
 	float getLoadPercentage();

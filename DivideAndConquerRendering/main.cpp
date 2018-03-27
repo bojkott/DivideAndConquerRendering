@@ -82,6 +82,9 @@ void run() {
 		renderer->render();
 		updateDelta();
 		sprintf_s(titleBuff, "Divide & Conquer Rendering [Vulkan] - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());
+
+		printf("Frametime: %2.8f\n", lastDelta);
+
 		SDL_SetWindowTitle(window->window, titleBuff);
 	}
 }
