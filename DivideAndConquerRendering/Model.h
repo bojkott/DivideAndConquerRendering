@@ -15,7 +15,7 @@ public:
 	Model(std::string filepath);
 	Model(Model* otherModel);
 	void submitModel(Renderer* renderer);
-
+	void submitModel(DeviceContext* device);
 	glm::mat4 getModelMatrix();
 
 	void setPosition(glm::vec3 pos);

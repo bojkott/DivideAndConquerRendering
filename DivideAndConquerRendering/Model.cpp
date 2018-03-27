@@ -53,6 +53,10 @@ void Model::submitModel(Renderer* renderer)
 
 }
 
+void Model::submitModel(DeviceContext * device)
+{
+}
+
 glm::mat4 Model::getModelMatrix()
 {
 	return modelMatrix;

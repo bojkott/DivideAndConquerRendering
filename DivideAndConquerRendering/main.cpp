@@ -14,7 +14,7 @@ Renderer* renderer;
 Camera* camera;
 char titleBuff[256];
 double lastDelta = 0.0;
-
+bool perModelRendering = true;
 std::vector<Model*> models;
 
 void updateDelta()
@@ -26,6 +26,32 @@ static Uint64 last = 0;
 	start = SDL_GetPerformanceCounter();
 	lastDelta = (double)((start - last) * 1000.0 / SDL_GetPerformanceFrequency());
 };
+
+
+void pmRendering()
+{
+	DeviceGroup* deviceGroup = &renderer->deviceGroup;
+	int deviceIndex = 0;
+	std::map<DeviceContext*, int> numberOfModelsOnDevices;
+	for (auto& device : deviceGroup->getDevices())
+	{
+		numberOfModelsOnDevices[device] = models.size() * device->getLoadPercentage();
+	}
+	int modelIndex = 0;
+	for (Model* m : models)
+	{
+		modelIndex++;
+		DeviceContext* device = deviceGroup->getDevices()[deviceIndex];
+		m->submitModel(device);
+		if (modelIndex > numberOfModelsOnDevices[device])
+		{
+			if (renderer->getSlaveDevicesEnabled())
+				deviceIndex = deviceGroup->getGroupSize() - 1;
+			modelIndex = 0;
+		}
+
+	}
+}
 
 void run() {
 
@@ -44,8 +70,14 @@ void run() {
 		}
 		camera->update(lastDelta/1000.0f);
 
-		for (Model* m : models)
-			m->submitModel(renderer);
+		if (perModelRendering)
+			pmRendering();
+		else
+		{
+			for (Model* m : models)
+				m->submitModel(renderer);
+		}
+		
 
 		renderer->render();
 		updateDelta();
