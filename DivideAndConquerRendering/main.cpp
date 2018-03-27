@@ -65,6 +65,10 @@ void run() {
 			{
 					renderer->toggleSlaveDevices(!renderer->getSlaveDevicesEnabled());
 			}
+			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_p)
+			{
+				perModelRendering = !perModelRendering;
+			}
 			if (windowEvent.type == SDL_QUIT) break;
 			if (windowEvent.type == SDL_KEYUP && windowEvent.key.keysym.sym == SDLK_ESCAPE) break;
 		}
@@ -81,7 +85,7 @@ void run() {
 
 		renderer->render();
 		updateDelta();
-		sprintf_s(titleBuff, "Divide & Conquer Rendering [Vulkan] - frametime: %3.2lf, transfertime: %3.2lf", lastDelta, renderer->getTransferTime());
+		sprintf_s(titleBuff, "Divide & Conquer Rendering [Vulkan] - frametime: %3.2lf, transfertime: %3.2lf, perModelRendering: %i", lastDelta, renderer->getTransferTime(), perModelRendering);
 
 		printf("Frametime: %2.8f\n", lastDelta);
 
